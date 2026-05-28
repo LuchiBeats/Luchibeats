@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luchi Beats - Luxury Music Production</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #D4AF37;
+            --dark: #0f0f0f;
+            --cream: #faf8f3;
+            --text: #2a2a2a;
+            --accent: #1a1a1a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text);
+            background-color: #ffffff;
+            line-height: 1.8;
+            letter-spacing: 0.3px;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: var(--dark);
+            color: white;
+            padding: 20px 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--gold);
+        }
+
+        nav .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        nav .logo {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--gold);
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        nav a:hover {
+            color: var(--gold);
+        }
+
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--gold);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--gold);
+            color: var(--dark);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--dark);
+            color: white;
+            padding: 140px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(212, 175, 55, 0.03) 10px,
+                rgba(212, 175, 55, 0.03) 20px
+            );
+            pointer-events: none;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 64px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .hero p {
+            font-size: 16px;
+            margin-bottom: 40px;
+            opacity: 0.85;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            letter-spacing: 0.5px;
+            line-height: 1.8;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 45px;
+            background: var(--gold);
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: 0;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            border: 2px solid var(--gold);
+            cursor: pointer;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-outline:hover {
+            background: var(--gold);
+            color: var(--dark);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 40px;
+        }
+
+        section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            margin-bottom: 60px;
+            text-align: center;
+            color: var(--dark);
+            position: relative;
+            letter-spacing: 1px;
+        }
+
+        section h2:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 2px;
+            background: var(--gold);
+            margin: 20px auto 0;
+        }
+
+        /* Beats Shop */
+        #beats {
+            background: var(--cream);
+        }
+
+        .beats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px;
+        }
+
+        .beat-card {
+            background: white;
+            border-radius: 0;
+            overflow: hidden;
+            border: 1px solid #e0d5c0;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .beat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+        }
+
+        .beat-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #0f0f0f 0%, #2a2a2a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: var(--gold);
+            position: relative;
+        }
+
+        .beat-info {
+            padding: 30px;
+        }
+
+        .beat-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+            letter-spacing: 0.5px;
+        }
+
+        .beat-genre {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .beat-price {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .beat-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 0;
+        }
+
+        .play-btn, .add-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .play-btn {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+        }
+
+        .play-btn:hover {
+            background: var(--gold);
+            color: var(--dark);
+        }
+
+        .add-btn {
+            background: var(--gold);
+            color: var(--dark);
+            border: 1px solid var(--gold);
+        }
+
+        .add-btn:hover {
+            background: transparent;
+            color: var(--gold);
+        }
+
+        /* Merch Section */
+        #merch {
+            background: white;
+        }
+
+        .merch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .merch-card {
+            background: white;
+            border-radius: 0;
+            overflow: hidden;
+            border: 1px solid #e0d5c0;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .merch-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+        }
+
+        .merch-image {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, #0f0f0f 0%, #2a2a2a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            color: var(--gold);
+            position: relative;
+        }
+
+        .merch-info {
+            padding: 30px;
+        }
+
+        .merch-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark);
+            letter-spacing: 0.5px;
+        }
+
+        .merch-desc {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .merch-price {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .merch-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--gold);
+            color: var(--dark);
+            border: 1px solid var(--gold);
+            border-radius: 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .merch-btn:hover {
+            background: transparent;
+            color: var(--gold);
+        }
+
+        /* YouTube Section */
+        #youtube {
+            background: var(--cream);
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        .video-card {
+            background: white;
+            border-radius: 0;
+            overflow: hidden;
+            border: 1px solid #e0d5c0;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+
+        .video-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #0f0f0f 0%, #2a2a2a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--gold);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .play-icon {
+            width: 70px;
+            height: 70px;
+            background: transparent;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--gold);
+            transition: all 0.3s;
+        }
+
+        .video-thumbnail:hover .play-icon {
+            transform: scale(1.15);
+            background: var(--gold);
+            color: var(--dark);
+        }
+
+        .video-info {
+            padding: 30px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .video-meta {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .watch-btn {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .watch-btn:hover {
+            color: var(--dark);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 60px 40px 30px;
+            text-align: center;
+            border-top: 1px solid var(--gold);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        footer h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--gold);
+        }
+
+        .social-links {
+            margin: 30px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            width: 45px;
+            height: 45px;
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 0;
+            line-height: 45px;
+            margin: 0 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .social-links a:hover {
+            background: var(--gold);
+            color: var(--dark);
+            transform: translateY(-3px);
+        }
+
+        .footer-text {
+            margin-top: 30px;
+            color: #888;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav .container {
+                padding: 0 20px;
+            }
+
+            nav ul {
+                gap: 1.5rem;
+                font-size: 11px;
+            }
+
+            .hero {
+                padding: 80px 20px;
+            }
+
+            .hero h1 {
+                font-size: 40px;
+            }
+
+            .hero p {
+                font-size: 14px;
+            }
+
+            section {
+                padding: 60px 20px;
+            }
+
+            section h2 {
+                font-size: 36px;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .beats-grid, .merch-grid, .video-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .btn {
+                display: block;
+                margin: 10px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">LUCHI BEATS</div>
+            <ul>
+                <li><a href="#beats">Beats</a></li>
+                <li><a href="#merch">Merch</a></li>
+                <li><a href="#youtube">Videos</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li class="cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-badge">0</span>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container">
+            <h1>LUCHI BEATS</h1>
+            <p>Premium production beats and exclusive limited-edition merchandise. Crafted for artists who demand excellence.</p>
+            <button class="btn" onclick="document.getElementById('beats').scrollIntoView()">Explore Beats</button>
+            <button class="btn btn-outline" onclick="document.getElementById('merch').scrollIntoView()">View Collection</button>
+        </div>
+    </div>
+
+    <!-- Beats Section -->
+    <section id="beats">
+        <div class="container">
+            <h2>Signature Beats Collection</h2>
+            <div class="beats-grid">
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Midnight Vibes</div>
+                        <div class="beat-genre">Trap • 95 BPM</div>
+                        <div class="beat-price">$49.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Sunset Dreams</div>
+                        <div class="beat-genre">R&B • 70 BPM</div>
+                        <div class="beat-price">$44.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Electric Energy</div>
+                        <div class="beat-genre">Hip-Hop • 90 BPM</div>
+                        <div class="beat-price">$54.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Urban Vibes</div>
+                        <div class="beat-genre">Drill • 140 BPM</div>
+                        <div class="beat-price">$59.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Chill Nights</div>
+                        <div class="beat-genre">Lo-Fi • 85 BPM</div>
+                        <div class="beat-price">$39.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="beat-card">
+                    <div class="beat-image">♪</div>
+                    <div class="beat-info">
+                        <div class="beat-title">Golden Hour</div>
+                        <div class="beat-genre">Soul • 100 BPM</div>
+                        <div class="beat-price">$49.99</div>
+                        <div class="beat-controls">
+                            <button class="play-btn"><i class="fas fa-play"></i> Play</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Merch Section -->
+    <section id="merch">
+        <div class="container">
+            <h2>Limited Edition Merchandise</h2>
+            <div class="merch-grid">
+                <div class="merch-card">
+                    <div class="merch-image">👕</div>
+                    <div class="merch-info">
+                        <div class="merch-title">Premium T-Shirt</div>
+                        <div class="merch-desc">100% organic cotton, limited release</div>
+                        <div class="merch-price">$78</div>
+                        <button class="merch-btn">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="merch-card">
+                    <div class="merch-image">🧢</div>
+                    <div class="merch-info">
+                        <div class="merch-title">Signature Cap</div>
+                        <div class="merch-desc">Adjustable, premium embroidery</div>
+                        <div class="merch-price">$59</div>
+                        <button class="merch-btn">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="merch-card">
+                    <div class="merch-image">🎽</div>
+                    <div class="merch-info">
+                        <div class="merch-title">Luxury Hoodie</div>
+                        <div class="merch-desc">Japanese fleece, tailored fit</div>
+                        <div class="merch-price">$129</div>
+                        <button class="merch-btn">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="merch-card">
+                    <div class="merch-image">💼</div>
+                    <div class="merch-info">
+                        <div class="merch-title">Collectors Tote</div>
+                        <div class="merch-desc">Canvas bag with leather trim</div>
+                        <div class="merch-price">$89</div>
+                        <button class="merch-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTube Section -->
+    <section id="youtube">
+        <div class="container">
+            <h2>Latest Content</h2>
+            <div class="video-grid">
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <div class="play-icon"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Mastering Professional Beats in FL Studio</div>
+                        <div class="video-meta">2 weeks ago • 45K views</div>
+                        <a href="https://youtube.com" target="_blank" class="watch-btn">Watch →</a>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <div class="play-icon"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Beat Selection & Artist Collaboration</div>
+                        <div class="video-meta">1 month ago • 32K views</div>
+                        <a href="https://youtube.com" target="_blank" class="watch-btn">Watch →</a>
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <div class="video-thumbnail">
+                        <div class="play-icon"><i class="fas fa-play"></i></div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Signature Sounds: Best of 2024</div>
+                        <div class="video-meta">3 weeks ago • 28K views</div>
+                        <a href="https://youtube.com" target="_blank" class="watch-btn">Watch →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" style="background: var(--cream);">
+        <div class="container" style="text-align: center;">
+            <h2>Inquiries & Collaborations</h2>
+            <p style="font-size: 16px; margin: 30px 0 50px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto; letter-spacing: 0.3px;">
+                Interested in custom production, exclusive licensing, or partnership opportunities? We'd love to hear from you.
+            </p>
+            <a href="mailto:hello@luchibeets.com" class="btn">Get in Touch</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <h3>LUCHI BEATS</h3>
+            <div class="social-links">
+                <a href="https://youtube.com" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                <a href="https://twitter.com" target="_blank" title="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="https://instagram.com" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://tiktok.com" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            </div>
+            <p class="footer-text">© 2024 LUCHI BEATS. ALL RIGHTS RESERVED. LUXURY MUSIC PRODUCTION.</p>
+        </div>
+    </footer>
+
+    <script>
+        let cartCount = 0;
+        const cartBadge = document.querySelector('.cart-badge');
+
+        document.querySelectorAll('.add-btn, .merch-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                cartCount++;
+                cartBadge.textContent = cartCount;
+                cartBadge.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    cartBadge.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
