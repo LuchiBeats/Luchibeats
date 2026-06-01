@@ -15,8 +15,11 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero — full screen video with lightning */}
-      <section className="relative h-screen overflow-hidden">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hero-video" src="/hero.mp4" />
+      <section className="relative overflow-hidden aspect-video md:aspect-auto md:h-[100dvh]">
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hero-video">
+          <source src="/hero-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
+          <source src="/hero-desktop.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
         <div className="lightning-1 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 20% 15%, rgba(200,220,255,0.35) 0%, transparent 50%)", mixBlendMode: "screen" }} />
         <div className="lightning-2 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 80% 10%, rgba(180,210,255,0.4) 0%, transparent 45%)", mixBlendMode: "screen" }} />
@@ -24,24 +27,19 @@ export default function HomePage() {
         <div className="lightning-4 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 75% 60%, rgba(255,220,180,0.25) 0%, transparent 50%)", mixBlendMode: "screen" }} />
       </section>
 
-      {/* Sticky navbar */}
-      <div className="sticky top-0 z-50">
-        <Navbar />
-      </div>
-
       {/* Marquee ticker */}
       <Marquee />
 
       {/* Featured Beats */}
-      <section className="relative max-w-7xl mx-auto px-4 py-24 overflow-hidden">
+      <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
         {/* Ambient orbs */}
         <div className="orb orb-1 w-96 h-96 -top-20 -left-20" style={{ background: "rgba(201,168,76,0.12)" }} />
         <div className="orb orb-2 w-72 h-72 top-1/2 -right-16" style={{ background: "rgba(255,140,0,0.08)" }} />
 
-        <ScrollReveal className="flex items-end justify-between mb-10">
+        <ScrollReveal className="flex items-end justify-between mb-8 md:mb-10">
           <div>
             <p className="text-xs tracking-[0.3em] mb-2 fire-text" style={{ color: "var(--fire)" }}>FRESH CUTS</p>
-            <h2 className="text-4xl font-black text-white">Latest Beats</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-white">Latest Beats</h2>
           </div>
           <Link href="/beats" className="text-sm btn-outline px-4 py-2 rounded flex items-center gap-2">
             View All <ArrowRight size={14} />
@@ -77,7 +75,7 @@ export default function HomePage() {
       </section>
 
       {/* Services Banner */}
-      <section className="relative border-y py-24 overflow-hidden" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+      <section className="relative border-y py-12 md:py-24 overflow-hidden" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
         <div className="orb orb-3 w-80 h-80 top-0 left-1/2 -translate-x-1/2" style={{ background: "rgba(201,168,76,0.06)" }} />
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -87,7 +85,7 @@ export default function HomePage() {
               { icon: Star, title: "Artist Spotlights", desc: "We shine a light on rising artists we believe in.", href: "/artists" },
             ].map(({ icon: Icon, title, desc, href }, i) => (
               <ScrollReveal key={title} delay={i * 0.15}>
-                <Link href={href} className="group flex flex-col items-center p-8 rounded-lg transition-all hover:bg-black/30">
+                <Link href={href} className="group flex flex-col items-center p-5 md:p-8 rounded-lg transition-all hover:bg-black/30">
                   <div className="fire-glow w-16 h-16 rounded-full flex items-center justify-center mb-5" style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)" }}>
                     <Icon size={28} style={{ color: "var(--fire)" }} />
                   </div>
@@ -101,19 +99,19 @@ export default function HomePage() {
       </section>
 
       {/* Artist Spotlight */}
-      <section className="relative max-w-7xl mx-auto px-4 py-24 overflow-hidden">
+      <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
         <div className="orb orb-2 w-96 h-96 -bottom-20 -right-20" style={{ background: "rgba(201,168,76,0.1)" }} />
-        <ScrollReveal className="flex items-end justify-between mb-10">
+        <ScrollReveal className="flex items-end justify-between mb-8 md:mb-10">
           <div>
             <p className="text-xs tracking-[0.3em] mb-2 fire-text" style={{ color: "var(--fire)" }}>ON THE RISE</p>
-            <h2 className="text-4xl font-black text-white">Artist Spotlight</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-white">Artist Spotlight</h2>
           </div>
           <Link href="/artists" className="text-sm btn-outline px-4 py-2 rounded flex items-center gap-2">
             All Artists <ArrowRight size={14} />
           </Link>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <div className="card-surface rounded-lg p-8 flex flex-col md:flex-row gap-8 items-center" style={{ border: "1px solid rgba(201,168,76,0.15)" }}>
+          <div className="card-surface rounded-lg p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center" style={{ border: "1px solid rgba(201,168,76,0.15)" }}>
             <div className="fire-glow w-36 h-36 rounded-full flex-shrink-0 flex items-center justify-center text-5xl font-black" style={{ background: "rgba(201,168,76,0.12)", color: "var(--fire)", border: "1px solid rgba(201,168,76,0.3)" }}>
               {featuredArtist.name[0]}
             </div>
@@ -139,7 +137,7 @@ export default function HomePage() {
       <EmailCapture />
 
       {/* CTA */}
-      <section className="relative py-28 text-center overflow-hidden" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.04) 50%, transparent 100%)" }}>
+      <section className="relative py-14 md:py-28 text-center overflow-hidden" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.04) 50%, transparent 100%)" }}>
         <div className="orb orb-1 w-[500px] h-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ background: "rgba(201,168,76,0.06)" }} />
         <ScrollReveal className="relative max-w-2xl mx-auto px-4">
           <p className="text-xs tracking-[0.4em] mb-4 fire-text" style={{ color: "var(--fire)" }}>LEVEL UP</p>

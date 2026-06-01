@@ -23,11 +23,11 @@ const testimonials = [
 
 export default function Testimonials() {
   return (
-    <section className="relative max-w-7xl mx-auto px-4 py-24 overflow-hidden">
+    <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
       <div className="absolute w-96 h-96 rounded-full pointer-events-none" style={{ background: "rgba(201,168,76,0.05)", filter: "blur(80px)", top: "0", left: "50%", transform: "translateX(-50%)" }} />
-      <ScrollReveal className="text-center mb-14">
+      <ScrollReveal className="text-center mb-8 md:mb-14">
         <p className="text-xs tracking-[0.35em] mb-3" style={{ color: "var(--fire)" }}>WHAT ARTISTS SAY</p>
-        <h2 className="text-4xl font-black text-white">Trusted by Artists</h2>
+        <h2 className="text-3xl md:text-4xl font-black text-white">Trusted by Artists</h2>
       </ScrollReveal>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((t, i) => (

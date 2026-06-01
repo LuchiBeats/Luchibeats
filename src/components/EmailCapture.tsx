@@ -18,7 +18,7 @@ export default function EmailCapture() {
   }
 
   return (
-    <section className="relative py-28 overflow-hidden" style={{ background: "var(--surface)" }}>
+    <section className="relative py-14 md:py-28 overflow-hidden" style={{ background: "var(--surface)" }}>
       {/* Animated gold background pulse */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.07) 0%, transparent 65%)" }} />
       <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent)" }} />

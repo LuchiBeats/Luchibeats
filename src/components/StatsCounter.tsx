@@ -39,7 +39,7 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 
 export default function StatsCounter() {
   return (
-    <section className="relative border-y py-20 overflow-hidden" style={{ borderColor: "rgba(201,168,76,0.2)", background: "var(--surface)" }}>
+    <section className="relative border-y py-10 md:py-20 overflow-hidden" style={{ borderColor: "rgba(201,168,76,0.2)", background: "var(--surface)" }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%)" }} />
       <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
         {stats.map(({ value, suffix, label }) => (

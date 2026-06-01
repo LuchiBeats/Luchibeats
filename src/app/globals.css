@@ -125,8 +125,14 @@ body {
 .orb-2 { animation: floatOrb 11s ease-in-out infinite; animation-delay: 2s; }
 .orb-3 { animation: floatOrb 9s ease-in-out infinite; animation-delay: 4.5s; }
 
-/* ── Custom cursor ── */
-*, *::before, *::after { cursor: none !important; }
+/* ── Custom cursor (mouse/trackpad only) ── */
+@media (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+}
+
+@media (pointer: coarse) {
+  .cursor-dot, .cursor-ring { display: none !important; }
+}
 
 .cursor-dot {
   position: fixed;
