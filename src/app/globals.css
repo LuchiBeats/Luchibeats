@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gold: #C9A84C;
+  --gold-light: #E5C76B;
+  --bg: #0A0A0A;
+  --surface: #111111;
+  --surface2: #1A1A1A;
+  --border: #2A2A2A;
+  --text: #F5F5F5;
+  --muted: #888888;
+  --background: #0A0A0A;
+  --foreground: #F5F5F5;
 }
 
 @theme inline {
@@ -12,15 +20,39 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.gold { color: var(--gold); }
+
+.gold-gradient {
+  background: linear-gradient(135deg, #C9A84C, #E5C76B, #C9A84C);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
+
+.btn-gold {
+  background: linear-gradient(135deg, #C9A84C, #E5C76B);
+  color: #0A0A0A;
+  font-weight: 700;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-outline {
+  border: 1px solid #C9A84C;
+  color: #C9A84C;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-outline:hover { background: #C9A84C; color: #0A0A0A; }
+
+.card-surface { background: var(--surface); border: 1px solid var(--border); }
+.card-surface2 { background: var(--surface2); border: 1px solid var(--border); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
