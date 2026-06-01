@@ -9,15 +9,26 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 70%)" }} />
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Video background */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          src="/hero.mp4"
+        />
+        {/* Dark overlay */}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.7) 100%)" }} />
+        {/* Content */}
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <p className="text-sm tracking-[0.4em] mb-4" style={{ color: "var(--gold)" }}>PREMIUM PRODUCER</p>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tight mb-6 leading-none">
+          <h1 className="text-5xl md:text-8xl font-black tracking-tight mb-6 leading-none drop-shadow-2xl">
             <span className="gold-gradient">LUCHI</span>
             <span className="text-white">BEATS</span>
           </h1>
-          <p className="text-lg md:text-xl mb-10 max-w-xl mx-auto" style={{ color: "var(--muted)" }}>
+          <p className="text-lg md:text-xl mb-10 max-w-xl mx-auto text-gray-200">
             Cinematic beats. Professional mixing. Authentic sound — built for artists who are serious about their craft.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
