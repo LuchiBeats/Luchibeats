@@ -22,7 +22,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: "rgba(10,10,10,0.92)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
+    <nav className="w-full border-b" style={{ background: "rgba(0,0,0,0.95)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/">
           <Image src="/logo.png" alt="LuchiBeats" width={120} height={60} className="object-contain h-12 w-auto" />

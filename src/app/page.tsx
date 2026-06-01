@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Music, Mic2, Star } from "lucide-react";
 import { beats, artists } from "@/lib/data";
+import Navbar from "@/components/Navbar";
 
 export default function HomePage() {
   const featuredBeats = beats.slice(0, 3);
@@ -8,9 +9,8 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Video background */}
+      {/* Hero — full screen video, no overlay */}
+      <section className="relative h-screen overflow-hidden">
         <video
           autoPlay
           muted
@@ -20,6 +20,11 @@ export default function HomePage() {
           src="/hero.mp4"
         />
       </section>
+
+      {/* Sticky navbar appears here, below the video */}
+      <div className="sticky top-0 z-50">
+        <Navbar />
+      </div>
 
       {/* Featured Beats */}
       <section className="max-w-7xl mx-auto px-4 py-20">
