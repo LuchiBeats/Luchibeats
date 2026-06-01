@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ShoppingCart, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -23,8 +24,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: "rgba(10,10,10,0.92)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
-        <Link href="/" className="text-xl font-black tracking-widest gold-gradient">
-          LUCHIBEATS
+        <Link href="/">
+          <Image src="/logo.png" alt="LuchiBeats" width={80} height={80} className="object-contain" />
         </Link>
 
         {/* Desktop links */}
@@ -35,7 +36,7 @@ export default function Navbar() {
               href={l.href}
               className={cn(
                 "text-sm tracking-wide transition-colors",
-                pathname === l.href ? "text-yellow-400" : "text-gray-400 hover:text-white"
+                pathname === l.href ? "text-orange-500" : "text-gray-400 hover:text-white"
               )}
             >
               {l.label}
@@ -47,7 +48,7 @@ export default function Navbar() {
           <Link href="/cart" className="relative">
             <ShoppingCart size={20} className="text-gray-300 hover:text-white transition-colors" />
             {items.length > 0 && (
-              <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: "var(--gold)", color: "#000" }}>
+              <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: "var(--fire)", color: "#fff" }}>
                 {items.length}
               </span>
             )}
@@ -63,7 +64,7 @@ export default function Navbar() {
         <div className="md:hidden border-t px-4 py-4 flex flex-col gap-4" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
           {links.map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
-              className={cn("text-sm tracking-wide", pathname === l.href ? "text-yellow-400" : "text-gray-400")}>
+              className={cn("text-sm tracking-wide", pathname === l.href ? "text-orange-500" : "text-gray-400")}>
               {l.label}
             </Link>
           ))}

@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --gold: #C9A84C;
-  --gold-light: #E5C76B;
-  --bg: #0A0A0A;
-  --surface: #111111;
-  --surface2: #1A1A1A;
+  --fire: #FF5500;
+  --fire-light: #FF8533;
+  --fire-red: #CC2200;
+  --diamond: #E8E8E8;
+  --diamond-bright: #FFFFFF;
+  --bg: #000000;
+  --surface: #0D0D0D;
+  --surface2: #161616;
   --border: #2A2A2A;
-  --text: #F5F5F5;
-  --muted: #888888;
-  --background: #0A0A0A;
-  --foreground: #F5F5F5;
+  --text: #F0F0F0;
+  --muted: #777777;
+  --background: #000000;
+  --foreground: #F0F0F0;
 }
 
 @theme inline {
@@ -26,33 +29,46 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-.gold { color: var(--gold); }
+/* Fire accent color */
+.gold { color: var(--fire); }
 
+/* Diamond/fire gradient for headings */
 .gold-gradient {
-  background: linear-gradient(135deg, #C9A84C, #E5C76B, #C9A84C);
+  background: linear-gradient(135deg, #FF5500, #FF8533, #FFAA00, #FF5500);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* Silver/diamond gradient for secondary text */
+.diamond-gradient {
+  background: linear-gradient(135deg, #AAAAAA, #FFFFFF, #CCCCCC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fire button */
 .btn-gold {
-  background: linear-gradient(135deg, #C9A84C, #E5C76B);
-  color: #0A0A0A;
+  background: linear-gradient(135deg, #CC2200, #FF5500, #FF8533);
+  color: #FFFFFF;
   font-weight: 700;
+  letter-spacing: 0.05em;
   transition: opacity 0.2s, transform 0.1s;
 }
-.btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-gold:hover { opacity: 0.85; transform: translateY(-1px); }
 
+/* Outline button with fire border */
 .btn-outline {
-  border: 1px solid #C9A84C;
-  color: #C9A84C;
+  border: 1px solid #FF5500;
+  color: #FF5500;
   transition: background 0.2s, color 0.2s;
 }
-.btn-outline:hover { background: #C9A84C; color: #0A0A0A; }
+.btn-outline:hover { background: #FF5500; color: #000000; }
 
 .card-surface { background: var(--surface); border: 1px solid var(--border); }
 .card-surface2 { background: var(--surface2); border: 1px solid var(--border); }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #FF5500; border-radius: 3px; }
