@@ -9,16 +9,23 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero — full screen video, no overlay */}
+      {/* Hero — full screen video with lightning */}
       <section className="relative h-screen overflow-hidden">
+        {/* Video with fade-in */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover hero-video"
           src="/hero.mp4"
         />
+        {/* Subtle dark vignette for depth */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Lightning layer 1 — blue/white flash */}
+        <div className="lightning-1 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(180,200,255,0.18) 0%, transparent 60%)", mixBlendMode: "screen" }} />
+        {/* Lightning layer 2 — offset flash */}
+        <div className="lightning-2 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 70% 40%, rgba(200,220,255,0.15) 0%, transparent 55%)", mixBlendMode: "screen" }} />
       </section>
 
       {/* Sticky navbar appears here, below the video */}
