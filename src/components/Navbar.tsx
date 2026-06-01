@@ -48,7 +48,7 @@ export default function Navbar() {
           <Link href="/cart" className="relative">
             <ShoppingCart size={20} className="text-gray-300 hover:text-white transition-colors" />
             {items.length > 0 && (
-              <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: "var(--fire)", color: "#fff" }}>
+              <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: "var(--fire)", color: "#000" }}>
                 {items.length}
               </span>
             )}
