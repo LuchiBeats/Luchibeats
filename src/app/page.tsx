@@ -4,6 +4,9 @@ import { beats, artists } from "@/lib/data";
 import Navbar from "@/components/Navbar";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
+import StatsCounter from "@/components/StatsCounter";
+import Testimonials from "@/components/Testimonials";
+import EmailCapture from "@/components/EmailCapture";
 
 export default function HomePage() {
   const featuredBeats = beats.slice(0, 3);
@@ -56,7 +59,12 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-white mb-1">{beat.title}</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-bold text-white">{beat.title}</h3>
+                    <div className="waveform">
+                      {[...Array(12)].map((_, j) => <div key={j} className="waveform-bar" />)}
+                    </div>
+                  </div>
                   <div className="flex gap-3 text-xs" style={{ color: "var(--muted)" }}>
                     <span>{beat.genre}</span><span>{beat.bpm} BPM</span><span>{beat.key}</span>
                   </div>
@@ -120,6 +128,15 @@ export default function HomePage() {
           </div>
         </ScrollReveal>
       </section>
+
+      {/* Stats */}
+      <StatsCounter />
+
+      {/* Testimonials */}
+      <Testimonials />
+
+      {/* Email Capture */}
+      <EmailCapture />
 
       {/* CTA */}
       <section className="relative py-28 text-center overflow-hidden" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(201,168,76,0.04) 50%, transparent 100%)" }}>
