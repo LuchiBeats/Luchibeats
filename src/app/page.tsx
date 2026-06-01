@@ -22,10 +22,14 @@ export default function HomePage() {
         />
         {/* Subtle dark vignette for depth */}
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
-        {/* Lightning layer 1 — blue/white flash */}
-        <div className="lightning-1 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(180,200,255,0.18) 0%, transparent 60%)", mixBlendMode: "screen" }} />
-        {/* Lightning layer 2 — offset flash */}
-        <div className="lightning-2 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 70% 40%, rgba(200,220,255,0.15) 0%, transparent 55%)", mixBlendMode: "screen" }} />
+        {/* Lightning layer 1 — top left */}
+        <div className="lightning-1 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 20% 15%, rgba(200,220,255,0.35) 0%, transparent 50%)", mixBlendMode: "screen" }} />
+        {/* Lightning layer 2 — top right */}
+        <div className="lightning-2 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 80% 10%, rgba(180,210,255,0.4) 0%, transparent 45%)", mixBlendMode: "screen" }} />
+        {/* Lightning layer 3 — center */}
+        <div className="lightning-3 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(220,230,255,0.3) 0%, transparent 55%)", mixBlendMode: "screen" }} />
+        {/* Lightning layer 4 — bottom right, warm tint */}
+        <div className="lightning-4 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 75% 60%, rgba(255,220,180,0.25) 0%, transparent 50%)", mixBlendMode: "screen" }} />
       </section>
 
       {/* Sticky navbar appears here, below the video */}
