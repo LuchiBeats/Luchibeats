@@ -7,6 +7,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
 import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
+import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 
 export default function HomePage() {
   const featuredBeats = beats.slice(0, 3);
@@ -80,8 +81,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             {[
-              { icon: Music, title: "Premium Beats", desc: "Trap, R&B, Hip-Hop, Afrobeats — all moods covered.", href: "/beats" },
-              { icon: Mic2, title: "Mix & Master", desc: "Professional mixing and mastering, radio-ready.", href: "/mixing" },
+              { icon: Music, title: "Premium Beats", desc: "Trap, R&B, Hip-Hop, Afrobeats — all moods covered. Fast delivery, 100% satisfaction guaranteed.", href: "/beats" },
+              { icon: Mic2, title: "Mix & Master", desc: "Professional mixing and mastering, radio-ready. Quick turnaround so you never miss a deadline.", href: "/mixing" },
               { icon: Star, title: "Artist Spotlights", desc: "We shine a light on rising artists we believe in.", href: "/artists" },
             ].map(({ icon: Icon, title, desc, href }, i) => (
               <ScrollReveal key={title} delay={i * 0.15}>
@@ -97,6 +98,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Artists Worked With */}
+      <ArtistsWorkedWith />
 
       {/* Artist Spotlight */}
       <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
