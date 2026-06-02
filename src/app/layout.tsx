@@ -17,6 +17,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LuchiBeats — Premium Beats & Mixing Services",
   description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
+  openGraph: {
+    title: "LuchiBeats — Premium Beats & Mixing Services",
+    description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
+    url: "https://www.luchibeats.com",
+    siteName: "LuchiBeats",
+    images: [{ url: "https://www.luchibeats.com/og-image.png", width: 1200, height: 630, alt: "LuchiBeats" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LuchiBeats — Premium Beats & Mixing Services",
+    description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
+    images: ["https://www.luchibeats.com/og-image.png"],
+  },
 };
 
 export default function RootLayout({

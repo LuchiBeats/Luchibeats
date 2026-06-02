@@ -231,6 +231,12 @@ body {
 }
 .fire-text { animation: textGlow 3s ease-in-out infinite; }
 
+/* ── Page tab nav ── */
+.page-tab:hover { border-bottom-color: var(--fire) !important; color: var(--fire) !important; }
+
+.tab-scrollbar { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tab-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Video fade-in */
 @keyframes videoFadeIn {
   from { opacity: 0; }

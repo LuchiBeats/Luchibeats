@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Music, Mic2, Star } from "lucide-react";
+import { ArrowRight, Music, Mic2, Star, ShoppingBag, Phone, Users, Info } from "lucide-react";
 import { beats, artists } from "@/lib/data";
 import Navbar from "@/components/Navbar";
 import Marquee from "@/components/Marquee";
@@ -8,6 +8,7 @@ import StatsCounter from "@/components/StatsCounter";
 import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
+import Productions from "@/components/Productions";
 
 export default function HomePage() {
   const featuredBeats = beats.slice(0, 3);
@@ -27,6 +28,29 @@ export default function HomePage() {
         <div className="lightning-3 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(220,230,255,0.3) 0%, transparent 55%)", mixBlendMode: "screen" }} />
         <div className="lightning-4 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 75% 60%, rgba(255,220,180,0.25) 0%, transparent 50%)", mixBlendMode: "screen" }} />
       </section>
+
+      {/* Page navigation tabs */}
+      <div className="border-b tab-scrollbar overflow-x-auto" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
+        <div className="flex items-center min-w-max mx-auto px-4 md:px-0 md:justify-center">
+          {[
+            { href: "/beats",   label: "Beats",       icon: ShoppingBag },
+            { href: "/mixing",  label: "Mix & Master", icon: Mic2 },
+            { href: "/artists", label: "Spotlights",   icon: Users },
+            { href: "/about",   label: "About",        icon: Info },
+            { href: "/contact", label: "Contact",      icon: Phone },
+          ].map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-2 px-5 py-4 text-sm font-semibold tracking-wide whitespace-nowrap border-b-2 border-transparent transition-all hover:text-white page-tab"
+              style={{ color: "var(--muted)" }}
+            >
+              <Icon size={14} />
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {/* Marquee ticker */}
       <Marquee />
@@ -98,6 +122,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Productions */}
+      <Productions />
 
       {/* Artists Worked With */}
       <ArtistsWorkedWith />

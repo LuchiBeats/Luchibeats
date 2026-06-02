@@ -1,19 +1,18 @@
-import Image from "next/image";
 import ScrollReveal from "./ScrollReveal";
 
 const collaborators = [
-  { name: "Dave East",       img: "/artists/dave-east.png"  },
-  { name: "Fabolous",        img: "/artists/fabolous.jpg"   },
-  { name: "Joe Budden",      img: "/artists/joe-budden.jpg" },
-  { name: "A Boogie",        img: "/artists/a-boogie.png"   },
-  { name: "Fetty Wap",       img: "/artists/fetty-wap.png"  },
-  { name: "Tempo",           img: "/artists/tempo.jpg"      },
-  { name: "Mysonne",         img: "/artists/mysonne.jpg"    },
-  { name: "Mariah Lynn",     img: "/artists/mariah-lynn.jpg"},
-  { name: "Arlene Mc",       img: "/artists/arlene-mc.jpg"  },
-  { name: "Harrd Luck",      img: null                      },
-  { name: "Oskama Esteban",  img: null                      },
-  { name: "Albeal",          img: "/artists/albeal.jpg"     },
+  { name: "Dave East"      },
+  { name: "Fabolous"       },
+  { name: "Joe Budden"     },
+  { name: "A Boogie"       },
+  { name: "Fetty Wap"      },
+  { name: "Tempo"          },
+  { name: "Mysonne"        },
+  { name: "Mariah Lynn"    },
+  { name: "Arlene Mc"      },
+  { name: "Harrd Luck"     },
+  { name: "Oskama Esteban" },
+  { name: "Albeal"         },
 ];
 
 export default function ArtistsWorkedWith() {
@@ -30,25 +29,10 @@ export default function ArtistsWorkedWith() {
           {collaborators.map((artist, i) => (
             <ScrollReveal key={artist.name} delay={i * 0.04} className="flex flex-col items-center gap-3 group">
               <div
-                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden flex-shrink-0 fire-glow"
-                style={{ border: "1.5px solid rgba(201,168,76,0.35)" }}
+                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden flex-shrink-0 fire-glow flex items-center justify-center text-xl font-black"
+                style={{ border: "1.5px solid rgba(201,168,76,0.35)", background: "rgba(201,168,76,0.1)", color: "var(--fire)" }}
               >
-                {artist.img ? (
-                  <Image
-                    src={artist.img}
-                    alt={artist.name}
-                    fill
-                    className="object-cover object-top group-hover:scale-110 transition-transform duration-500"
-                    sizes="80px"
-                  />
-                ) : (
-                  <div
-                    className="w-full h-full flex items-center justify-center text-xl font-black"
-                    style={{ background: "rgba(201,168,76,0.1)", color: "var(--fire)" }}
-                  >
-                    {artist.name[0]}
-                  </div>
-                )}
+                {artist.name[0]}
               </div>
               <p className="text-xs text-center font-semibold leading-tight" style={{ color: "var(--muted)" }}>
                 {artist.name}
