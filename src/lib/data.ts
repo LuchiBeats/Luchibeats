@@ -101,6 +101,9 @@ export const artists: Artist[] = [
     genre: "Hip-Hop",
     imageUrl: "/artists/oskama.jpg",
     bio: "Oskama Esteban is a recording artist hailing from the streets of Paterson, New Jersey — a city with a long legacy of producing raw, authentic talent. Known for his razor-sharp lyricism and unapologetic storytelling, Oskama channels the grit, hustle, and heart of his upbringing into every bar he writes. His music captures the tension between struggle and ambition, painting vivid portraits of life in the trenches while keeping his eyes locked on elevation. With a delivery that commands attention and a pen that doesn't flinch, Oskama has steadily built a loyal following across the tri-state area and beyond. Whether he's dropping introspective verses over soulful production or going bar-for-bar on harder records, his versatility and consistency set him apart. Oskama Esteban isn't just making music — he's documenting a journey, and the world is starting to pay attention.",
+    instagramUrl: "https://www.instagram.com/oskama_ZG",
+    youtubeUrl: "https://www.youtube.com/@oskamaesteban",
+    spotifyUrl: "https://open.spotify.com/search/Oskama%20Esteban",
   },
   {
     id: "artist-2",
