@@ -55,6 +55,9 @@ export default function HomePage() {
       {/* Marquee ticker */}
       <Marquee />
 
+      {/* Portfolio Artists — after nav tabs */}
+      <ArtistsWorkedWith />
+
       {/* Featured Beats */}
       <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
         {/* Ambient orbs */}
@@ -125,38 +128,6 @@ export default function HomePage() {
 
       {/* Productions */}
       <Productions />
-
-      {/* Artists Worked With */}
-      <ArtistsWorkedWith />
-
-      {/* Artist Spotlight */}
-      <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
-        <div className="orb orb-2 w-96 h-96 -bottom-20 -right-20" style={{ background: "rgba(201,168,76,0.1)" }} />
-        <ScrollReveal className="flex items-end justify-between mb-8 md:mb-10">
-          <div>
-            <p className="text-xs tracking-[0.3em] mb-2 fire-text" style={{ color: "var(--fire)" }}>ON THE RISE</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white">Artist Spotlight</h2>
-          </div>
-          <Link href="/artists" className="text-sm btn-outline px-4 py-2 rounded flex items-center gap-2">
-            All Artists <ArrowRight size={14} />
-          </Link>
-        </ScrollReveal>
-        <ScrollReveal delay={0.1}>
-          <div className="card-surface rounded-lg p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-center" style={{ border: "1px solid rgba(201,168,76,0.15)" }}>
-            <div className="fire-glow w-36 h-36 rounded-full flex-shrink-0 flex items-center justify-center text-5xl font-black" style={{ background: "rgba(201,168,76,0.12)", color: "var(--fire)", border: "1px solid rgba(201,168,76,0.3)" }}>
-              {featuredArtist.name[0]}
-            </div>
-            <div>
-              <p className="text-xs tracking-[0.3em] mb-1" style={{ color: "var(--fire)" }}>{featuredArtist.genre.toUpperCase()}</p>
-              <h3 className="text-2xl font-black text-white mb-3">{featuredArtist.name}</h3>
-              <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--muted)" }}>{featuredArtist.bio}</p>
-              <Link href="/artists" className="btn-gold px-6 py-2 rounded text-sm inline-flex items-center gap-2">
-                Read More <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
 
       {/* Stats */}
       <StatsCounter />

@@ -44,8 +44,34 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Faded logo watermark with heat-shimmer flame animation */}
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center"
+        >
+          <svg style={{ position: "absolute", width: 0, height: 0 }}>
+            <defs>
+              <filter id="fireWarp" x="-5%" y="-30%" width="110%" height="150%" colorInterpolationFilters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.006 0.04" numOctaves="3" result="turb">
+                  <animate attributeName="seed" from="0" to="50" dur="0.4s" repeatCount="indefinite" calcMode="discrete" />
+                  <animate attributeName="baseFrequency" values="0.006 0.04;0.008 0.05;0.005 0.035;0.007 0.045;0.006 0.04" dur="2.5s" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="turb" scale="9" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+            </defs>
+          </svg>
+
+          <div className="relative w-[70vw] max-w-2xl">
+            <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.12 }} />
+            <img
+              src="/logo.png" alt=""
+              className="w-full select-none absolute inset-0 hidden md:block"
+              style={{ opacity: 0.22, filter: "url(#fireWarp) brightness(1.4)" }}
+            />
+          </div>
+        </div>
         <CustomCursor />
-        <main className="flex-1">{children}</main>
+        <main className="relative z-10 flex-1">{children}</main>
         <Footer />
       </body>
     </html>

@@ -1,23 +1,12 @@
 import ScrollReveal from "./ScrollReveal";
 
-const testimonials = [
+const testimonials: { quote: string; name: string; title: string; initial: string; image?: string }[] = [
   {
-    quote: "Luchi's beats are on another level. The moment I heard 'Midnight Trap' I knew I had to record over it. The mix he delivered was flawless — radio ready straight out the box.",
-    name: "Nova",
-    title: "R&B Artist",
-    initial: "N",
-  },
-  {
-    quote: "Working with LuchiBeats changed the direction of my whole project. He understood the vibe immediately. The production quality is elite and the turnaround was faster than I expected.",
-    name: "K-Real",
-    title: "Hip-Hop Artist",
-    initial: "K",
-  },
-  {
-    quote: "I've worked with a lot of producers but Luchi stands out. The beats have this cinematic quality that makes every song feel like an event. My streams doubled after that release.",
-    name: "Zara M.",
-    title: "Afrobeats / Pop Artist",
-    initial: "Z",
+    quote: "Luchi is one of the best engineers I have ever worked with. He has recorded my music for years, and I can say without a doubt he is among the best in the game. His production is very diverse and efficient — when it comes to production all around, Luchi is the one. Easy to work with, a master of sound, and the producer/engineer you need in your corner.",
+    name: "Calm King Causey",
+    title: "Artist",
+    initial: "C",
+    image: "/artists/calm-king-causey.jpg",
   },
 ];
 
@@ -38,9 +27,11 @@ export default function Testimonials() {
               <span className="absolute top-5 right-6 text-5xl font-black leading-none select-none" style={{ color: "rgba(201,168,76,0.12)" }}>"</span>
               <p className="text-sm leading-relaxed mb-6 relative z-10" style={{ color: "var(--muted)" }}>"{t.quote}"</p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0"
+                <div className="w-10 h-10 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-sm font-black"
                   style={{ background: "rgba(201,168,76,0.12)", color: "var(--fire)", border: "1px solid rgba(201,168,76,0.25)" }}>
-                  {t.initial}
+                  {t.image
+                    ? <img src={t.image} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+                    : t.initial}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-white">{t.name}</p>

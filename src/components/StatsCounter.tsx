@@ -5,7 +5,7 @@ const stats = [
   { value: 15,  suffix: "+",  label: "Years of Experience" },
   { value: 150, suffix: "+",  label: "Artists Worked With" },
   { value: 100, suffix: "%",  label: "Client Satisfaction" },
-  { value: 48,  suffix: "hr", label: "Avg. Turnaround" },
+  { value: 72,  suffix: "hr", label: "Avg. Turnaround" },
 ];
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {

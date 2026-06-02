@@ -15,10 +15,13 @@ export default function ArtistsPage() {
       <div className="space-y-12">
         {artists.map((artist, i) => (
           <div key={artist.id} className={`card-surface rounded-lg overflow-hidden flex flex-col ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
-            {/* Image placeholder */}
-            <div className="md:w-72 aspect-square flex-shrink-0 flex items-center justify-center text-6xl font-black"
+            {/* Artist photo */}
+            <div className="md:w-72 aspect-square flex-shrink-0 flex items-center justify-center text-6xl font-black overflow-hidden"
               style={{ background: `linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.03))`, color: "var(--gold)" }}>
-              {artist.name[0]}
+              {artist.imageUrl
+                ? <img src={artist.imageUrl} alt={artist.name} className="w-full h-full object-cover object-top" />
+                : artist.name[0]
+              }
             </div>
             <div className="p-8 flex flex-col justify-center flex-1">
               <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{artist.genre.toUpperCase()}</p>
