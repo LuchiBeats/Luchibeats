@@ -3,9 +3,9 @@ import { artists } from "@/lib/data";
 export default function ArtistsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="text-center mb-16">
+      <div className="text-center mb-12 md:mb-16">
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>SHINING A LIGHT</p>
-        <h1 className="text-4xl font-black text-white mb-4">Artist Spotlights</h1>
+        <h1 className="text-3xl md:text-4xl font-black text-white mb-4">Artist Spotlights</h1>
         <p className="max-w-xl mx-auto" style={{ color: "var(--muted)" }}>
           These are the artists we believe in — talented creators who are putting in the work and making real music. Follow them, support them.
         </p>
@@ -15,16 +15,16 @@ export default function ArtistsPage() {
         {artists.map((artist, i) => (
           <div key={artist.id} className={`card-surface rounded-lg overflow-hidden flex flex-col ${i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"}`}>
             {/* Artist photo */}
-            <div className="md:w-72 aspect-square flex-shrink-0 flex items-center justify-center text-6xl font-black overflow-hidden"
+            <div className="md:w-72 w-full aspect-square flex-shrink-0 flex items-center justify-center text-6xl font-black overflow-hidden"
               style={{ background: `linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.03))`, color: "var(--gold)" }}>
               {artist.imageUrl
                 ? <img src={artist.imageUrl} alt={artist.name} className="w-full h-full object-cover object-top" />
                 : artist.name[0]
               }
             </div>
-            <div className="p-8 flex flex-col justify-center flex-1">
+            <div className="p-5 md:p-8 flex flex-col justify-center flex-1">
               <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{artist.genre.toUpperCase()}</p>
-              <h2 className="text-3xl font-black text-white mb-4">{artist.name}</h2>
+              <h2 className="text-2xl md:text-3xl font-black text-white mb-3 md:mb-4">{artist.name}</h2>
               <p className="leading-relaxed mb-6" style={{ color: "var(--muted)" }}>{artist.bio}</p>
               <div className="flex flex-wrap gap-3">
                 {artist.instagramUrl && (
@@ -51,6 +51,14 @@ export default function ArtistsPage() {
                     Spotify
                   </a>
                 )}
+                {artist.linktreeUrl && (
+                  <a href={artist.linktreeUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:scale-105"
+                    style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.4)", color: "#C9A84C" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.953 15.066c-.08.163-.08.324-.08.486.08.517.528.897 1.052.897h1.294v4.687c0 .647.528 1.134 1.175 1.134h1.213c.647 0 1.175-.487 1.175-1.134v-4.687h1.294c.526 0 .973-.38 1.052-.897.08-.487-.162-.974-.648-1.216l-3.402-2.431c-.324-.243-.81-.243-1.133 0l-3.402 2.431c-.243.162-.405.405-.59.73zm7.48-5.436l3.402-2.431c.486-.324.648-.893.567-1.38-.08-.567-.527-.896-1.053-.896h-1.294V.736C17.055.09 16.527-.4 15.88-.4h-1.213c-.647 0-1.175.49-1.175 1.136v4.587H12.2c-.528 0-.973.33-1.054.896-.08.487.163.975.649 1.217l.71.507-3.24 2.27c-.486.326-.648.895-.567 1.38.082.57.528.9 1.054.9h1.294v.162l-1.863 1.38H7.39c-.526 0-.973.327-1.052.895-.08.488.162.975.648 1.217l3.402 2.431c.324.244.81.244 1.133 0l1.054-.757 1.052.757c.162.08.324.163.567.163.162 0 .405-.083.567-.163l3.4-2.431c.487-.324.649-.893.567-1.38-.08-.567-.527-.895-1.053-.895h-1.538l-1.862-1.38v-.162h1.294c.526 0 .973-.33 1.054-.9.08-.485-.163-.973-.649-1.217l-1.538-1.055z"/></svg>
+                    Linktree
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -58,9 +66,9 @@ export default function ArtistsPage() {
       </div>
 
       {/* CTA for artists */}
-      <div className="mt-20 text-center card-surface rounded-lg p-12">
+      <div className="mt-12 md:mt-20 text-center card-surface rounded-lg p-8 md:p-12">
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>WANT TO BE FEATURED?</p>
-        <h2 className="text-3xl font-black text-white mb-4">Apply for a Spotlight</h2>
+        <h2 className="text-2xl md:text-3xl font-black text-white mb-4">Apply for a Spotlight</h2>
         <p className="mb-8 max-w-md mx-auto" style={{ color: "var(--muted)" }}>
           Are you an independent artist making genuine music? Reach out — we spotlight artists we connect with.
         </p>

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import CustomCursor from "@/components/CustomCursor";
+import PWARegister from "@/components/PWARegister";
+import PageTracker from "@/components/PageTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +19,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LuchiBeats — Premium Beats & Mixing Services",
   description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
+  applicationName: "LuchiBeats",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "LuchiBeats",
+  },
+  formatDetection: { telephone: false },
   openGraph: {
     title: "LuchiBeats — Premium Beats & Mixing Services",
     description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
@@ -30,6 +39,9 @@ export const metadata: Metadata = {
     title: "LuchiBeats — Premium Beats & Mixing Services",
     description: "Buy premium beats, book professional mixing services, and discover spotlighted artists — all in one place.",
     images: ["https://www.luchibeats.com/og-image.png"],
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
   },
 };
 
@@ -70,6 +82,8 @@ export default function RootLayout({
             />
           </div>
         </div>
+        <PWARegister />
+        <PageTracker />
         <CustomCursor />
         <main className="relative z-10 flex-1">{children}</main>
         <Footer />

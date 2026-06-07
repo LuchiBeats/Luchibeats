@@ -9,7 +9,14 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
+    const form = e.currentTarget;
+    const data = {
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      subject: (form.elements.namedItem("subject") as HTMLSelectElement).value,
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+    };
+    await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     setLoading(false);
     setSent(true);
   }
@@ -37,32 +44,32 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-white mb-2">Name</label>
-              <input required type="text" placeholder="Your name"
+              <input required name="name" type="text" placeholder="Your name"
                 className="w-full rounded px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:ring-1"
                 style={{ background: "var(--surface2)", border: "1px solid var(--border)" }} />
             </div>
             <div>
               <label className="block text-sm font-semibold text-white mb-2">Email</label>
-              <input required type="email" placeholder="your@email.com"
+              <input required name="email" type="email" placeholder="your@email.com"
                 className="w-full rounded px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:ring-1"
                 style={{ background: "var(--surface2)", border: "1px solid var(--border)" }} />
             </div>
           </div>
           <div>
             <label className="block text-sm font-semibold text-white mb-2">Subject</label>
-            <select required className="w-full rounded px-4 py-3 text-sm text-white outline-none"
+            <select required name="subject" className="w-full rounded px-4 py-3 text-sm text-white outline-none"
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
               <option value="">Select a topic...</option>
-              <option value="beat">Custom Beat Inquiry</option>
-              <option value="mix">Mixing / Mastering</option>
-              <option value="spotlight">Artist Spotlight</option>
-              <option value="collab">Collaboration</option>
-              <option value="other">Other</option>
+              <option value="Custom Beat Inquiry">Custom Beat Inquiry</option>
+              <option value="Mixing / Mastering">Mixing / Mastering</option>
+              <option value="Artist Spotlight">Artist Spotlight</option>
+              <option value="Collaboration">Collaboration</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-semibold text-white mb-2">Message</label>
-            <textarea required rows={6} placeholder="Tell me about your project, timeline, budget..."
+            <textarea required name="message" rows={6} placeholder="Tell me about your project, timeline, budget..."
               className="w-full rounded px-4 py-3 text-sm text-white placeholder-gray-600 outline-none resize-none"
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }} />
           </div>

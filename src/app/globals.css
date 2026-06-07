@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --gold: #C9A84C;
   --fire: #C9A84C;
   --fire-light: #E5C76B;
   --fire-red: #A8892E;
@@ -245,6 +246,18 @@ body {
   50%       { text-shadow: 0 0 20px rgba(229,199,107,0.8), 0 0 40px rgba(201,168,76,0.3); }
 }
 .fire-text { animation: textGlow 3s ease-in-out infinite; }
+
+/* ── Playlist equalizer bars ── */
+.eq-bar {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--gold);
+  transition: height 0.3s;
+}
+.eq-playing .eq-bar { animation: wave-bar 0.9s ease-in-out infinite; }
+.eq-playing .eq-bar:nth-child(1) { animation-delay: 0s;    animation-duration: 0.7s; }
+.eq-playing .eq-bar:nth-child(2) { animation-delay: 0.18s; animation-duration: 0.95s; }
+.eq-playing .eq-bar:nth-child(3) { animation-delay: 0.08s; animation-duration: 0.8s; }
 
 /* ── Page tab nav ── */
 .page-tab:hover { border-bottom-color: var(--fire) !important; color: var(--fire) !important; }

@@ -9,6 +9,14 @@ export interface Beat {
   imageUrl: string;
   licenses: License[];
   tags: string[];
+  soldExclusive?: boolean;
+  hidden?: boolean;
+  goLiveAt?: string;
+  isFree?: boolean;
+  copyrightTimestamp?: string;
+  mp3Url?: string;
+  wavUrl?: string;
+  stemsUrl?: string;
 }
 
 export interface License {
@@ -38,7 +46,25 @@ export interface Artist {
   spotifyUrl?: string;
   instagramUrl?: string;
   youtubeUrl?: string;
+  linktreeUrl?: string;
   featuredTrack?: string;
+}
+
+export interface DrumKit {
+  id: string;
+  name: string;
+  genre: string;
+  description: string;
+  price: number;
+  sampleCount: number;
+  formats: string[];
+  tags: string[];
+  includes: string[];
+  popular?: boolean;
+  hidden?: boolean;
+  imageUrl?: string;
+  previewUrl?: string;
+  downloadUrl?: string;
 }
 
 export interface CartItem {
