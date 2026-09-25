@@ -266,7 +266,12 @@ body {
 .eq-playing .eq-bar:nth-child(3) { animation-delay: 0.08s; animation-duration: 0.8s; }
 
 /* ── Page tab nav ── */
-.page-tab:hover { border-bottom-color: var(--fire) !important; color: var(--fire) !important; }
+
+/* Homepage page-navigation buttons */
+.home-tab { color: #f3f4f6; border-color: rgba(201,168,76,0.45); background: rgba(201,168,76,0.06); }
+.home-tab svg { color: var(--fire); transition: color 0.2s; }
+.home-tab:hover { color: #000; border-color: transparent; background: linear-gradient(90deg, var(--fire-red), var(--fire), var(--fire-light)); box-shadow: 0 0 18px rgba(201,168,76,0.35); transform: translateY(-1px); }
+.home-tab:hover svg { color: #000; }
 
 .tab-scrollbar { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .tab-scrollbar::-webkit-scrollbar { display: none; }

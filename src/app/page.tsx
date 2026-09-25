@@ -82,8 +82,8 @@ export default async function HomePage() {
       </section>
 
       {/* Page navigation tabs */}
-      <div className="border-b tab-scrollbar overflow-x-auto" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
-        <div className="flex items-center min-w-max mx-auto px-4 md:px-0 md:justify-center">
+      <div className="border-b" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
+        <div className="grid grid-cols-2 gap-3 px-4 py-5 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
           {[
             { href: "/beats",      label: "Beats",        icon: ShoppingBag },
             { href: "/drum-kits",  label: "Drum Kits",    icon: Drum },
@@ -93,10 +93,9 @@ export default async function HomePage() {
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-2 px-5 py-4 text-sm font-semibold tracking-wide whitespace-nowrap border-b-2 border-transparent transition-all hover:text-white page-tab"
-              style={{ color: "var(--muted)" }}
+              className="home-tab flex items-center justify-center gap-2.5 px-6 py-3.5 md:px-8 rounded-full text-[15px] md:text-base font-bold uppercase tracking-wider whitespace-nowrap border transition-all"
             >
-              <Icon size={14} />
+              <Icon size={18} />
               {label}
             </Link>
           ))}
