@@ -8,22 +8,35 @@ export default function CustomCursor() {
   useEffect(() => {
     let ringX = 0, ringY = 0, dotX = 0, dotY = 0;
     let raf: number;
+    let active = false;
+
+    const startLoop = () => {
+      if (active) return;
+      active = true;
+      raf = requestAnimationFrame(animate);
+    };
+
+    const animate = () => {
+      const dx = dotX - ringX;
+      const dy = dotY - ringY;
+      ringX += dx * 0.12;
+      ringY += dy * 0.12;
+
+      if (dot.current) dot.current.style.transform = `translate(${dotX}px, ${dotY}px)`;
+      if (ring.current) ring.current.style.transform = `translate(${ringX}px, ${ringY}px)`;
+
+      // Stop the loop once the ring has caught up — restart on next mousemove
+      if (Math.abs(dx) < 0.05 && Math.abs(dy) < 0.05) {
+        active = false;
+        return;
+      }
+      raf = requestAnimationFrame(animate);
+    };
 
     const onMove = (e: MouseEvent) => {
       dotX = e.clientX;
       dotY = e.clientY;
-    };
-
-    const animate = () => {
-      ringX += (dotX - ringX) * 0.12;
-      ringY += (dotY - ringY) * 0.12;
-      if (dot.current) {
-        dot.current.style.transform = `translate(${dotX}px, ${dotY}px)`;
-      }
-      if (ring.current) {
-        ring.current.style.transform = `translate(${ringX}px, ${ringY}px)`;
-      }
-      raf = requestAnimationFrame(animate);
+      startLoop();
     };
 
     const onEnter = () => {
@@ -35,16 +48,21 @@ export default function CustomCursor() {
       ring.current?.classList.remove("cursor-hover");
     };
 
+    const hoverEls: Element[] = [];
     window.addEventListener("mousemove", onMove);
     document.querySelectorAll("a, button").forEach((el) => {
       el.addEventListener("mouseenter", onEnter);
       el.addEventListener("mouseleave", onLeave);
+      hoverEls.push(el);
     });
-    raf = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("mousemove", onMove);
       cancelAnimationFrame(raf);
+      hoverEls.forEach((el) => {
+        el.removeEventListener("mouseenter", onEnter);
+        el.removeEventListener("mouseleave", onLeave);
+      });
     };
   }, []);
 

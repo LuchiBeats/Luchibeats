@@ -12,7 +12,6 @@ const links = [
   { href: "/beats", label: "Beats" },
   { href: "/drum-kits", label: "Drum Kits" },
   { href: "/merch", label: "Merch" },
-  { href: "/artists", label: "Spotlights" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

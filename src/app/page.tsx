@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mic2, ShoppingBag, Phone, Users, Info, Drum } from "lucide-react";
+import { ShoppingBag, Phone, Info, Drum } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
@@ -10,6 +10,14 @@ import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
 import FeaturedPlayer from "@/components/FeaturedPlayer";
 import { getHomepageContent } from "@/lib/beats-store";
+
+// Homepage content is admin-editable and blob-backed — render per-request so
+// saves in the admin panel show up immediately instead of waiting for the next deploy.
+export const dynamic = "force-dynamic";
+
+// Free beat giveaways are retired — ignore any saved copy that still mentions one
+// so the component's default subscribe text is shown instead.
+const noFreeBeat = (text?: string) => (text && /free\s*beat/i.test(text) ? undefined : text);
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -79,8 +87,6 @@ export default async function HomePage() {
           {[
             { href: "/beats",      label: "Beats",        icon: ShoppingBag },
             { href: "/drum-kits",  label: "Drum Kits",    icon: Drum },
-            { href: "/mixing",     label: "Mix & Master", icon: Mic2 },
-            { href: "/artists",    label: "Spotlights",   icon: Users },
             { href: "/about",      label: "About",        icon: Info },
             { href: "/contact",    label: "Contact",      icon: Phone },
           ].map(({ href, label, icon: Icon }) => (
@@ -124,9 +130,9 @@ export default async function HomePage() {
 
       {/* Email Capture */}
       <EmailCapture
-        badge={hp.emailBadge}
-        headline={hp.emailHeadline}
-        subtext={hp.emailSubtext}
+        badge={noFreeBeat(hp.emailBadge)}
+        headline={noFreeBeat(hp.emailHeadline)}
+        subtext={noFreeBeat(hp.emailSubtext)}
       />
     </div>
   );

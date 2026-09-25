@@ -5,10 +5,12 @@ import { Send, Check } from "lucide-react";
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
+    setError("");
     const form = e.currentTarget;
     const data = {
       name: (form.elements.namedItem("name") as HTMLInputElement).value,
@@ -16,7 +18,19 @@ export default function ContactPage() {
       subject: (form.elements.namedItem("subject") as HTMLSelectElement).value,
       message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
     };
-    await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    try {
+      const res = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError((body as { error?: string }).error ?? "Something went wrong. Please try again.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setError("Network error. Check your connection and try again.");
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     setSent(true);
   }
@@ -27,7 +41,7 @@ export default function ContactPage() {
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>LET&apos;S TALK</p>
         <h1 className="text-4xl font-black text-white mb-4">Get in Touch</h1>
         <p style={{ color: "var(--muted)" }}>
-          For custom beats, booking a mix session, artist spotlights, or general inquiries — reach out below.
+          For custom beats or general inquiries — reach out below.
         </p>
       </div>
 
@@ -61,8 +75,6 @@ export default function ContactPage() {
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
               <option value="">Select a topic...</option>
               <option value="Custom Beat Inquiry">Custom Beat Inquiry</option>
-              <option value="Mixing / Mastering">Mixing / Mastering</option>
-              <option value="Artist Spotlight">Artist Spotlight</option>
               <option value="Collaboration">Collaboration</option>
               <option value="Other">Other</option>
             </select>
@@ -73,6 +85,11 @@ export default function ContactPage() {
               className="w-full rounded px-4 py-3 text-sm text-white placeholder-gray-600 outline-none resize-none"
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }} />
           </div>
+          {error && (
+            <p className="text-sm rounded px-4 py-3" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}>
+              ⚠ {error}
+            </p>
+          )}
           <button type="submit" disabled={loading} className="btn-gold w-full py-3 rounded text-sm tracking-wide flex items-center justify-center gap-2">
             {loading ? "Sending..." : <><Send size={16} /> Send Message</>}
           </button>

@@ -14,7 +14,10 @@ export async function GET() {
   ]);
   return NextResponse.json({
     pageViews: analytics.pageViews,
+    mobileViews: analytics.mobileViews ?? 0,
+    desktopViews: analytics.desktopViews ?? 0,
     beatPlays: analytics.beatPlays,
+    countries: analytics.countries,
     totalBeats: beats.length,
     totalMessages: messages.length,
     unreadMessages: messages.filter((m) => !m.read).length,

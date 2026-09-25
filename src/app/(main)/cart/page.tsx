@@ -1,10 +1,34 @@
 "use client";
+import { useState } from "react";
 import { useCart } from "@/lib/store";
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function CartPage() {
   const { items, removeItem, total } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function checkout() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: items.map((i) => ({ id: i.id, type: i.type })) }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      setError(data.error ?? "Couldn't start checkout. Please try again.");
+    } catch {
+      setError("Couldn't reach checkout. Check your connection and try again.");
+    }
+    setLoading(false);
+  }
 
   if (items.length === 0) {
     return (
@@ -43,9 +67,10 @@ export default function CartPage() {
           <span className="font-semibold text-white">Total</span>
           <span className="text-2xl font-black" style={{ color: "var(--gold)" }}>${total()}</span>
         </div>
-        <button className="btn-gold w-full py-3 rounded text-sm font-bold tracking-wide flex items-center justify-center gap-2">
-          Checkout via Stripe <ArrowRight size={16} />
+        <button onClick={checkout} disabled={loading} className="btn-gold w-full py-3 rounded text-sm font-bold tracking-wide flex items-center justify-center gap-2 disabled:opacity-60">
+          {loading ? "Opening secure checkout…" : <>Checkout <ArrowRight size={16} /></>}
         </button>
+        {error && <p className="text-sm text-center mt-3 text-red-400">{error}</p>}
         <p className="text-xs text-center mt-3" style={{ color: "var(--muted)" }}>
           Secure payment powered by Stripe. You&apos;ll receive download links immediately after purchase.
         </p>

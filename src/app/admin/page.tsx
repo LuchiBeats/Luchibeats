@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Music, ShoppingBag, Users, Drum, Star, Mail, Globe, LogOut, TrendingUp, FileText, List, Sun, Moon, Tag, type LucideIcon } from "lucide-react";
-import type { Beat, Artist, DrumKit } from "@/lib/types";
-import type { Testimonial, Message, Subscriber, Order, HomepageContent, SoldExclusiveEntry, StatItem, ProductionVideo, ShopifyConfig, FreeBeatDelivery } from "@/lib/beats-store";
+import { Music, ShoppingBag, Drum, Star, Mail, Globe, LogOut, TrendingUp, FileText, List, Sun, Moon, Tag, ChevronLeft, ChevronRight, GripVertical, type LucideIcon } from "lucide-react";
+import { missingAgreements, type Beat, type DrumKit, type License } from "@/lib/types";
+import type { Testimonial, Message, Subscriber, Order, HomepageContent, SoldExclusiveEntry, StatItem, ProductionVideo, ShopifyConfig } from "@/lib/beats-store";
+
 
 // ── Country helpers ──────────────────────────────────────────────────────────
 
@@ -93,17 +94,22 @@ function TagPicker({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
-const BLANK_BEAT = { title:"",audioUrl:"",imageUrl:"",mp3Url:"",wavUrl:"",stemsUrl:"",genre:"Trap",bpm:"",key:"A minor",mood:"Dark",tags:"",basicPrice:"",premiumPrice:"",exclusivePrice:"",goLiveAt:"",isFree:false };
+const BLANK_BEAT = { title:"",audioUrl:"",imageUrl:"",mp3Url:"",wavUrl:"",stemsUrl:"",genre:"Trap",bpm:"",key:"A minor",mood:"Dark",tags:"",basicPrice:"",premiumPrice:"",exclusivePrice:"",goLiveAt:"",basicAgreementUrl:"",premiumAgreementUrl:"",exclusiveAgreementUrl:"" };
+const AGREEMENT_TIERS = [
+  { name:"Basic" as const,     field:"basicAgreementUrl" as const },
+  { name:"Premium" as const,   field:"premiumAgreementUrl" as const },
+  { name:"Exclusive" as const, field:"exclusiveAgreementUrl" as const },
+];
 const BLANK_KIT: { name:string;genre:string;description:string;price:string;sampleCount:string;formats:string;tags:string;includes:string;popular:boolean;imageUrl:string;previewUrl:string;downloadUrl:string } = { name:"",genre:"Hip-Hop / Trap",description:"",price:"",sampleCount:"",formats:"WAV, 24-bit",tags:"",includes:"",popular:false,imageUrl:"",previewUrl:"",downloadUrl:"" };
 const BLANK_ORDER: { type:"beat"|"service"|"drumkit";itemId:string;itemTitle:string;licenseType:string;customerEmail:string;customerName:string;amount:string;status:"pending"|"completed"|"refunded";notes:string } = { type:"beat",itemId:"",itemTitle:"",licenseType:"",customerEmail:"",customerName:"",amount:"",status:"completed",notes:"" };
 
-const TABS = ["Overview","Beats","Beat Inventory","Orders","Drum Kits","Kit Inventory","Add Artist Spotlight","Add Artist Testimonial","Messages","Subscribers","Merch","Homepage"] as const;
+const TABS = ["Overview","Beats","Beat Inventory","Orders","Drum Kits","Kit Inventory","Add Artist Testimonial","Messages","Subscribers","Merch","Homepage"] as const;
 type Tab = typeof TABS[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const TAB_ICONS: Record<Tab, any> = {
   Overview: TrendingUp, Beats: Music, "Beat Inventory": List, Orders: ShoppingBag, "Drum Kits": Drum, "Kit Inventory": List,
-  "Add Artist Spotlight": Users, "Add Artist Testimonial": Star, Messages: Mail, Subscribers: FileText, Merch: Tag, Homepage: Globe,
+  "Add Artist Testimonial": Star, Messages: Mail, Subscribers: FileText, Merch: Tag, Homepage: Globe,
 };
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -288,17 +294,24 @@ export default function AdminPage() {
   const [authErr, setAuthErr]     = useState("");
   const [tab, setTab]             = useState<Tab>("Overview");
 
+  // Auth gate mode — login (default), first-run setup, forgot-password, or reset-with-token
+  const [authMode, setAuthMode]   = useState<"login" | "setup" | "forgot" | "reset">("login");
+  const [email, setEmail]         = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [accessKey, setAccessKey] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+  const [authBusy, setAuthBusy]   = useState(false);
+
   // Core data
   const [beats, setBeats]               = useState<Beat[]>([]);
-  const [artists, setArtists]           = useState<Artist[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [messages, setMessages]         = useState<Message[]>([]);
   const [subscribers, setSubscribers]   = useState<Subscriber[]>([]);
-  const [deliveries, setDeliveries]     = useState<FreeBeatDelivery[]>([]);
   const [analytics, setAnalytics]       = useState<Record<string, unknown> | null>(null);
   const [drumKits, setDrumKits]         = useState<DrumKit[]>([]);
   const [orders, setOrders]             = useState<Order[]>([]);
-  const [settings, setSettings]         = useState<{ freeBeatId?: string; pushSubCount: number } | null>(null);
+  const [settings, setSettings]         = useState<{ pushSubCount: number } | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [homepageContent, setHomepageContent] = useState<HomepageContent | null>(null);
   const [soldArchive, setSoldArchive] = useState<SoldExclusiveEntry[]>([]);
@@ -319,6 +332,7 @@ export default function AdminPage() {
   const [beatMp3Progress,    setBeatMp3Progress]    = useState<number | null>(null);
   const [beatWavProgress,    setBeatWavProgress]    = useState<number | null>(null);
   const [beatStemsProgress,  setBeatStemsProgress]  = useState<number | null>(null);
+  const [agreementProgress,  setAgreementProgress]  = useState<Partial<Record<License["name"], number>>>({});
 
   // Kit form
   const [kitForm, setKitForm]       = useState(BLANK_KIT);
@@ -337,9 +351,7 @@ export default function AdminPage() {
   const [orderMsg, setOrderMsg]     = useState("");
   const [orderSaving, setOrderSaving] = useState(false);
 
-  // Artist / testimonial forms
-  const [artistForm, setArtistForm] = useState({ name:"",genre:"",imageUrl:"",bio:"",instagramUrl:"",youtubeUrl:"",spotifyUrl:"",linktreeUrl:"" });
-  const [artistMsg, setArtistMsg]   = useState("");
+  // Testimonial forms
   const [testForm, setTestForm]     = useState({ quote:"",name:"",title:"",image:"",objectPosition:"top" });
   const [testMsg, setTestMsg]       = useState("");
   const [testUploading, setTestUploading] = useState(false);
@@ -355,15 +367,14 @@ export default function AdminPage() {
   const [homepageForm, setHomepageForm] = useState({
     marqueeText:"", beatsLabel:"FRESH CUTS", beatsHeadline:"Latest Beats",
     heroHeadline:"", heroSubtext:"", heroCta:"", heroCtaUrl:"/beats",
-    emailBadge:"FREE BEAT", emailHeadline:"Get a Free Beat\nWhen You Subscribe",
-    emailSubtext:"Join the list. Be the first to hear new drops, exclusive deals, and get a free beat delivered straight to your inbox.",
+    emailBadge:"JOIN THE LIST", emailHeadline:"Stay Up To Date\nOn New Drops",
+    emailSubtext:"Join the list. Be the first to hear new drops and exclusive deals.",
     seoTitle:"", seoDescription:"",
   });
   const [formStats, setFormStats] = useState<{value:string;suffix:string;label:string}[]>([
     {value:"15",suffix:"+",label:"Years of Experience"},
     {value:"150",suffix:"+",label:"Artists Worked With"},
     {value:"100",suffix:"%",label:"Client Satisfaction"},
-    {value:"72",suffix:"hr",label:"Avg. Turnaround"},
   ]);
   const [formProductions, setFormProductions] = useState<{id:string;artist:string;title:string;credits:string}[]>([
     {id:"Oma1SZ8utmw",artist:"G Wreck ft Coi Leray",title:"Froze",credits:"Beat · Vocal Recording · Mix"},
@@ -380,20 +391,21 @@ export default function AdminPage() {
   const [homepageMsg, setHomepageMsg]     = useState("");
 
   // UI
+  const seenMsgIdsRef = useRef<Set<string>>(new Set());
+  const [newMsgToast, setNewMsgToast] = useState<{ count: number; name: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [expandedMsg, setExpandedMsg] = useState<string | null>(null);
   const [msgFolder, setMsgFolder] = useState<"inbox"|"starred"|"replied"|"archive"|"trash">("inbox");
   const [subSearch, setSubSearch] = useState("");
-  const [subView, setSubView] = useState<"list"|"deliveries"|"giveaway">("list");
+  const [subView, setSubView] = useState<"list"|"giveaway">("list");
   const [giveawayForm, setGiveawayForm] = useState({
-    type: "beat" as "beat"|"custom",
-    beatId: "",
     subject: "",
     badge: "Monthly Giveaway",
     headline: "",
     body: "",
     ctaLabel: "Browse Beats",
     ctaUrl: "https://www.luchibeats.com/beats",
-    audience: "all" as "all"|"new30"|"nobeat",
+    audience: "all" as "all"|"new30",
   });
   const [giveawaySending, setGiveawaySending] = useState(false);
   const [giveawayResult, setGiveawayResult] = useState<{sent:number;failed:number;total:number}|null>(null);
@@ -405,6 +417,20 @@ export default function AdminPage() {
     return localStorage.getItem("adm-theme") !== "light";
   });
   const [clock, setClock] = useState(() => new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}));
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("adm-sidebar-collapsed") === "1";
+  });
+  const [tabOrder, setTabOrder] = useState<Tab[]>(() => {
+    if (typeof window === "undefined") return [...TABS];
+    try {
+      const saved = JSON.parse(localStorage.getItem("adm-tab-order") || "null");
+      if (Array.isArray(saved) && saved.length === TABS.length && (TABS as readonly string[]).every(t => saved.includes(t))) return saved as Tab[];
+    } catch {}
+    return [...TABS];
+  });
+  const [reorderMode, setReorderMode] = useState(false);
+  const dragSrcIdxRef = useRef<number>(-1);
 
   // ── Loaders ────────────────────────────────────────────────────────────────
 
@@ -414,16 +440,15 @@ export default function AdminPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [b, ar, t, m, s, an, dk, or_, hp, st, sa, sh, dl] = await Promise.all([
-      load("/api/admin/beats"), load("/api/admin/artists"), load("/api/admin/testimonials"),
+    const [b, t, m, s, an, dk, or_, hp, st, sa, sh] = await Promise.all([
+      load("/api/admin/beats"), load("/api/admin/testimonials"),
       load("/api/admin/messages"), load("/api/admin/subscribers"), load("/api/admin/analytics"),
       load("/api/admin/drum-kits"), load("/api/admin/orders"), load("/api/admin/homepage"), load("/api/admin/settings"),
-      load("/api/admin/sold-archive"), load("/api/admin/shopify"), load("/api/admin/free-beat-deliveries"),
+      load("/api/admin/sold-archive"), load("/api/admin/shopify"),
     ]);
     if (b)   setBeats(b);
-    if (ar)  setArtists(ar);
     if (t)   setTestimonials(t);
-    if (m)   setMessages(m);
+    if (m)   { setMessages(m); (m as Message[]).forEach(msg => seenMsgIdsRef.current.add(msg.id)); }
     if (s)   setSubscribers(s);
     if (an)  setAnalytics(an);
     if (dk)  setDrumKits(dk);
@@ -438,9 +463,9 @@ export default function AdminPage() {
         heroSubtext:hp.heroSubtext??"",
         heroCta:hp.heroCta??"",
         heroCtaUrl:hp.heroCtaUrl??"/beats",
-        emailBadge:hp.emailBadge??"FREE BEAT",
-        emailHeadline:hp.emailHeadline??"Get a Free Beat\nWhen You Subscribe",
-        emailSubtext:hp.emailSubtext??"Join the list. Be the first to hear new drops, exclusive deals, and get a free beat delivered straight to your inbox.",
+        emailBadge:hp.emailBadge??"JOIN THE LIST",
+        emailHeadline:hp.emailHeadline??"Stay Up To Date\nOn New Drops",
+        emailSubtext:hp.emailSubtext??"Join the list. Be the first to hear new drops and exclusive deals.",
         seoTitle:hp.seoTitle??"",
         seoDescription:hp.seoDescription??"",
       });
@@ -450,11 +475,21 @@ export default function AdminPage() {
     if (st)  setSettings(st);
     if (sa)  setSoldArchive(sa);
     if (sh)  { setShopifyConfig(sh); setShopifyForm({ storeHandle:sh.storeHandle??"", storefrontToken:sh.storefrontToken??"", collectionId:sh.collectionId??"" }); }
-    if (dl)  setDeliveries(dl);
   }, [load]);
 
   useEffect(() => {
     fetch("/api/admin/beats").then((r) => { if (r.ok) { setAuthed(true); loadAll(); } });
+
+    const token = new URLSearchParams(window.location.search).get("resetToken");
+    if (token) {
+      setResetToken(token);
+      setAuthMode("reset");
+    } else {
+      fetch("/api/admin/auth")
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d && !d.hasCredentials) setAuthMode("setup"); })
+        .catch(() => {});
+    }
   }, [loadAll]);
 
   useEffect(() => {
@@ -462,37 +497,118 @@ export default function AdminPage() {
     return () => clearInterval(id);
   }, []);
 
+  // Poll messages + subscribers every 30s so new contact form submissions appear without a page reload
+  useEffect(() => {
+    if (!authed) return;
+    const interval = tab === "Messages" ? 3_000 : 15_000;
+    const id = setInterval(async () => {
+      if (document.visibilityState === "hidden") return;
+      const [m, s, an] = await Promise.all([
+        load("/api/admin/messages"),
+        load("/api/admin/subscribers"),
+        load("/api/admin/analytics"),
+      ]);
+      if (m) {
+        // Only ever ADD new messages — never overwrite existing local state.
+        // This means optimistic updates (trash/archive/delete) are never clobbered by a stale poll.
+        const incoming = (m as Message[]).filter(msg => !seenMsgIdsRef.current.has(msg.id));
+        if (incoming.length > 0) {
+          incoming.forEach(msg => seenMsgIdsRef.current.add(msg.id));
+          if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+          setNewMsgToast({ count: incoming.length, name: incoming[0].name });
+          toastTimerRef.current = setTimeout(() => setNewMsgToast(null), 6_000);
+          setMessages(prev => [...incoming, ...prev]);
+        }
+      }
+      if (s) setSubscribers(s);
+      if (an) setAnalytics(an);
+    }, interval);
+    return () => clearInterval(id);
+  }, [authed, load, tab]);
+
   // ── Auth ───────────────────────────────────────────────────────────────────
 
   async function login(e: React.FormEvent) {
+    e.preventDefault(); setAuthErr(""); setAuthBusy(true);
+    const res = await fetch("/api/admin/auth", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email, password }) });
+    setAuthBusy(false);
+    if (res.ok) { setAuthed(true); loadAll(); } else setAuthErr((await res.json().catch(()=>({})))?.error || "Wrong email or password");
+  }
+
+  async function setupAccount(e: React.FormEvent) {
     e.preventDefault(); setAuthErr("");
-    const res = await fetch("/api/admin/auth", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ password }) });
-    if (res.ok) { setAuthed(true); loadAll(); } else setAuthErr("Wrong password");
+    if (password !== confirmPassword) { setAuthErr("Passwords don't match"); return; }
+    setAuthBusy(true);
+    const res = await fetch("/api/admin/auth", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ setupKey: accessKey, email, password }) });
+    setAuthBusy(false);
+    if (res.ok) { setAuthed(true); loadAll(); } else setAuthErr((await res.json().catch(()=>({})))?.error || "Couldn't set up your account");
+  }
+
+  async function sendRecoveryEmail() {
+    setAuthErr(""); setAuthBusy(true);
+    await fetch("/api/admin/auth/forgot", { method:"POST" }).catch(() => {});
+    setAuthBusy(false); setForgotSent(true);
+  }
+
+  async function resetPasswordWithToken(e: React.FormEvent) {
+    e.preventDefault(); setAuthErr("");
+    if (password !== confirmPassword) { setAuthErr("Passwords don't match"); return; }
+    setAuthBusy(true);
+    const res = await fetch("/api/admin/auth/forgot", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ token: resetToken, newPassword: password }) });
+    setAuthBusy(false);
+    if (res.ok) {
+      window.history.replaceState({}, "", "/admin");
+      setAuthMode("login"); setPassword(""); setConfirmPassword(""); setResetToken("");
+      setAuthErr(""); setForgotSent(false);
+    } else setAuthErr((await res.json().catch(()=>({})))?.error || "This reset link is invalid or has expired");
   }
 
   async function logout() { await fetch("/api/admin/auth", { method:"DELETE" }); setAuthed(false); }
 
+  // ── Tab reorder ────────────────────────────────────────────────────────────
+
+  function onTabDragStart(idx: number) { dragSrcIdxRef.current = idx; }
+  function onTabDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault();
+    const src = dragSrcIdxRef.current;
+    if (src === -1 || src === idx) return;
+    const next = [...tabOrder];
+    const [moved] = next.splice(src, 1);
+    next.splice(idx, 0, moved);
+    dragSrcIdxRef.current = idx;
+    setTabOrder(next);
+  }
+  function lockTabOrder() { localStorage.setItem("adm-tab-order", JSON.stringify(tabOrder)); setReorderMode(false); }
+  function resetTabOrder() { const d = [...TABS]; setTabOrder(d); localStorage.setItem("adm-tab-order", JSON.stringify(d)); setReorderMode(false); }
+
   // ── Beats ──────────────────────────────────────────────────────────────────
 
   async function saveBeat(e: React.FormEvent) {
-    e.preventDefault(); setBeatSaving(true); setBeatMsg("");
+    e.preventDefault(); setBeatMsg("");
+    const missing = AGREEMENT_TIERS.filter(t => !beatForm[t.field]).map(t => t.name);
+    if (missing.length) { setBeatMsg(`Error: Upload the ${missing.join(", ")} license agreement${missing.length>1?"s":""} before saving this beat.`); return; }
+    setBeatSaving(true);
+    const agreementFor = (name: License["name"]) => beatForm[AGREEMENT_TIERS.find(t => t.name === name)!.field];
+    let res: Response;
     if (editingBeat) {
-      const updated: Beat = { ...editingBeat, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, isFree:beatForm.isFree, licenses:editingBeat.licenses.map(l=>({ ...l, price:l.name==="Basic"?Number(beatForm.basicPrice):l.name==="Premium"?Number(beatForm.premiumPrice):Number(beatForm.exclusivePrice) })) };
-      await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(updated) });
-      setEditingBeat(null); setBeatMsg("Beat updated!");
+      const updated: Beat = { ...editingBeat, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, licenses:editingBeat.licenses.map(l=>({ ...l, price:l.name==="Basic"?Number(beatForm.basicPrice):l.name==="Premium"?Number(beatForm.premiumPrice):Number(beatForm.exclusivePrice), agreementUrl:agreementFor(l.name) })) };
+      res = await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(updated) });
+      if (res.ok) { setEditingBeat(null); setBeatMsg("Beat updated!"); }
     } else {
       const id = `beat-${Date.now()}`;
-      const beat: Beat = { id, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, isFree:beatForm.isFree, soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(beatForm.basicPrice),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease" },{ id:`${id}-premium`,name:"Premium",price:Number(beatForm.premiumPrice),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems" },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(beatForm.exclusivePrice),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights" }] };
-      await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) });
-      setBeatMsg("Beat added!"); formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setTimeout(()=>setBeatMsg(""), 2500);
+      const beat: Beat = { id, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(beatForm.basicPrice),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease",agreementUrl:beatForm.basicAgreementUrl },{ id:`${id}-premium`,name:"Premium",price:Number(beatForm.premiumPrice),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems",agreementUrl:beatForm.premiumAgreementUrl },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(beatForm.exclusivePrice),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights",agreementUrl:beatForm.exclusiveAgreementUrl }] };
+      res = await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) });
+      if (res.ok) { setBeatMsg("Beat added!"); formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setTimeout(()=>setBeatMsg(""), 2500); }
     }
-    setBeatForm(BLANK_BEAT); setBeatSaving(false);
+    setBeatSaving(false);
+    if (!res.ok) { const d = await res.json().catch(()=>({})); setBeatMsg(`Error: ${d.error ?? "Couldn't save beat."}`); return; }
+    setBeatForm(BLANK_BEAT);
     const b = await load("/api/admin/beats"); if (b) setBeats(b);
   }
 
   function startEditBeat(beat: Beat) {
     setEditingBeat(beat);
-    setBeatForm({ title:beat.title, audioUrl:beat.audioUrl, imageUrl:beat.imageUrl, mp3Url:beat.mp3Url??"", wavUrl:beat.wavUrl??"", stemsUrl:beat.stemsUrl??"", genre:beat.genre, bpm:String(beat.bpm), key:beat.key, mood:beat.mood, tags:beat.tags.join(", "), goLiveAt:beat.goLiveAt?beat.goLiveAt.slice(0,10):"", isFree:beat.isFree??false, basicPrice:String(beat.licenses.find(l=>l.name==="Basic")?.price??""), premiumPrice:String(beat.licenses.find(l=>l.name==="Premium")?.price??""), exclusivePrice:String(beat.licenses.find(l=>l.name==="Exclusive")?.price??"") });
+    setBeatForm({ title:beat.title, audioUrl:beat.audioUrl, imageUrl:beat.imageUrl, mp3Url:beat.mp3Url??"", wavUrl:beat.wavUrl??"", stemsUrl:beat.stemsUrl??"", genre:beat.genre, bpm:String(beat.bpm), key:beat.key, mood:beat.mood, tags:beat.tags.join(", "), goLiveAt:beat.goLiveAt?beat.goLiveAt.slice(0,10):"", basicPrice:String(beat.licenses.find(l=>l.name==="Basic")?.price??""), premiumPrice:String(beat.licenses.find(l=>l.name==="Premium")?.price??""), exclusivePrice:String(beat.licenses.find(l=>l.name==="Exclusive")?.price??""), basicAgreementUrl:beat.licenses.find(l=>l.name==="Basic")?.agreementUrl??"", premiumAgreementUrl:beat.licenses.find(l=>l.name==="Premium")?.agreementUrl??"", exclusiveAgreementUrl:beat.licenses.find(l=>l.name==="Exclusive")?.agreementUrl??"" });
     formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" });
   }
 
@@ -510,7 +626,8 @@ export default function AdminPage() {
   }
 
   async function toggleHidden(beat: Beat) {
-    await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...beat, hidden:!beat.hidden }) });
+    const res = await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...beat, hidden:!beat.hidden }) });
+    if (!res.ok) { const d = await res.json().catch(()=>({})); setBeatMsg(`Error: ${d.error ?? "Couldn't update beat."}`); }
     const b = await load("/api/admin/beats"); if (b) setBeats(b);
   }
 
@@ -527,10 +644,10 @@ export default function AdminPage() {
       const [filename,title,bpm,key,genre,mood,tags,basic,premium,exclusive] = line.split(",").map(s=>s.trim().replace(/^"|"$/g,""));
       if (!filename||!title) continue;
       const id = `beat-${Date.now()}-${count}`;
-      const beat: Beat = { id, title, bpm:Number(bpm), key, genre, mood, audioUrl:`https://cdn.luchibeats.com/${filename}`, imageUrl:"/images/beats/default.jpg", tags:tags?tags.split(";").map(t=>t.trim()):[], soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(basic),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease" },{ id:`${id}-premium`,name:"Premium",price:Number(premium),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems" },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(exclusive),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights" }] };
+      const beat: Beat = { id, title, bpm:Number(bpm), key, genre, mood, audioUrl:`https://cdn.luchibeats.com/${filename}`, imageUrl:"/images/beats/default.jpg", tags:tags?tags.split(";").map(t=>t.trim()):[], soldExclusive:false, hidden:true, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(basic),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease" },{ id:`${id}-premium`,name:"Premium",price:Number(premium),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems" },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(exclusive),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights" }] };
       await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) }); count++;
     }
-    setBeatMsg(`${count} beats imported!`);
+    setBeatMsg(`${count} beats imported as hidden drafts — edit each one to upload its license agreements, then unhide it.`);
     const b = await load("/api/admin/beats"); if (b) setBeats(b); e.target.value = "";
   }
 
@@ -583,20 +700,7 @@ export default function AdminPage() {
     const or_ = await load("/api/admin/orders"); if (or_) setOrders(or_);
   }
 
-  // ── Artists / Testimonials ─────────────────────────────────────────────────
-
-  async function saveArtist(e: React.FormEvent) {
-    e.preventDefault();
-    await fetch("/api/admin/artists", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(artistForm) });
-    setArtistMsg("Artist added!"); setArtistForm({ name:"",genre:"",imageUrl:"",bio:"",instagramUrl:"",youtubeUrl:"",spotifyUrl:"",linktreeUrl:"" });
-    const a = await load("/api/admin/artists"); if (a) setArtists(a); setTimeout(()=>setArtistMsg(""), 2500);
-  }
-
-  async function deleteArtist(id: string) {
-    if (!confirm("Remove this artist?")) return;
-    await fetch("/api/admin/artists", { method:"DELETE", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id }) });
-    const a = await load("/api/admin/artists"); if (a) setArtists(a);
-  }
+  // ── Testimonials ─────────────────────────────────────────────────────────────
 
   async function saveTestimonial(e: React.FormEvent) {
     e.preventDefault();
@@ -624,7 +728,7 @@ export default function AdminPage() {
 
   async function uploadToR2(
     file: File,
-    folder: "beats" | "covers" | "previews" | "kits" | "mp3s" | "wavs" | "stems",
+    folder: "beats" | "covers" | "previews" | "kits" | "mp3s" | "wavs" | "stems" | "agreements",
     onProgress: (pct: number) => void
   ): Promise<string> {
     const res = await fetch(
@@ -698,6 +802,18 @@ export default function AdminPage() {
     }
   }
 
+  async function uploadAgreement(tier: typeof AGREEMENT_TIERS[number], file: File) {
+    setAgreementProgress(p => ({ ...p, [tier.name]: 0 }));
+    try {
+      const url = await uploadToR2(file, "agreements", pct => setAgreementProgress(p => ({ ...p, [tier.name]: pct })));
+      setBeatForm(f => ({ ...f, [tier.field]: url }));
+    } catch (err) {
+      setBeatMsg(`Error: ${err instanceof Error ? err.message : `${tier.name} agreement upload failed`}`);
+    } finally {
+      setAgreementProgress(p => { const n = { ...p }; delete n[tier.name]; return n; });
+    }
+  }
+
   async function uploadBeatStems(file: File) {
     setBeatStemsProgress(0);
     try {
@@ -748,24 +864,25 @@ export default function AdminPage() {
 
   // ── Messages ───────────────────────────────────────────────────────────────
 
-  async function patchMessage(id: string, patch: Partial<Message>) {
-    await fetch("/api/admin/messages", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id, ...patch }) });
-    const m = await load("/api/admin/messages"); if (m) setMessages(m);
+  function patchMessage(id: string, patch: Partial<Message>) {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, ...patch } : m));
+    fetch("/api/admin/messages", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id, ...patch }) });
   }
 
-  async function markRead(id: string, read: boolean) { await patchMessage(id, { read }); }
-  async function starMessage(id: string, starred: boolean) { await patchMessage(id, { starred }); }
-  async function archiveMessage(id: string) { await patchMessage(id, { folder:"archive", read:true }); }
-  async function restoreMessage(id: string) { await patchMessage(id, { folder:"inbox" }); }
-  async function markReplied(id: string) { await patchMessage(id, { replied:true, read:true }); }
+  function markRead(id: string, read: boolean) { patchMessage(id, { read }); }
+  function starMessage(id: string, starred: boolean) { patchMessage(id, { starred }); }
+  function archiveMessage(id: string) { patchMessage(id, { folder:"archive", read:true }); }
+  function restoreMessage(id: string) { patchMessage(id, { folder:"inbox" }); }
+  function markReplied(id: string) { patchMessage(id, { replied:true, read:true }); }
 
-  async function deleteMessage(id: string) {
+  function deleteMessage(id: string) {
     if (!confirm("Permanently delete this message?")) return;
-    await fetch("/api/admin/messages", { method:"DELETE", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id }) });
-    const m = await load("/api/admin/messages"); if (m) setMessages(m);
+    setMessages(prev => prev.filter(m => m.id !== id));
+    setExpandedMsg(null);
+    fetch("/api/admin/messages", { method:"DELETE", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id }) });
   }
 
-  async function trashMessage(id: string) { await patchMessage(id, { folder:"trash" }); }
+  function trashMessage(id: string) { patchMessage(id, { folder:"trash" }); }
 
   // ── Homepage ───────────────────────────────────────────────────────────────
 
@@ -852,72 +969,191 @@ export default function AdminPage() {
         <div className="orb orb-3 w-64 h-64 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute" style={{ background: p.orb3 }} />
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%)" }} />
 
-        <form onSubmit={login} className="w-full max-w-sm relative z-10">
-          {/* logo */}
-          <div className="text-center mb-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="LuchiBeats" className="h-20 w-auto mx-auto mb-4 object-contain" />
-            <h1 className="text-3xl font-black text-white tracking-tight">ADMIN OS</h1>
-            <p className="text-xs mt-2 tracking-[0.2em]" style={{ color: TEXT_MUTED }}>SECURE ACCESS TERMINAL</p>
-          </div>
-
-          <div className="relative rounded-xl p-8" style={{ background: BG_CARD, border: `1px solid ${GOLD_BORDER}`, boxShadow: `0 0 60px rgba(201,168,76,0.08), 0 30px 60px rgba(0,0,0,0.6)` }}>
-            {/* corner brackets */}
-            <div className="absolute top-0 left-0 w-4 h-4" style={{ borderTop: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` }} />
-            <div className="absolute top-0 right-0 w-4 h-4" style={{ borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` }} />
-            <div className="absolute bottom-0 left-0 w-4 h-4" style={{ borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` }} />
-            <div className="absolute bottom-0 right-0 w-4 h-4" style={{ borderBottom: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` }} />
-
-            <label className="flex items-center gap-2 text-xs font-black tracking-[0.25em] uppercase mb-2" style={{ color: TEXT_DIM }}>
-              <span style={{ color: GOLD }}>▶</span> Access Key
-            </label>
-            <input type="password" placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-lg text-white text-sm mb-5 outline-none transition-all font-mono tracking-widest"
-              style={{ background: BG_INPUT, border: `1px solid ${BORDER_SUBTLE}`, letterSpacing: "0.3em" }}
-              onFocus={e => { e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px ${GOLD_GLOW}`; }}
+        {(() => {
+          const gateInput = (type: string, placeholder: string, value: string, onChange: (v: string) => void, mono = false) => (
+            <input type={type} placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)}
+              autoComplete={type === "password" ? "new-password" : "off"}
+              autoCorrect="off" autoCapitalize="off" spellCheck={false}
+              data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"
+              readOnly onFocus={e => {
+                e.target.readOnly = false;
+                e.target.style.borderColor = GOLD; e.target.style.boxShadow = `0 0 0 3px ${GOLD_GLOW}`;
+              }}
+              className={`w-full px-4 py-3.5 rounded-lg text-white text-sm mb-4 outline-none transition-all ${mono ? "font-mono tracking-widest" : ""}`}
+              style={{ background: BG_INPUT, border: `1px solid ${BORDER_SUBTLE}`, letterSpacing: mono ? "0.3em" : undefined }}
               onBlur={e => { e.target.style.borderColor = BORDER_SUBTLE; e.target.style.boxShadow = "none"; }} />
-            {authErr && (
-              <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                <span className="text-red-400 text-xs">⚠</span>
-                <p className="text-red-400 text-xs font-bold">{authErr}</p>
-              </div>
-            )}
-            <button type="submit" className="w-full py-3.5 rounded-lg font-black text-sm text-black tracking-widest transition-all"
-              style={{ background: "linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: `0 0 30px rgba(201,168,76,0.3), 0 8px 24px rgba(0,0,0,0.4)` }}>
-              INITIALIZE →
+          );
+          const gateLabel = (label: string) => (
+            <label className="flex items-center gap-2 text-xs font-black tracking-[0.25em] uppercase mb-2" style={{ color: TEXT_DIM }}>
+              <span style={{ color: GOLD }}>▶</span> {label}
+            </label>
+          );
+          const gateErr = authErr && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <span className="text-red-400 text-xs">⚠</span>
+              <p className="text-red-400 text-xs font-bold">{authErr}</p>
+            </div>
+          );
+          const gateSubmit = (label: string) => (
+            <button type="submit" disabled={authBusy} className="w-full py-3.5 rounded-lg font-black text-sm text-black tracking-widest transition-all disabled:opacity-40"
+              style={{ background: "linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: authBusy ? "none" : `0 0 30px rgba(201,168,76,0.3), 0 8px 24px rgba(0,0,0,0.4)` }}>
+              {authBusy ? "Working…" : `${label} →`}
             </button>
-          </div>
-        </form>
+          );
+
+          const subtitle = {
+            login:  "SECURE ACCESS TERMINAL",
+            setup:  "CLAIM YOUR ADMIN ACCOUNT",
+            forgot: "ACCOUNT RECOVERY",
+            reset:  "SET A NEW PASSWORD",
+          }[authMode];
+
+          return (
+            <div className="w-full max-w-sm relative z-10">
+              {/* logo */}
+              <div className="text-center mb-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="LuchiBeats" className="h-20 w-auto mx-auto mb-4 object-contain" />
+                <h1 className="text-3xl font-black text-white tracking-tight">ADMIN OS</h1>
+                <p className="text-xs mt-2 tracking-[0.2em]" style={{ color: TEXT_MUTED }}>{subtitle}</p>
+              </div>
+
+              <div className="relative rounded-xl p-8" style={{ background: BG_CARD, border: `1px solid ${GOLD_BORDER}`, boxShadow: `0 0 60px rgba(201,168,76,0.08), 0 30px 60px rgba(0,0,0,0.6)` }}>
+                {/* corner brackets */}
+                <div className="absolute top-0 left-0 w-4 h-4" style={{ borderTop: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` }} />
+                <div className="absolute top-0 right-0 w-4 h-4" style={{ borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` }} />
+                <div className="absolute bottom-0 left-0 w-4 h-4" style={{ borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}` }} />
+                <div className="absolute bottom-0 right-0 w-4 h-4" style={{ borderBottom: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}` }} />
+
+                {authMode === "login" && (
+                  <form onSubmit={login}>
+                    {gateLabel("Email")}
+                    {gateInput("email", "Enter Email", email, setEmail, true)}
+                    {gateLabel("Password")}
+                    {gateInput("password", "Enter your password", password, setPassword, true)}
+                    {gateErr}
+                    {gateSubmit("SIGN IN")}
+                    <button type="button" onClick={() => { setAuthMode("forgot"); setAuthErr(""); setForgotSent(false); }}
+                      className="w-full text-center mt-5 text-xs font-bold transition-colors" style={{ color: TEXT_MUTED }}>
+                      Forgot your email or password?
+                    </button>
+                  </form>
+                )}
+
+                {authMode === "setup" && (
+                  <form onSubmit={setupAccount}>
+                    {gateLabel("Access Key")}
+                    {gateInput("password", "Enter access key", accessKey, setAccessKey, true)}
+                    {gateLabel("Your Email")}
+                    {gateInput("email", "Enter Email", email, setEmail, true)}
+                    {gateLabel("New Password")}
+                    {gateInput("password", "At least 8 characters", password, setPassword)}
+                    {gateLabel("Confirm Password")}
+                    {gateInput("password", "Repeat password", confirmPassword, setConfirmPassword)}
+                    {gateErr}
+                    {gateSubmit("CLAIM ACCOUNT")}
+                    <p className="text-center mt-5 text-xs" style={{ color: TEXT_MUTED }}>
+                      Use your current Access Key once to set up email + password login.
+                    </p>
+                  </form>
+                )}
+
+                {authMode === "forgot" && (
+                  forgotSent ? (
+                    <div>
+                      <p className="text-sm text-center mb-6" style={{ color: TEXT_MUTED }}>
+                        If an admin account is on file, a recovery email is on its way with your login email and a link to reset your password.
+                      </p>
+                      <button type="button" onClick={() => { setAuthMode("login"); setForgotSent(false); }}
+                        className="w-full py-3.5 rounded-lg font-black text-sm tracking-widest transition-all"
+                        style={{ background: GOLD_DIM, border: `1px solid ${GOLD_BORDER}`, color: GOLD }}>
+                        ← BACK TO LOGIN
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-center mb-6" style={{ color: TEXT_MUTED }}>
+                        We'll email a reset link to your registered admin address.
+                      </p>
+                      {gateErr}
+                      <button type="button" disabled={authBusy} onClick={sendRecoveryEmail}
+                        className="w-full py-3.5 rounded-lg font-black text-sm text-black tracking-widest transition-all disabled:opacity-40 mb-3"
+                        style={{ background: "linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: authBusy ? "none" : `0 0 30px rgba(201,168,76,0.3), 0 8px 24px rgba(0,0,0,0.4)` }}>
+                        {authBusy ? "Sending…" : "SEND RECOVERY EMAIL →"}
+                      </button>
+                      <button type="button" onClick={() => { setAuthMode("login"); setAuthErr(""); }}
+                        className="w-full text-center text-xs font-bold transition-colors" style={{ color: TEXT_MUTED }}>
+                        ← Back to login
+                      </button>
+                    </div>
+                  )
+                )}
+
+                {authMode === "reset" && (
+                  <form onSubmit={resetPasswordWithToken}>
+                    {gateLabel("New Password")}
+                    {gateInput("password", "At least 8 characters", password, setPassword)}
+                    {gateLabel("Confirm Password")}
+                    {gateInput("password", "Repeat password", confirmPassword, setConfirmPassword)}
+                    {gateErr}
+                    {gateSubmit("SET NEW PASSWORD")}
+                  </form>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
 
   // ── Derived stats ──────────────────────────────────────────────────────────
 
-  const unreadCount     = messages.filter(m=>!m.read).length;
+  const unreadCount     = messages.filter(m=>!m.read && m.folder !== "trash" && m.folder !== "archive").length;
   const completedOrders = orders.filter(o=>o.status==="completed");
   const totalRevenue    = completedOrders.reduce((s,o)=>s+o.amount, 0);
   const refundedRevenue = orders.filter(o=>o.status==="refunded").reduce((s,o)=>s+o.amount, 0);
-  const freeBeat        = beats.find(b=>b.isFree);
 
   // ── Sidebar nav item ───────────────────────────────────────────────────────
 
-  function NavItem({ t }: { t: Tab }) {
+  function NavItem({ t, idx }: { t: Tab; idx: number }) {
     const Icon = TAB_ICONS[t];
     const active = tab === t;
+
+    if (reorderMode) {
+      return (
+        <div draggable
+          onDragStart={() => onTabDragStart(idx)}
+          onDragOver={(e) => onTabDragOver(e, idx)}
+          className="w-full flex items-center gap-2 px-2 py-2.5 rounded-lg cursor-grab select-none"
+          style={{ background: "rgba(201,168,76,0.06)", border: `1px solid ${GOLD_BORDER}` }}>
+          <GripVertical size={12} style={{ color: TEXT_MUTED, flexShrink: 0 }} />
+          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+            style={{ background: "rgba(201,168,76,0.12)", border: `1px solid ${GOLD_BORDER}` }}>
+            <Icon size={13} style={{ color: GOLD }} />
+          </div>
+          <span className="flex-1 text-xs font-bold tracking-wide truncate" style={{ color: GOLD }}>{t}</span>
+        </div>
+      );
+    }
+
     return (
-      <button onClick={() => setTab(t)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all relative overflow-hidden"
-        style={{ background: active ? "rgba(201,168,76,0.08)" : "transparent", color: active ? GOLD : TEXT_DIM }}
+      <button onClick={() => setTab(t)} title={sidebarCollapsed ? t : undefined}
+        className="w-full flex items-center gap-3 rounded-lg text-left transition-all relative overflow-hidden"
+        style={{ padding: sidebarCollapsed ? "10px 0" : "10px 12px", justifyContent: sidebarCollapsed ? "center" : undefined, background: active ? "rgba(201,168,76,0.08)" : "transparent", color: active ? GOLD : TEXT_DIM }}
         onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-        {active && <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full" style={{ background: GOLD, boxShadow: `0 0 8px ${GOLD}` }} />}
-        <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
+        {active && !sidebarCollapsed && <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full" style={{ background: GOLD, boxShadow: `0 0 8px ${GOLD}` }} />}
+        <div className="relative w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
           style={{ background: active ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${active ? GOLD_BORDER : BORDER_SUBTLE}` }}>
           <Icon size={13} />
+          {sidebarCollapsed && t === "Messages" && unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center font-black"
+              style={{ background: GOLD, color: "#000", fontSize: 9 }}>{unreadCount}</span>
+          )}
         </div>
-        <span className="flex-1 text-xs font-bold tracking-wide">{t}</span>
-        {t === "Messages" && unreadCount > 0 && (
+        {!sidebarCollapsed && <span className="flex-1 text-xs font-bold tracking-wide">{t}</span>}
+        {!sidebarCollapsed && t === "Messages" && unreadCount > 0 && (
           <span className="px-1.5 py-0.5 rounded text-xs font-black" style={{ background: GOLD, color: "#000" }}>{unreadCount}</span>
         )}
       </button>
@@ -927,68 +1163,140 @@ export default function AdminPage() {
   // ── Dashboard shell ────────────────────────────────────────────────────────
 
   return (
-    <div className="flex min-h-screen relative" data-adm={darkMode?"dark":"light"} style={{ ...cssVars, background: BG_DEEP }}>
+    <div className="flex min-h-screen relative" data-adm={darkMode?"dark":"light"} style={{ ...cssVars, background: BG_DEEP, overflowX: "hidden", maxWidth: "100vw" }}>
       <style>{`[data-adm="light"] .text-white{color:#111118!important}[data-adm="light"] select option{background:#f4f4fb;color:#111118}[data-adm="light"] audio{filter:invert(0.88) hue-rotate(195deg)}`}</style>
       {/* Ambient orbs */}
       <div className="orb orb-1 w-[600px] h-[600px] -top-40 -left-40 fixed pointer-events-none" style={{ background: p.orb1 }} />
       <div className="orb orb-2 w-[500px] h-[500px] -bottom-32 -right-40 fixed pointer-events-none" style={{ background: p.orb2 }} />
       <div className="orb orb-3 w-80 h-80 top-1/2 right-1/4 fixed pointer-events-none" style={{ background: p.orb3 }} />
 
+      {/* ── New message toast ── */}
+      {newMsgToast && (
+        <div onClick={() => { setTab("Messages"); setMsgFolder("inbox"); setNewMsgToast(null); }}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer select-none"
+          style={{ background:"linear-gradient(135deg,#1c1c26,#22222e)", border:`1px solid ${GOLD_BORDER}`, boxShadow:`0 0 30px rgba(201,168,76,0.25), 0 8px 32px rgba(0,0,0,0.6)`, minWidth:240, maxWidth:320 }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background:`linear-gradient(135deg,${GOLD},#A8892E)` }}>
+            <Mail size={16} style={{ color:"#000" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-black text-white">{newMsgToast.count > 1 ? `${newMsgToast.count} new messages` : "New message"}</p>
+            <p className="text-xs truncate" style={{ color:GOLD }}>{newMsgToast.name}</p>
+          </div>
+          <button onClick={e => { e.stopPropagation(); setNewMsgToast(null); }}
+            className="text-xs ml-auto flex-shrink-0 w-5 h-5 flex items-center justify-center rounded"
+            style={{ color:TEXT_MUTED, background:"rgba(255,255,255,0.05)" }}>×</button>
+        </div>
+      )}
+
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-60 flex-shrink-0 sticky top-0 h-screen overflow-y-auto"
+      <aside className={`hidden md:flex flex-col flex-shrink-0 sticky top-0 h-screen overflow-y-auto overflow-x-hidden transition-all duration-200 ${sidebarCollapsed ? "w-[60px]" : "w-60"}`}
         style={{ background: p.sidebarBg, borderRight: `1px solid ${BORDER_SUBTLE}` }}>
 
         {/* Brand header */}
-        <div className="px-4 pt-5 pb-4" style={{ borderBottom: `1px solid ${BORDER_SUBTLE}` }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="LuchiBeats" className="h-12 w-auto mb-3 object-contain" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#39ff8a", boxShadow: "0 0 8px #39ff8a" }} />
-              <p className="text-xs font-bold tracking-[0.15em]" style={{ color: TEXT_MUTED }}>ONLINE</p>
-            </div>
-            <p className="text-xs font-mono" style={{ color: TEXT_MUTED }}>{clock}</p>
-          </div>
+        <div className="flex items-center justify-between px-3 pt-4 pb-4" style={{ borderBottom: `1px solid ${BORDER_SUBTLE}`, minHeight: 72 }}>
+          {!sidebarCollapsed && (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="LuchiBeats" className="h-10 w-auto object-contain" />
+            </>
+          )}
+          <button
+            onClick={() => { const next = !sidebarCollapsed; setSidebarCollapsed(next); localStorage.setItem("adm-sidebar-collapsed", next ? "1" : "0"); if (next) setReorderMode(false); }}
+            className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
+            style={{ color: TEXT_MUTED, background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER_SUBTLE}`, marginLeft: sidebarCollapsed ? "auto" : undefined, marginRight: sidebarCollapsed ? "auto" : undefined }}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            {sidebarCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+          </button>
         </div>
 
+        {/* Online status */}
+        {!sidebarCollapsed && (
+          <div className="px-4 py-2.5" style={{ borderBottom: `1px solid ${BORDER_SUBTLE}` }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#39ff8a", boxShadow: "0 0 8px #39ff8a" }} />
+                <p className="text-xs font-bold tracking-[0.15em]" style={{ color: TEXT_MUTED }}>ONLINE</p>
+              </div>
+              <p className="text-xs font-mono" style={{ color: TEXT_MUTED }}>{clock}</p>
+            </div>
+          </div>
+        )}
+
         {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
-          {TABS.map(t => <NavItem key={t} t={t} />)}
+        <nav className={`flex-1 py-4 space-y-0.5 ${sidebarCollapsed ? "px-1.5" : "px-3"}`}>
+          {tabOrder.map((t, idx) => <NavItem key={t} t={t} idx={idx} />)}
         </nav>
 
-        {/* Theme switcher */}
-        <div className="px-3 py-4" style={{ borderTop: `1px solid ${BORDER_SUBTLE}` }}>
-          <p className="text-xs font-black tracking-[0.2em] uppercase mb-2.5 px-1" style={{ color: TEXT_MUTED }}>Appearance</p>
-          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl" style={{ background: BG_INPUT }}>
-            <button type="button" onClick={() => { setDarkMode(true); localStorage.setItem("adm-theme","dark"); }}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{ background: darkMode ? BG_CARD : "transparent", color: darkMode ? GOLD : TEXT_MUTED, boxShadow: darkMode ? "0 1px 4px rgba(0,0,0,0.3)" : "none", border: darkMode ? `1px solid ${GOLD_BORDER}` : "1px solid transparent" }}>
-              <Moon size={11} />
-              Dark
-            </button>
-            <button type="button" onClick={() => { setDarkMode(false); localStorage.setItem("adm-theme","light"); }}
-              className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{ background: !darkMode ? BG_CARD : "transparent", color: !darkMode ? GOLD : TEXT_MUTED, boxShadow: !darkMode ? "0 1px 4px rgba(0,0,0,0.1)" : "none", border: !darkMode ? `1px solid ${GOLD_BORDER}` : "1px solid transparent" }}>
-              <Sun size={11} />
-              Light
-            </button>
+        {/* Reorder controls */}
+        {!sidebarCollapsed && (
+          <div className="px-3 py-2" style={{ borderTop: `1px solid ${BORDER_SUBTLE}` }}>
+            {reorderMode ? (
+              <div className="flex gap-1.5">
+                <button type="button" onClick={lockTabOrder}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-black transition-all"
+                  style={{ background: "rgba(201,168,76,0.15)", color: GOLD, border: `1px solid ${GOLD_BORDER}` }}>
+                  ✓ Lock Order
+                </button>
+                <button type="button" onClick={resetTabOrder}
+                  className="px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                  style={{ background: "rgba(255,255,255,0.03)", color: TEXT_MUTED, border: `1px solid ${BORDER_SUBTLE}` }}
+                  title="Reset to default order">
+                  ↺
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setReorderMode(true)}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all"
+                style={{ background: "rgba(255,255,255,0.03)", color: TEXT_MUTED, border: `1px solid ${BORDER_SUBTLE}` }}
+                onMouseEnter={e => { e.currentTarget.style.color = GOLD; e.currentTarget.style.borderColor = GOLD_BORDER; }}
+                onMouseLeave={e => { e.currentTarget.style.color = TEXT_MUTED; e.currentTarget.style.borderColor = BORDER_SUBTLE; }}>
+                <GripVertical size={11} /> Reorder Tabs
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Theme switcher */}
+        <div className={`py-3 ${sidebarCollapsed ? "px-1.5" : "px-3"}`} style={{ borderTop: `1px solid ${BORDER_SUBTLE}` }}>
+          {!sidebarCollapsed && <p className="text-xs font-black tracking-[0.2em] uppercase mb-2.5 px-1" style={{ color: TEXT_MUTED }}>Appearance</p>}
+          {sidebarCollapsed ? (
+            <button type="button" onClick={() => { const next = !darkMode; setDarkMode(next); localStorage.setItem("adm-theme", next ? "dark" : "light"); }}
+              className="w-full flex items-center justify-center py-2 rounded-lg transition-all"
+              style={{ background: GOLD_DIM, border: `1px solid ${GOLD_BORDER}`, color: GOLD }}
+              title={darkMode ? "Switch to Light" : "Switch to Dark"}>
+              {darkMode ? <Sun size={13} /> : <Moon size={13} />}
+            </button>
+          ) : (
+            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl" style={{ background: BG_INPUT }}>
+              <button type="button" onClick={() => { setDarkMode(true); localStorage.setItem("adm-theme","dark"); }}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all"
+                style={{ background: darkMode ? BG_CARD : "transparent", color: darkMode ? GOLD : TEXT_MUTED, boxShadow: darkMode ? "0 1px 4px rgba(0,0,0,0.3)" : "none", border: darkMode ? `1px solid ${GOLD_BORDER}` : "1px solid transparent" }}>
+                <Moon size={11} /> Dark
+              </button>
+              <button type="button" onClick={() => { setDarkMode(false); localStorage.setItem("adm-theme","light"); }}
+                className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all"
+                style={{ background: !darkMode ? BG_CARD : "transparent", color: !darkMode ? GOLD : TEXT_MUTED, boxShadow: !darkMode ? "0 1px 4px rgba(0,0,0,0.1)" : "none", border: !darkMode ? `1px solid ${GOLD_BORDER}` : "1px solid transparent" }}>
+                <Sun size={11} /> Light
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Logout */}
-        <div className="px-3 pb-5 pt-2" style={{ borderTop: `1px solid ${BORDER_SUBTLE}` }}>
-          <button onClick={logout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all"
-            style={{ color: TEXT_MUTED, background: "transparent" }}
+        <div className={`pb-5 pt-2 ${sidebarCollapsed ? "px-1.5" : "px-3"}`} style={{ borderTop: `1px solid ${BORDER_SUBTLE}` }}>
+          <button onClick={logout} title={sidebarCollapsed ? "Log Out" : undefined}
+            className="w-full flex items-center rounded-lg transition-all"
+            style={{ gap: sidebarCollapsed ? 0 : 12, padding: sidebarCollapsed ? "10px 0" : "10px 12px", justifyContent: sidebarCollapsed ? "center" : undefined, color: TEXT_MUTED, background: "transparent" }}
             onMouseEnter={e => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(239,68,68,0.06)"; }}
             onMouseLeave={e => { e.currentTarget.style.color = TEXT_MUTED; e.currentTarget.style.background = "transparent"; }}>
             <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0"
               style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER_SUBTLE}` }}>
               <LogOut size={13} />
             </div>
-            <span className="text-xs font-bold tracking-wide">Log Out</span>
+            {!sidebarCollapsed && <span className="text-xs font-bold tracking-wide">Log Out</span>}
           </button>
-          <p className="text-center text-xs mt-3 font-mono" style={{ color: BORDER_MID }}>v2.0 · LuchiBeats</p>
+          {!sidebarCollapsed && <p className="text-center text-xs mt-3 font-mono" style={{ color: BORDER_MID }}>v2.0 · LuchiBeats</p>}
         </div>
       </aside>
 
@@ -1029,7 +1337,7 @@ export default function AdminPage() {
         {/* Mobile tab strip */}
         <div className="md:hidden flex gap-1 overflow-x-auto px-3 py-2 flex-shrink-0"
           style={{ background: "rgba(10,10,10,0.95)", borderBottom: `1px solid ${BORDER_SUBTLE}` }}>
-          {TABS.map(t => (
+          {tabOrder.map(t => (
             <button key={t} onClick={() => setTab(t)}
               className="px-3 py-1.5 rounded-md text-xs font-bold whitespace-nowrap transition-all"
               style={{ background: tab===t ? GOLD_DIM : "rgba(255,255,255,0.03)", color: tab===t ? GOLD : TEXT_MUTED, border: `1px solid ${tab===t ? GOLD_BORDER : "transparent"}`, boxShadow: tab===t ? `0 0 12px ${GOLD_GLOW}` : "none" }}>
@@ -1040,8 +1348,8 @@ export default function AdminPage() {
         </div>
 
         {/* Content */}
-        <main className="flex-1">
-          <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-6">
+        <main className="flex-1 flex flex-col min-h-0">
+          <div className={tab === "Messages" ? "flex-1 flex flex-col min-h-0 p-3 md:p-5" : "max-w-4xl mx-auto w-full px-4 md:px-8 py-6 md:py-10 space-y-6"}>
 
             {/* ── OVERVIEW ── */}
             {tab === "Overview" && (
@@ -1124,17 +1432,6 @@ export default function AdminPage() {
                   );
                 })()}
 
-                {/* ── Free beat alert ── */}
-                {freeBeat && (
-                  <div className="flex items-center gap-4 px-5 py-3 rounded-xl" style={{ background:"rgba(74,222,128,0.04)",border:"1px solid rgba(74,222,128,0.18)" }}>
-                    <span className="adm-live-dot" style={{ display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#4ade80",flexShrink:0 }} />
-                    <div>
-                      <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.25em",color:"#4ade80",marginBottom:2 }}>FREE BEAT SIGNAL ACTIVE</p>
-                      <p className="text-sm font-bold text-white">{freeBeat.title}</p>
-                    </div>
-                  </div>
-                )}
-
                 {/* ── Spectrum + Activity ── */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
 
@@ -1156,7 +1453,6 @@ export default function AdminPage() {
                                   <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED,width:12,flexShrink:0 }}>{String(i+1).padStart(2,"0")}</span>
                                   <span style={{ fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{b.title}</span>
                                   {b.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD</Badge>}
-                                  {b.isFree && <Badge color="#4ade80" bg="rgba(74,222,128,0.12)">FREE</Badge>}
                                 </div>
                                 <span style={{ fontFamily:"monospace",fontSize:10,color:GOLD,letterSpacing:"0.08em",flexShrink:0,marginLeft:8,textShadow:`0 0 10px ${GOLD}60` }}>{b.plays.toLocaleString()}</span>
                               </div>
@@ -1204,38 +1500,126 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* ── Geo data terminal ── */}
-                <div className="rounded-xl p-5" style={{ background:"rgba(201,168,76,0.02)",border:"1px solid rgba(201,168,76,0.09)" }}>
-                  <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:18 }}>// AUDIENCE ORIGIN — GEO SIGNAL</p>
-                  {(() => {
-                    const countries = (analytics?.countries as Record<string,{views:number;contacts:number;subscribers:number}>) ?? {};
-                    const sorted = Object.entries(countries).map(([code,s])=>({ code,...s,total:s.views+s.contacts+s.subscribers })).sort((a,b)=>b.total-a.total);
-                    const maxViews = Math.max(...sorted.map(c=>c.views), 1);
-                    if (sorted.length===0) return <p style={{ fontFamily:"monospace",fontSize:10,color:TEXT_MUTED }}>NO SIGNAL — Visits will appear here automatically</p>;
-                    return (
-                      <div className="space-y-3">
-                        {sorted.map(c => (
-                          <div key={c.code} className="grid items-center gap-3" style={{ gridTemplateColumns:"22px 1fr" }}>
-                            <span className="text-sm">{countryFlag(c.code)}</span>
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <span style={{ fontFamily:"monospace",fontSize:9,color:"rgba(255,255,255,0.6)",letterSpacing:"0.08em" }}>{countryName(c.code).toUpperCase()}</span>
-                                <div className="flex gap-3">
-                                  <span style={{ fontFamily:"monospace",fontSize:8,color:GOLD }}>{c.views}<span style={{ opacity:0.4 }}>V</span></span>
-                                  <span style={{ fontFamily:"monospace",fontSize:8,color:"#60a5fa" }}>{c.contacts}<span style={{ opacity:0.4 }}>C</span></span>
-                                  <span style={{ fontFamily:"monospace",fontSize:8,color:"#4ade80" }}>{c.subscribers}<span style={{ opacity:0.4 }}>S</span></span>
-                                </div>
-                              </div>
-                              <div className="relative h-px rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.05)" }}>
-                                <div className="adm-bar h-full rounded-full" style={{ width:`${(c.views/maxViews)*100}%`,background:`linear-gradient(90deg,rgba(201,168,76,0.4),${GOLD})` }} />
-                              </div>
-                            </div>
+                {/* ── Site Traffic Analytics ── */}
+                {(() => {
+                  const countries = (analytics?.countries as Record<string,{views:number;contacts:number;subscribers:number}>) ?? {};
+                  const pageViews = (analytics?.pageViews as number) ?? 0;
+                  const sorted = Object.entries(countries)
+                    .filter(([, s]) => s.views > 0)
+                    .map(([code, s]) => ({ code, ...s }))
+                    .sort((a, b) => b.views - a.views)
+                    .slice(0, 10);
+                  const maxViews = Math.max(...sorted.map(c => c.views), 1);
+                  const totalContacts = Object.values(countries).reduce((s,c)=>s+c.contacts,0);
+                  const totalSubs = Object.values(countries).reduce((s,c)=>s+c.subscribers,0);
+                  return (
+                    <div className="rounded-xl overflow-hidden" style={{ background:"rgba(8,8,14,0.95)", border:"1px solid rgba(201,168,76,0.12)" }}>
+                      {/* Header */}
+                      <div className="px-5 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                        <div>
+                          <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:4 }}>// SITE TRAFFIC — ANALYTICS</p>
+                          <p className="text-sm font-black text-white">Traffic Overview</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="adm-live-dot" style={{ display:"inline-block",width:6,height:6,borderRadius:"50%",background:"#4ade80",flexShrink:0 }} />
+                          <span style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.15em",color:TEXT_MUTED }}>LIVE</span>
+                        </div>
+                      </div>
+                      {/* KPI row */}
+                      <div className="grid grid-cols-3 divide-x" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                        {[
+                          { label:"PAGE VIEWS", value:pageViews.toLocaleString(), color:"#60a5fa" },
+                          { label:"FORM CONTACTS", value:totalContacts, color:GOLD },
+                          { label:"SUBSCRIBERS", value:totalSubs, color:"#4ade80" },
+                        ].map(({ label, value, color }) => (
+                          <div key={label} className="px-5 py-4 text-center">
+                            <p style={{ fontFamily:"monospace",fontSize:7,letterSpacing:"0.2em",color:TEXT_MUTED,marginBottom:6 }}>{label}</p>
+                            <p style={{ fontFamily:"monospace",fontSize:24,fontWeight:900,color,textShadow:`0 0 20px ${color}50` }}>{value}</p>
                           </div>
                         ))}
                       </div>
-                    );
-                  })()}
-                </div>
+                      {/* Device split */}
+                      {pageViews > 0 && (() => {
+                        const mobile = (analytics?.mobileViews as number) ?? 0;
+                        const desktop = (analytics?.desktopViews as number) ?? 0;
+                        const tracked = mobile + desktop;
+                        const mobilePct = tracked > 0 ? Math.round((mobile / tracked) * 100) : 0;
+                        const desktopPct = tracked > 0 ? 100 - mobilePct : 0;
+                        return (
+                          <div className="px-5 py-4" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                            <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.2em",color:TEXT_MUTED,marginBottom:12 }}>DEVICE BREAKDOWN</p>
+                            <div className="flex items-center gap-4">
+                              {/* Split bar */}
+                              <div className="flex-1 flex h-2 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
+                                {mobilePct > 0 && <div className="adm-bar h-full" style={{ width:`${mobilePct}%`, background:"linear-gradient(90deg,#a78bfa,#8b5cf6)" }} />}
+                                {desktopPct > 0 && <div className="adm-bar h-full" style={{ width:`${desktopPct}%`, background:"linear-gradient(90deg,rgba(96,165,250,0.5),#60a5fa)", animationDelay:"60ms" }} />}
+                              </div>
+                              {/* Labels */}
+                              <div className="flex gap-4 flex-shrink-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span style={{ display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#8b5cf6",flexShrink:0 }} />
+                                  <div>
+                                    <p style={{ fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#a78bfa" }}>{mobilePct}%</p>
+                                    <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.1em" }}>MOBILE ({mobile.toLocaleString()})</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span style={{ display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#60a5fa",flexShrink:0 }} />
+                                  <div>
+                                    <p style={{ fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#60a5fa" }}>{desktopPct}%</p>
+                                    <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.1em" }}>DESKTOP ({desktop.toLocaleString()})</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      {/* Country table */}
+                      <div className="px-5 py-5">
+                        <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.2em",color:TEXT_MUTED,marginBottom:14 }}>TOP TRAFFIC SOURCES</p>
+                        {sorted.length === 0 ? (
+                          <p style={{ fontFamily:"monospace",fontSize:10,color:TEXT_MUTED }}>No traffic data yet — visits will appear here once people browse the site.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {sorted.map((c, i) => (
+                              <div key={c.code} className="grid items-center gap-3" style={{ gridTemplateColumns:"20px 20px 1fr auto" }}>
+                                <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED }}>{i+1}</span>
+                                <span className="text-base">{countryFlag(c.code)}</span>
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span style={{ fontSize:11,color:"rgba(255,255,255,0.85)",fontWeight:600 }}>{countryName(c.code)}</span>
+                                  </div>
+                                  <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
+                                    <div className="adm-bar h-full rounded-full" style={{ width:`${(c.views/maxViews)*100}%`, background:`linear-gradient(90deg,rgba(96,165,250,0.5),#60a5fa)` }} />
+                                  </div>
+                                </div>
+                                <div className="flex gap-3 text-right flex-shrink-0">
+                                  <div>
+                                    <p style={{ fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#60a5fa" }}>{c.views.toLocaleString()}</p>
+                                    <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.1em" }}>VIEWS</p>
+                                  </div>
+                                  {c.contacts > 0 && (
+                                    <div>
+                                      <p style={{ fontFamily:"monospace",fontSize:11,fontWeight:700,color:GOLD }}>{c.contacts}</p>
+                                      <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.1em" }}>MSGS</p>
+                                    </div>
+                                  )}
+                                  {c.subscribers > 0 && (
+                                    <div>
+                                      <p style={{ fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#4ade80" }}>{c.subscribers}</p>
+                                      <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.1em" }}>SUBS</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </>
             )}
 
@@ -1387,10 +1771,6 @@ export default function AdminPage() {
                       <Sel label="Mood" options={MOODS} value={beatForm.mood} onChange={e=>setBeatForm({...beatForm,mood:e.target.value})} />
                       <TagPicker value={beatForm.tags} onChange={v=>setBeatForm({...beatForm,tags:v})} />
                       <Input label="Go Live Date (empty = live now)" type="date" value={beatForm.goLiveAt} onChange={e=>setBeatForm({...beatForm,goLiveAt:e.target.value})} />
-                      <div className="flex items-center gap-3 pt-6">
-                        <input type="checkbox" id="isFree" checked={beatForm.isFree} onChange={e=>setBeatForm({...beatForm,isFree:e.target.checked})} className="w-4 h-4 rounded" style={{ accentColor: GOLD }} />
-                        <label htmlFor="isFree" className="text-sm text-white cursor-pointer">Free beat for email subscribers <span className="text-xs" style={{ color: "#444" }}>(one at a time)</span></label>
-                      </div>
                     </div>
                     <div className="pt-2 border-t" style={{ borderColor: BORDER_SUBTLE }}>
                       <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD }}>License Pricing ($)</p>
@@ -1398,6 +1778,34 @@ export default function AdminPage() {
                         <Input label="Basic (MP3)" required type="number" value={beatForm.basicPrice} onChange={e=>setBeatForm({...beatForm,basicPrice:e.target.value})} placeholder="35" />
                         <Input label="Premium (WAV+Stems)" required type="number" value={beatForm.premiumPrice} onChange={e=>setBeatForm({...beatForm,premiumPrice:e.target.value})} placeholder="99" />
                         <Input label="Exclusive" required type="number" value={beatForm.exclusivePrice} onChange={e=>setBeatForm({...beatForm,exclusivePrice:e.target.value})} placeholder="499" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: GOLD }}>License Agreements (required)</p>
+                      <p className="text-xs mb-3" style={{ color: TEXT_MUTED }}>Upload the agreement for each tier (e.g. exported from Sound Credit — PDF, Word, or TXT). Buyers receive the one matching the license they purchase.</p>
+                      <div className="space-y-3">
+                        {AGREEMENT_TIERS.map(tier => {
+                          const url = beatForm[tier.field];
+                          const pct = agreementProgress[tier.name];
+                          return (
+                            <div key={tier.name} className="flex items-center gap-3 flex-wrap">
+                              <span className="text-xs font-bold w-20 flex-shrink-0" style={{ color: url ? "#4ade80" : "#f87171" }}>{url ? "✓" : "✗"} {tier.name}</span>
+                              <label className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0 cursor-pointer" style={{ background:GOLD_DIM, color:GOLD, opacity:pct!==undefined?0.5:1, pointerEvents:pct!==undefined?"none":"auto" }}>
+                                {pct !== undefined ? `Uploading ${pct}%…` : url ? "Replace" : "Upload Agreement"}
+                                <input type="file" accept=".pdf,.doc,.docx,.txt,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden"
+                                  onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadAgreement(tier, f); e.target.value=""; }} />
+                              </label>
+                              {url && pct === undefined && (
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {url.startsWith("http")
+                                    ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs truncate max-w-[200px] underline" style={{ color:"#4ade80" }}>{url.split("/").pop()}</a>
+                                    : <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>🔒 {url.split("/").pop()}</span>}
+                                  <button type="button" onClick={()=>setBeatForm(f=>({...f,[tier.field]:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     {beatMsg && !beatMsg.includes("imported") && <p className="text-sm font-medium" style={{ color: beatMsg.includes("Error")?"#f87171":"#4ade80" }}>{beatMsg}</p>}
@@ -1415,7 +1823,7 @@ export default function AdminPage() {
                     <div className="space-y-2">
                       {beats.map(beat => {
                         const isScheduled = beat.goLiveAt && new Date(beat.goLiveAt)>new Date();
-                        const borderColor = beat.soldExclusive ? "rgba(239,68,68,0.3)" : beat.hidden ? "rgba(111,111,111,0.3)" : beat.isFree ? "rgba(74,222,128,0.2)" : BORDER_SUBTLE;
+                        const borderColor = beat.soldExclusive ? "rgba(239,68,68,0.3)" : beat.hidden ? "rgba(111,111,111,0.3)" : BORDER_SUBTLE;
                         return (
                           <div key={beat.id} className="rounded-2xl p-4" style={{ background: BG_CARD, border: `1px solid ${borderColor}` }}>
                             <div className="flex items-start justify-between gap-4">
@@ -1424,7 +1832,7 @@ export default function AdminPage() {
                                   <p className="font-bold text-white text-sm">{beat.title}</p>
                                   {beat.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD EXCLUSIVE</Badge>}
                                   {beat.hidden && !beat.soldExclusive && <Badge color="#888" bg="rgba(255,255,255,0.06)">HIDDEN</Badge>}
-                                  {beat.isFree && <Badge color="#4ade80" bg="rgba(74,222,128,0.12)">FREE BEAT</Badge>}
+                                  {!beat.soldExclusive && missingAgreements(beat).length>0 && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">NEEDS LICENSE AGREEMENTS</Badge>}
                                   {isScheduled && <Badge color="#fbbf24" bg="rgba(251,191,36,0.12)">DROPS {new Date(beat.goLiveAt!).toLocaleDateString()}</Badge>}
                                 </div>
                                 <p className="text-xs mb-1" style={{ color:"#555" }}>{beat.genre} · {beat.bpm} BPM · {beat.key} · {beat.mood}</p>
@@ -1517,6 +1925,55 @@ export default function AdminPage() {
                   <StatCard label="Sold Exclusive" value={beats.filter(b=>b.soldExclusive).length} />
                 </div>
 
+                {/* ── Subscriber Breakdown ── */}
+                {(() => {
+                  const countries = (analytics?.countries as Record<string,{views:number;contacts:number;subscribers:number}>) ?? {};
+                  const sorted = Object.entries(countries)
+                    .filter(([, s]) => s.subscribers > 0)
+                    .map(([code, s]) => ({ code, ...s }))
+                    .sort((a, b) => b.subscribers - a.subscribers);
+                  const total = sorted.reduce((s, c) => s + c.subscribers, 0);
+                  const maxSubs = Math.max(...sorted.map(c => c.subscribers), 1);
+                  return (
+                    <div className="rounded-xl overflow-hidden" style={{ background:"rgba(8,8,14,0.95)", border:"1px solid rgba(201,168,76,0.12)" }}>
+                      <div className="px-5 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
+                        <div>
+                          <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:4 }}>// SUBSCRIBER BREAKDOWN — BY COUNTRY</p>
+                          <p className="text-sm font-black text-white">Where Your Fans Are From</p>
+                        </div>
+                        <div style={{ textAlign:"right" }}>
+                          <p style={{ fontFamily:"monospace",fontSize:22,fontWeight:900,color:"#4ade80",textShadow:"0 0 20px #4ade8050" }}>{total}</p>
+                          <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.15em" }}>TOTAL SUBSCRIBERS</p>
+                        </div>
+                      </div>
+                      <div className="px-5 py-5">
+                        {sorted.length === 0 ? (
+                          <p style={{ fontFamily:"monospace",fontSize:10,color:TEXT_MUTED }}>No subscriber data yet — country tracking starts with the next sign-up.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {sorted.map((c, i) => (
+                              <div key={c.code} className="grid items-center gap-3" style={{ gridTemplateColumns:"20px 20px 1fr auto" }}>
+                                <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED }}>{i+1}</span>
+                                <span className="text-base">{countryFlag(c.code)}</span>
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span style={{ fontSize:11,color:"rgba(255,255,255,0.85)",fontWeight:600 }}>{countryName(c.code)}</span>
+                                    <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED }}>{total > 0 ? Math.round((c.subscribers/total)*100) : 0}%</span>
+                                  </div>
+                                  <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
+                                    <div className="adm-bar h-full rounded-full" style={{ width:`${(c.subscribers/maxSubs)*100}%`, background:`linear-gradient(90deg,rgba(74,222,128,0.4),#4ade80)` }} />
+                                  </div>
+                                </div>
+                                <p style={{ fontFamily:"monospace",fontSize:16,fontWeight:900,color:"#4ade80",flexShrink:0 }}>{c.subscribers}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Filter chips */}
                 <div className="flex gap-2 flex-wrap">
                   {(["All","Live","Hidden","Sold"] as const).map(f => (
@@ -1540,7 +1997,7 @@ export default function AdminPage() {
                       .filter(b => visFilter==="All" || (visFilter==="Live"&&!b.hidden&&!b.soldExclusive) || (visFilter==="Hidden"&&b.hidden&&!b.soldExclusive) || (visFilter==="Sold"&&b.soldExclusive))
                       .map(beat => {
                         const plays = ((analytics?.beatPlays as Record<string,number>)??{})[beat.id]??0;
-                        const isLive = !beat.hidden && !beat.soldExclusive;
+                        const isLive = !beat.hidden && !beat.soldExclusive && missingAgreements(beat).length===0;
                         const rowBorder = beat.soldExclusive ? "rgba(239,68,68,0.25)" : beat.hidden ? "rgba(255,255,255,0.07)" : "rgba(201,168,76,0.15)";
                         return (
                           <div key={beat.id} className="rounded-2xl p-4 flex items-center gap-4" style={{ background: BG_CARD, border:`1px solid ${rowBorder}`, opacity: beat.hidden ? 0.65 : 1 }}>
@@ -1554,6 +2011,7 @@ export default function AdminPage() {
                                 <p className="font-bold text-white text-sm truncate">{beat.title}</p>
                                 {beat.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD</Badge>}
                                 {beat.hidden && !beat.soldExclusive && <Badge color="#666" bg="rgba(255,255,255,0.05)">HIDDEN</Badge>}
+                                {!beat.soldExclusive && missingAgreements(beat).length>0 && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">NO AGREEMENTS</Badge>}
                                 {isLive && <Badge color="#4ade80" bg="rgba(74,222,128,0.08)">LIVE</Badge>}
                               </div>
                               <p className="text-xs" style={{ color:"#555" }}>{beat.genre} · {beat.bpm} BPM · {beat.key}</p>
@@ -1896,45 +2354,6 @@ export default function AdminPage() {
               </>
             )}
 
-            {/* ── ARTISTS ── */}
-            {tab === "Add Artist Spotlight" && (
-              <>
-                <FormSection title="Add Artist">
-                  <form onSubmit={saveArtist} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input label="Name *" required value={artistForm.name} onChange={e=>setArtistForm({...artistForm,name:e.target.value})} placeholder="Artist Name" />
-                      <Input label="Genre *" required value={artistForm.genre} onChange={e=>setArtistForm({...artistForm,genre:e.target.value})} placeholder="Hip-Hop / Rap" />
-                      <Input label="Photo URL" value={artistForm.imageUrl} onChange={e=>setArtistForm({...artistForm,imageUrl:e.target.value})} placeholder="/artists/name.jpg" />
-                      <Input label="Instagram URL" value={artistForm.instagramUrl} onChange={e=>setArtistForm({...artistForm,instagramUrl:e.target.value})} placeholder="https://instagram.com/..." />
-                      <Input label="YouTube URL" value={artistForm.youtubeUrl} onChange={e=>setArtistForm({...artistForm,youtubeUrl:e.target.value})} placeholder="https://youtube.com/@..." />
-                      <Input label="Spotify URL" value={artistForm.spotifyUrl} onChange={e=>setArtistForm({...artistForm,spotifyUrl:e.target.value})} placeholder="https://open.spotify.com/artist/..." />
-                      <Input label="Linktree URL" value={artistForm.linktreeUrl} onChange={e=>setArtistForm({...artistForm,linktreeUrl:e.target.value})} placeholder="https://linktr.ee/..." />
-                    </div>
-                    <Textarea label="Bio *" required rows={5} value={artistForm.bio} onChange={e=>setArtistForm({...artistForm,bio:e.target.value})} placeholder="Artist bio..." />
-                    {artistMsg && <p className="text-sm font-medium" style={{ color:"#4ade80" }}>{artistMsg}</p>}
-                    <GoldSubmit saving={false} label="Add Artist" />
-                  </form>
-                </FormSection>
-
-                <div>
-                  <SectionHeader title={`Artists (${artists.length})`} />
-                  {artists.length===0 ? <p className="text-sm" style={{ color:"#444" }}>No artists added via admin yet.</p> : (
-                    <div className="space-y-2">
-                      {artists.map(a => (
-                        <div key={a.id} className="flex items-center justify-between p-4 rounded-2xl" style={{ background:BG_CARD, border:`1px solid ${BORDER_SUBTLE}` }}>
-                          <div>
-                            <p className="font-bold text-white text-sm">{a.name}</p>
-                            <p className="text-xs mt-0.5" style={{ color:"#555" }}>{a.genre}</p>
-                          </div>
-                          <button onClick={()=>deleteArtist(a.id)} className="text-xs px-3 py-1.5 rounded-lg hover:text-red-400 transition-colors" style={{ color:"#444",background:"#1a1a1a" }}>Remove</button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
             {/* ── TESTIMONIALS ── */}
             {tab === "Add Artist Testimonial" && (
               <>
@@ -1997,161 +2416,208 @@ export default function AdminPage() {
             )}
 
             {/* ── MESSAGES ── */}
-            {tab === "Messages" && (
-              <>
-                {/* Stats row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <StatCard label="Total" value={messages.filter(m=>m.folder!=="trash").length} icon={Mail} />
-                  <StatCard label="Unread" value={messages.filter(m=>!m.read&&m.folder!=="trash"&&m.folder!=="archive").length} />
-                  <StatCard label="Starred" value={messages.filter(m=>m.starred&&m.folder!=="trash").length} />
-                  <StatCard label="Replied" value={messages.filter(m=>m.replied&&m.folder!=="trash").length} />
-                </div>
+            {tab === "Messages" && (() => {
+              const inboxCount   = messages.filter(m=>!m.folder||m.folder==="inbox").length;
+              const unreadInbox  = messages.filter(m=>(!m.folder||m.folder==="inbox")&&!m.read).length;
+              const folderDefs: { id: typeof msgFolder; label: string; icon: string; count: number; unread: number }[] = [
+                { id:"inbox",   label:"Inbox",   icon:"📥", count:inboxCount, unread:unreadInbox },
+                { id:"starred", label:"Starred", icon:"⭐", count:messages.filter(m=>m.starred&&m.folder!=="trash").length, unread:0 },
+                { id:"replied", label:"Sent",    icon:"↩", count:messages.filter(m=>m.replied&&m.folder!=="trash").length, unread:0 },
+                { id:"archive", label:"Archive", icon:"🗄", count:messages.filter(m=>m.folder==="archive").length, unread:0 },
+                { id:"trash",   label:"Trash",   icon:"🗑", count:messages.filter(m=>m.folder==="trash").length, unread:0 },
+              ];
+              const folderMsgs = messages.filter(m => {
+                if (msgFolder==="inbox")   return !m.folder||m.folder==="inbox";
+                if (msgFolder==="starred") return m.starred&&m.folder!=="trash";
+                if (msgFolder==="replied") return m.replied&&m.folder!=="trash";
+                if (msgFolder==="archive") return m.folder==="archive";
+                if (msgFolder==="trash")   return m.folder==="trash";
+                return true;
+              });
+              const openMsg = expandedMsg ? messages.find(m=>m.id===expandedMsg) ?? null : null;
 
-                {/* Folder sub-nav */}
-                {(() => {
-                  const folders: { id: typeof msgFolder; label: string; count: number }[] = [
-                    { id:"inbox",   label:"Inbox",   count: messages.filter(m=>!m.folder||m.folder==="inbox").length },
-                    { id:"starred", label:"Starred", count: messages.filter(m=>m.starred&&m.folder!=="trash").length },
-                    { id:"replied", label:"Replied", count: messages.filter(m=>m.replied&&m.folder!=="trash").length },
-                    { id:"archive", label:"Archive", count: messages.filter(m=>m.folder==="archive").length },
-                    { id:"trash",   label:"Trash",   count: messages.filter(m=>m.folder==="trash").length },
-                  ];
-                  return (
-                    <div className="flex gap-1.5 flex-wrap p-1 rounded-xl" style={{ background: BG_INPUT }}>
-                      {folders.map(f => {
-                        const unread = f.id==="inbox" ? messages.filter(m=>(!m.folder||m.folder==="inbox")&&!m.read).length : 0;
-                        const active = msgFolder===f.id;
-                        return (
+              function fmtDate(d: string) {
+                const date = new Date(d);
+                const now = new Date();
+                const diff = now.getTime() - date.getTime();
+                if (diff < 86400000 && date.getDate()===now.getDate()) return date.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+                if (diff < 604800000) return date.toLocaleDateString("en-US",{weekday:"short"});
+                return date.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+              }
+
+              return (
+                <div className="rounded-xl overflow-hidden flex-1 flex flex-col min-h-0" style={{ background:BG_CARD, border:`1px solid ${BORDER_SUBTLE}` }}>
+                  <div className="flex flex-1 min-h-0">
+
+                    {/* ── Left sidebar: folders ── */}
+                    <div className="hidden md:flex flex-shrink-0 flex-col" style={{ width:148, minWidth:148, borderRight:`1px solid ${BORDER_SUBTLE}`, background:BG_DEEP }}>
+                      <div className="px-3 pt-4 pb-3 flex items-center justify-between">
+                        <span className="text-xs font-black tracking-widest uppercase" style={{ color:GOLD }}>Mail</span>
+                        <button title="Refresh" onClick={async()=>{ const m=await load("/api/admin/messages"); if(m) setMessages(m); }}
+                          className="text-sm transition-colors" style={{ color:TEXT_MUTED }}
+                          onMouseEnter={e=>e.currentTarget.style.color=GOLD} onMouseLeave={e=>e.currentTarget.style.color=TEXT_MUTED}>↻</button>
+                      </div>
+                      <nav className="flex-1 px-2 space-y-0.5">
+                        {folderDefs.map(f => (
                           <button key={f.id} onClick={()=>{ setMsgFolder(f.id); setExpandedMsg(null); }}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all"
-                            style={{ background:active?BG_CARD:"transparent", color:active?GOLD:TEXT_MUTED, border:`1px solid ${active?GOLD_BORDER:"transparent"}`, boxShadow:active?"0 1px 4px rgba(0,0,0,0.2)":"none" }}>
-                            {f.label}
-                            <span className="rounded-full px-1.5 py-0.5 text-xs font-black" style={{ background: unread>0?"rgba(201,168,76,0.2)":"rgba(255,255,255,0.06)", color: unread>0?GOLD:TEXT_MUTED }}>
-                              {f.id==="inbox"?f.count:f.count}
-                            </span>
-                            {unread>0 && <span className="w-1.5 h-1.5 rounded-full" style={{ background:GOLD }} />}
+                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold text-left transition-all"
+                            style={{ background:msgFolder===f.id?"rgba(201,168,76,0.1)":"transparent", color:msgFolder===f.id?GOLD:TEXT_DIM, border:`1px solid ${msgFolder===f.id?GOLD_BORDER:"transparent"}` }}>
+                            <span style={{ fontSize:13 }}>{f.icon}</span>
+                            <span className="flex-1 truncate">{f.label}</span>
+                            {f.count>0 && <span className="text-xs font-black px-1.5 py-0.5 rounded-full" style={{ background: f.unread>0?"rgba(201,168,76,0.2)":"rgba(255,255,255,0.06)", color: f.unread>0?GOLD:TEXT_MUTED, minWidth:20, textAlign:"center" }}>{f.unread>0?f.unread:f.count}</span>}
+                          </button>
+                        ))}
+                      </nav>
+                      {messages.length>0 && (
+                        <div className="p-2 border-t" style={{ borderColor:BORDER_SUBTLE }}>
+                          <button onClick={exportMessages} className="w-full text-xs px-2 py-1.5 rounded-lg font-semibold text-center transition-all"
+                            style={{ color:TEXT_MUTED, background:"rgba(255,255,255,0.03)" }}
+                            onMouseEnter={e=>e.currentTarget.style.color=GOLD} onMouseLeave={e=>e.currentTarget.style.color=TEXT_MUTED}>
+                            Export CSV
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ── Message list ── */}
+                    <div className="flex-shrink-0 flex flex-col" style={{ width:"28%", minWidth:220, maxWidth:320, borderRight:`1px solid ${BORDER_SUBTLE}`, overflowY:"auto" }}>
+                      {/* List header */}
+                      <div className="px-4 py-3 sticky top-0 z-10 flex items-center justify-between" style={{ background:BG_CARD, borderBottom:`1px solid ${BORDER_SUBTLE}` }}>
+                        <span className="text-xs font-black text-white">{folderDefs.find(f=>f.id===msgFolder)?.label}</span>
+                        <span className="text-xs" style={{ color:TEXT_MUTED }}>{folderMsgs.length}</span>
+                      </div>
+                      {folderMsgs.length===0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center">
+                          <p className="text-2xl mb-2">{msgFolder==="trash"?"🗑️":msgFolder==="starred"?"⭐":msgFolder==="replied"?"↩️":"📭"}</p>
+                          <p className="text-xs font-semibold" style={{ color:TEXT_MUTED }}>
+                            {msgFolder==="inbox"?"No messages yet":msgFolder==="starred"?"No starred messages":msgFolder==="replied"?"No sent messages":msgFolder==="archive"?"Archive empty":"Trash empty"}
+                          </p>
+                        </div>
+                      ) : folderMsgs.map(m => {
+                        const isSelected = expandedMsg===m.id;
+                        const isUnread = !m.read && (msgFolder==="inbox");
+                        return (
+                          <button key={m.id} onClick={()=>{ setExpandedMsg(m.id); if(!m.read) markRead(m.id,true); }}
+                            className="w-full text-left px-4 py-3 transition-all relative"
+                            style={{ background: isSelected?"rgba(201,168,76,0.08)":isUnread?"rgba(201,168,76,0.03)":"transparent", borderBottom:`1px solid ${BORDER_SUBTLE}`, borderLeft: isSelected?`2px solid ${GOLD}`:"2px solid transparent" }}>
+                            {/* Unread dot */}
+                            {isUnread && <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background:GOLD }} />}
+                            <div className="flex items-start justify-between gap-1 mb-0.5">
+                              <span className="text-xs truncate" style={{ fontWeight: isUnread?700:500, color: isUnread?"white":TEXT_DIM, maxWidth:150 }}>{m.name}</span>
+                              <span className="text-xs flex-shrink-0" style={{ color:TEXT_MUTED, fontSize:10 }}>{fmtDate(m.createdAt)}</span>
+                            </div>
+                            <p className="text-xs truncate mb-0.5" style={{ fontWeight: isUnread?600:400, color: isUnread?"rgba(255,255,255,0.8)":TEXT_MUTED }}>{m.subject}</p>
+                            <p className="text-xs truncate" style={{ color:TEXT_MUTED, fontSize:10 }}>{m.message.slice(0,60)}</p>
+                            {(m.starred||m.replied) && (
+                              <div className="flex gap-1 mt-1">
+                                {m.starred && <span style={{ fontSize:9, color:GOLD }}>★ starred</span>}
+                                {m.replied && <span style={{ fontSize:9, color:"#4ade80" }}>↩ replied</span>}
+                              </div>
+                            )}
                           </button>
                         );
                       })}
-                      <div className="flex-1" />
-                      {messages.length>0 && <GoldBtn onClick={exportMessages} small>Export CSV</GoldBtn>}
                     </div>
-                  );
-                })()}
 
-                {/* Message list */}
-                {(() => {
-                  const folderMsgs = messages.filter(m => {
-                    if (msgFolder==="inbox")   return !m.folder||m.folder==="inbox";
-                    if (msgFolder==="starred") return m.starred&&m.folder!=="trash";
-                    if (msgFolder==="replied") return m.replied&&m.folder!=="trash";
-                    if (msgFolder==="archive") return m.folder==="archive";
-                    if (msgFolder==="trash")   return m.folder==="trash";
-                    return true;
-                  });
-
-                  if (folderMsgs.length===0) return (
-                    <div className="text-center py-12" style={{ color:TEXT_MUTED }}>
-                      <p className="text-2xl mb-2">{msgFolder==="trash"?"🗑️":msgFolder==="starred"?"⭐":msgFolder==="replied"?"↩️":"📭"}</p>
-                      <p className="text-sm font-semibold">
-                        {msgFolder==="inbox"?"No messages yet":msgFolder==="starred"?"No starred messages":msgFolder==="replied"?"No replied messages yet":msgFolder==="archive"?"Archive is empty":"Trash is empty"}
-                      </p>
-                    </div>
-                  );
-
-                  return (
-                    <div className="space-y-2">
-                      {folderMsgs.map(m => (
-                        <div key={m.id} className="rounded-2xl overflow-hidden transition-all"
-                          style={{ background:BG_CARD, border:`1px solid ${m.starred?GOLD_BORDER:!m.read&&(msgFolder==="inbox")?"rgba(201,168,76,0.25)":BORDER_SUBTLE}` }}>
-
-                          {/* Header row */}
-                          <div className="flex items-center gap-3 px-4 py-3.5">
-                            {/* Star */}
-                            <button onClick={()=>starMessage(m.id,!m.starred)} className="flex-shrink-0 transition-all text-base leading-none"
-                              style={{ color:m.starred?GOLD:TEXT_MUTED, opacity:m.starred?1:0.5 }}
-                              title={m.starred?"Unstar":"Star"}>★</button>
-
-                            {/* Expand / collapse */}
-                            <button className="flex-1 text-left min-w-0" onClick={()=>{ setExpandedMsg(expandedMsg===m.id?null:m.id); if(!m.read) markRead(m.id,true); }}>
-                              <div className="flex items-center gap-2 min-w-0 mb-0.5">
-                                {!m.read && msgFolder==="inbox" && <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background:GOLD }} />}
-                                <p className={`text-sm truncate ${!m.read?"font-black text-white":"font-semibold"}`} style={{ color: !m.read?"white":"var(--adm-dim)" }}>
-                                  {m.name}
-                                </p>
-                                {m.replied && <span className="text-xs px-1.5 py-0.5 rounded font-bold flex-shrink-0" style={{ background:"rgba(74,222,128,0.1)",color:"#4ade80" }}>Replied</span>}
-                                {m.folder==="archive" && msgFolder!=="archive" && <span className="text-xs px-1.5 py-0.5 rounded font-bold flex-shrink-0" style={{ background:GOLD_DIM,color:GOLD }}>Archived</span>}
+                    {/* ── Reading pane ── */}
+                    <div className="flex-1 flex flex-col overflow-hidden" style={{ minWidth:0 }}>
+                      {!openMsg ? (
+                        <div className="flex-1 flex flex-col items-center justify-center" style={{ color:TEXT_MUTED }}>
+                          <Mail size={36} style={{ opacity:0.15, marginBottom:12 }} />
+                          <p className="text-sm font-semibold" style={{ opacity:0.4 }}>Select a message to read</p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Message header */}
+                          <div className="px-6 py-5" style={{ borderBottom:`1px solid ${BORDER_SUBTLE}` }}>
+                            <h2 className="text-base font-black text-white mb-3 leading-snug">{openMsg.subject}</h2>
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black text-black flex-shrink-0"
+                                    style={{ background:`linear-gradient(135deg,${GOLD},#A8892E)` }}>
+                                    {openMsg.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-white">{openMsg.name}</p>
+                                    <p className="text-xs" style={{ color:TEXT_MUTED }}>{openMsg.email}</p>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 min-w-0">
-                                <p className="text-xs truncate font-medium" style={{ color:TEXT_MUTED }}>{m.subject}</p>
-                                <span className="text-xs flex-shrink-0" style={{ color:TEXT_MUTED }}>·</span>
-                                <p className="text-xs flex-shrink-0" style={{ color:TEXT_MUTED }}>{new Date(m.createdAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</p>
-                              </div>
-                            </button>
-
-                            <span className="text-xs flex-shrink-0" style={{ color:TEXT_MUTED }}>{expandedMsg===m.id?"▲":"▼"}</span>
-                          </div>
-
-                          {/* Expanded body */}
-                          {expandedMsg===m.id && (
-                            <div className="px-5 pb-5 border-t" style={{ borderColor:BORDER_SUBTLE }}>
-                              <p className="text-xs mt-3 mb-1 font-semibold" style={{ color:TEXT_MUTED }}>From: {m.name} · {m.email}</p>
-                              <p className="text-sm leading-relaxed mt-3 whitespace-pre-wrap" style={{ color:"var(--adm-dim)" }}>{m.message}</p>
-
-                              <div className="flex flex-wrap gap-2 mt-5">
-                                <a href={`mailto:${m.email}?subject=Re: ${encodeURIComponent(m.subject)}`}
-                                  onClick={()=>markReplied(m.id)}
-                                  className="text-xs px-4 py-2 rounded-lg font-bold"
-                                  style={{ background:GOLD_DIM, color:GOLD, border:`1px solid ${GOLD_BORDER}` }}>
-                                  Reply via Email
-                                </a>
-                                {!m.replied && (
-                                  <button onClick={()=>markReplied(m.id)} className="text-xs px-4 py-2 rounded-lg font-bold transition-all"
-                                    style={{ background:"rgba(74,222,128,0.08)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.2)" }}>
-                                    Mark Replied
-                                  </button>
-                                )}
-                                {m.folder!=="archive" && (
-                                  <button onClick={()=>archiveMessage(m.id)} className="text-xs px-4 py-2 rounded-lg font-bold transition-all"
-                                    style={{ background:"rgba(255,255,255,0.05)",color:TEXT_DIM,border:`1px solid ${BORDER_SUBTLE}` }}>
-                                    Archive
-                                  </button>
-                                )}
-                                {(m.folder==="archive"||m.folder==="trash") && (
-                                  <button onClick={()=>restoreMessage(m.id)} className="text-xs px-4 py-2 rounded-lg font-bold transition-all"
-                                    style={{ background:"rgba(74,222,128,0.08)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.2)" }}>
-                                    Restore to Inbox
-                                  </button>
-                                )}
-                                {m.folder!=="trash" ? (
-                                  <button onClick={()=>trashMessage(m.id)} className="text-xs px-4 py-2 rounded-lg font-bold transition-all"
-                                    style={{ background:"rgba(239,68,68,0.06)",color:"#f87171",border:"1px solid rgba(239,68,68,0.15)" }}>
-                                    Move to Trash
-                                  </button>
-                                ) : (
-                                  <button onClick={()=>deleteMessage(m.id)} className="text-xs px-4 py-2 rounded-lg font-bold transition-all"
-                                    style={{ background:"rgba(239,68,68,0.1)",color:"#f87171",border:"1px solid rgba(239,68,68,0.25)" }}>
-                                    Delete Forever
-                                  </button>
-                                )}
+                              <div className="text-right flex-shrink-0">
+                                <p className="text-xs" style={{ color:TEXT_MUTED }}>{new Date(openMsg.createdAt).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"})}</p>
                               </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+
+                          {/* Message body */}
+                          <div className="flex-1 overflow-y-auto px-6 py-5">
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color:"rgba(255,255,255,0.75)", lineHeight:1.8 }}>{openMsg.message}</p>
+                          </div>
+
+                          {/* Action bar */}
+                          <div className="px-6 py-4 flex flex-wrap gap-2" style={{ borderTop:`1px solid ${BORDER_SUBTLE}`, background:BG_DEEP }}>
+                            <a href={`mailto:${openMsg.email}?subject=Re: ${encodeURIComponent(openMsg.subject)}`}
+                              onClick={()=>markReplied(openMsg.id)}
+                              className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg font-bold"
+                              style={{ background:`linear-gradient(90deg,#A8892E,${GOLD})`, color:"#000" }}>
+                              ↩ Reply
+                            </a>
+                            <button onClick={()=>starMessage(openMsg.id,!openMsg.starred)}
+                              className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                              style={{ background: openMsg.starred?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)", color: openMsg.starred?GOLD:TEXT_MUTED, border:`1px solid ${openMsg.starred?GOLD_BORDER:BORDER_SUBTLE}` }}>
+                              {openMsg.starred?"★ Starred":"☆ Star"}
+                            </button>
+                            {!openMsg.replied && (
+                              <button onClick={()=>markReplied(openMsg.id)}
+                                className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                                style={{ background:"rgba(74,222,128,0.08)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.2)" }}>
+                                ✓ Mark Replied
+                              </button>
+                            )}
+                            {openMsg.folder!=="archive" && (
+                              <button onClick={()=>archiveMessage(openMsg.id)}
+                                className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                                style={{ background:"rgba(255,255,255,0.04)",color:TEXT_DIM,border:`1px solid ${BORDER_SUBTLE}` }}>
+                                Archive
+                              </button>
+                            )}
+                            {(openMsg.folder==="archive"||openMsg.folder==="trash") && (
+                              <button onClick={()=>restoreMessage(openMsg.id)}
+                                className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                                style={{ background:"rgba(74,222,128,0.08)",color:"#4ade80",border:"1px solid rgba(74,222,128,0.2)" }}>
+                                Restore
+                              </button>
+                            )}
+                            {openMsg.folder!=="trash" ? (
+                              <button onClick={()=>{ trashMessage(openMsg.id); setExpandedMsg(null); }}
+                                className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                                style={{ background:"rgba(239,68,68,0.06)",color:"#f87171",border:"1px solid rgba(239,68,68,0.15)" }}>
+                                Trash
+                              </button>
+                            ) : (
+                              <button onClick={()=>{ deleteMessage(openMsg.id); setExpandedMsg(null); }}
+                                className="text-xs px-3 py-2 rounded-lg font-bold transition-all"
+                                style={{ background:"rgba(239,68,68,0.1)",color:"#f87171",border:"1px solid rgba(239,68,68,0.25)" }}>
+                                Delete Forever
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  );
-                })()}
-              </>
-            )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ── SUBSCRIBERS ── */}
             {tab === "Subscribers" && (
               <>
                 {/* Folder nav */}
                 <div className="flex items-center gap-2">
-                  {([["list","All Subscribers",subscribers.length,null],["deliveries","🎁 Free Beat Sent",deliveries.length,null],["giveaway","🎯 Giveaway Blast",null,null]] as const).map(([view,label,count])=>(
-                    <button key={view} onClick={()=>{ setSubView(view as "list"|"deliveries"|"giveaway"); setGiveawayResult(null); setGiveawayConfirm(false); }}
+                  {([["list","All Subscribers",subscribers.length,null],["giveaway","🎯 Giveaway Blast",null,null]] as const).map(([view,label,count])=>(
+                    <button key={view} onClick={()=>{ setSubView(view as "list"|"giveaway"); setGiveawayResult(null); setGiveawayConfirm(false); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
                       style={{ background:subView===view?"rgba(201,168,76,0.12)":"transparent", color:subView===view?GOLD:TEXT_MUTED, border:`1px solid ${subView===view?"rgba(201,168,76,0.3)":"transparent"}` }}>
                       {label}
@@ -2292,155 +2758,14 @@ export default function AdminPage() {
                   );
                 })()}
 
-                {/* ── FREE BEAT DELIVERIES view ── */}
-                {subView==="deliveries" && (() => {
-                  const beatDeliveries  = deliveries.filter(d=>d.type==="beat");
-                  const promoDeliveries = deliveries.filter(d=>d.type==="promo" || !d.type);
-                  const emailSentCount  = deliveries.filter(d=>d.emailSent).length;
-                  const recipientEmails = new Set(deliveries.map(d=>d.subscriberEmail));
-
-                  // Group beat deliveries by beat
-                  const byBeat: Record<string,{beatTitle:string;items:FreeBeatDelivery[]}> = {};
-                  for (const d of beatDeliveries) {
-                    const key = d.beatId ?? "unknown";
-                    if (!byBeat[key]) byBeat[key] = { beatTitle:d.beatTitle??"Unknown Beat", items:[] };
-                    byBeat[key].items.push(d);
-                  }
-                  const beatGroups = Object.entries(byBeat).sort((a,b)=>b[1].items.length-a[1].items.length);
-
-                  function timeAgo(date: string) {
-                    const diff = Math.floor((Date.now()-new Date(date).getTime())/1000);
-                    if (diff<60) return "just now";
-                    if (diff<3600) return `${Math.floor(diff/60)}m ago`;
-                    if (diff<86400) return `${Math.floor(diff/3600)}h ago`;
-                    if (diff<2592000) return `${Math.floor(diff/86400)}d ago`;
-                    return `${Math.floor(diff/2592000)}mo ago`;
-                  }
-
-                  const exportAll = () => downloadCSV(
-                    "luchibeats-email-log.csv",
-                    ["Email","Type","Beat","Email Sent","Date"],
-                    deliveries.map(d=>[d.subscriberEmail,d.type??"beat",d.beatTitle??"—",d.emailSent?"Yes":"No (Resend not set up)",new Date(d.deliveredAt).toLocaleDateString()])
-                  );
-
-                  function DeliveryTable({ items }: { items: FreeBeatDelivery[] }) {
-                    return (
-                      <div className="rounded-xl overflow-hidden" style={{ border:`1px solid ${BORDER_SUBTLE}` }}>
-                        <div className="grid grid-cols-12 px-4 py-2.5" style={{ background:BG_INPUT,borderBottom:`1px solid ${BORDER_SUBTLE}` }}>
-                          <span className="col-span-1 text-xs font-black tracking-widest" style={{ color:TEXT_MUTED }}>#</span>
-                          <span className="col-span-6 text-xs font-black tracking-widest" style={{ color:TEXT_MUTED }}>EMAIL</span>
-                          <span className="col-span-2 text-xs font-black tracking-widest" style={{ color:TEXT_MUTED }}>EMAILED</span>
-                          <span className="col-span-3 text-xs font-black tracking-widest text-right" style={{ color:TEXT_MUTED }}>DATE</span>
-                        </div>
-                        {items.map((d,i)=>(
-                          <div key={d.id} className="group grid grid-cols-12 items-center px-4 py-3 transition-all"
-                            style={{ borderBottom:i<items.length-1?`1px solid ${BORDER_SUBTLE}`:"none",background:"transparent" }}
-                            onMouseEnter={e=>(e.currentTarget.style.background=GOLD_DIM)}
-                            onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
-                            <span className="col-span-1 text-xs font-mono" style={{ color:TEXT_MUTED }}>{i+1}</span>
-                            <div className="col-span-6 flex items-center gap-2 min-w-0">
-                              <span className="text-sm text-white truncate">{d.subscriberEmail}</span>
-                              <button onClick={()=>navigator.clipboard.writeText(d.subscriberEmail)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-xs px-1.5 py-0.5 rounded flex-shrink-0"
-                                style={{ color:GOLD,background:"rgba(201,168,76,0.08)" }} title="Copy">⎘</button>
-                            </div>
-                            <span className="col-span-2 text-xs" style={{ color:d.emailSent?"#4ade80":TEXT_DIM }}>
-                              {d.emailSent ? "✓ Sent" : "—"}
-                            </span>
-                            <span className="col-span-3 text-xs text-right" style={{ color:TEXT_MUTED }}>{timeAgo(d.deliveredAt)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <>
-                      {/* Resend setup notice if emails aren't sending */}
-                      {emailSentCount===0 && deliveries.length>0 && (
-                        <div className="rounded-xl p-4 flex items-start gap-3" style={{ background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)" }}>
-                          <span className="text-lg flex-shrink-0">⚠️</span>
-                          <div>
-                            <p className="text-sm font-bold text-white mb-1">Emails are not being sent yet</p>
-                            <p className="text-xs mb-2" style={{ color:TEXT_MUTED }}>Add <code style={{ color:GOLD }}>RESEND_API_KEY</code> and <code style={{ color:GOLD }}>RESEND_FROM_EMAIL</code> to your Vercel environment variables to activate email delivery. Get a free API key at resend.com.</p>
-                            <p className="text-xs" style={{ color:TEXT_DIM }}>Deliveries are still being tracked — once Resend is set up, new subscribers will receive emails automatically.</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Stats */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <StatCard label="Total Logged" value={deliveries.length} icon={Mail} />
-                        <StatCard label="Free Beats Sent" value={beatDeliveries.length} icon={Music} />
-                        <StatCard label="Promo Emails" value={promoDeliveries.length} />
-                        <StatCard label="Emails Delivered" value={emailSentCount} sub={emailSentCount===0?"Set up Resend":undefined} />
-                      </div>
-
-                      {deliveries.length===0 ? (
-                        <Card>
-                          <div className="text-center py-10" style={{ color:TEXT_MUTED }}>
-                            <p className="text-3xl mb-3">📬</p>
-                            <p className="text-sm font-semibold text-white">No emails logged yet</p>
-                            <p className="text-xs mt-1">Every subscriber gets either a free beat or a promo email — both are tracked here.</p>
-                          </div>
-                        </Card>
-                      ) : (
-                        <>
-                          {/* Beat deliveries grouped by beat */}
-                          {beatGroups.length>0 && beatGroups.map(([beatId,group])=>(
-                            <Card key={beatId}>
-                              <div className="flex items-center justify-between mb-4">
-                                <div>
-                                  <p className="text-xs font-black tracking-widest mb-1" style={{ color:TEXT_MUTED }}>🎵 FREE BEAT DELIVERED</p>
-                                  <p className="text-base font-bold text-white">{group.beatTitle}</p>
-                                </div>
-                                <span className="px-3 py-1.5 rounded-xl text-sm font-bold" style={{ background:"rgba(201,168,76,0.1)",color:GOLD }}>
-                                  {group.items.length} recipient{group.items.length!==1?"s":""}
-                                </span>
-                              </div>
-                              <DeliveryTable items={group.items} />
-                            </Card>
-                          ))}
-
-                          {/* Promo emails */}
-                          {promoDeliveries.length>0 && (
-                            <Card>
-                              <div className="flex items-center justify-between mb-4">
-                                <div>
-                                  <p className="text-xs font-black tracking-widest mb-1" style={{ color:TEXT_MUTED }}>📣 PROMO / WELCOME EMAIL</p>
-                                  <p className="text-sm text-white">Subscribers who got a welcome email instead of a free beat<br/><span className="text-xs" style={{ color:TEXT_MUTED }}>(no free beat was active at sign-up, or beat was already sent to them)</span></p>
-                                </div>
-                                <span className="px-3 py-1.5 rounded-xl text-sm font-bold" style={{ background:"rgba(96,165,250,0.1)",color:"#60a5fa" }}>
-                                  {promoDeliveries.length} sent
-                                </span>
-                              </div>
-                              <DeliveryTable items={promoDeliveries} />
-                            </Card>
-                          )}
-
-                          {/* Export */}
-                          <div className="flex justify-end">
-                            <GoldBtn onClick={exportAll} small>Export Full Log CSV</GoldBtn>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  );
-                })()}
-
                 {/* ── GIVEAWAY BLAST view ── */}
                 {subView==="giveaway" && (() => {
                   // Compute live recipient count
                   const now = Date.now();
                   const cutoff30 = now - 30*24*60*60*1000;
-                  const noBeatSet = new Set(deliveries.filter(d=>d.beatId===giveawayForm.beatId).map(d=>d.subscriberEmail));
                   const audienceCount = giveawayForm.audience==="all"
                     ? subscribers.length
-                    : giveawayForm.audience==="new30"
-                      ? subscribers.filter(s=>new Date(s.createdAt).getTime()>=cutoff30).length
-                      : subscribers.filter(s=>!noBeatSet.has(s.email)).length;
-
-                  const selectedBeat = beats.find(b=>b.id===giveawayForm.beatId) ?? null;
+                    : subscribers.filter(s=>new Date(s.createdAt).getTime()>=cutoff30).length;
 
                   async function sendBlast() {
                     setGiveawaySending(true);
@@ -2453,9 +2778,6 @@ export default function AdminPage() {
                       });
                       const data = await res.json();
                       setGiveawayResult(data);
-                      // Refresh deliveries
-                      const dl = await load("/api/admin/free-beat-deliveries");
-                      if (dl) setDeliveries(dl);
                     } finally {
                       setGiveawaySending(false);
                       setGiveawayConfirm(false);
@@ -2470,7 +2792,7 @@ export default function AdminPage() {
                           <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl" style={{ background:"rgba(201,168,76,0.1)",border:`1px solid rgba(201,168,76,0.25)` }}>🎯</div>
                           <div>
                             <h3 className="text-base font-black text-white mb-1">Monthly Giveaway Blast</h3>
-                            <p className="text-xs" style={{ color:TEXT_MUTED }}>Send a beat download or custom email to your subscriber list. Choose your content, target audience, then fire.</p>
+                            <p className="text-xs" style={{ color:TEXT_MUTED }}>Send a custom email to your subscriber list. Choose your content, target audience, then fire.</p>
                           </div>
                         </div>
                       </div>
@@ -2492,58 +2814,13 @@ export default function AdminPage() {
                       )}
 
                       {/* Stats bar */}
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <StatCard label="Total Subscribers" value={subscribers.length} icon={FileText} />
-                        <StatCard label="Target Audience" value={audienceCount} sub={giveawayForm.audience==="all"?"All subscribers":giveawayForm.audience==="new30"?"Last 30 days":"Haven't got this beat"} />
-                        <StatCard label="Past Blasts" value={deliveries.filter(d=>d.id.startsWith("giveaway")).length} />
+                        <StatCard label="Target Audience" value={audienceCount} sub={giveawayForm.audience==="all"?"All subscribers":"Last 30 days"} />
                       </div>
 
                       <Card>
                         <SectionHeader title="Step 1 — What to Send" />
-                        {/* Type toggle */}
-                        <div className="flex gap-2 mb-5">
-                          {([["beat","🎵 Beat Download"],["custom","✉️ Custom Email"]] as const).map(([t,label])=>(
-                            <button key={t} type="button"
-                              onClick={()=>setGiveawayForm({...giveawayForm,type:t})}
-                              className="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all"
-                              style={{ background:giveawayForm.type===t?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.03)", color:giveawayForm.type===t?GOLD:TEXT_MUTED, border:`1px solid ${giveawayForm.type===t?"rgba(201,168,76,0.35)":BORDER_SUBTLE}` }}>
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-
-                        {giveawayForm.type==="beat" ? (
-                          <>
-                            <label className="flex items-center gap-1.5 text-xs font-bold tracking-[0.18em] mb-2 uppercase" style={{ color:"#6e6e7a" }}>
-                              <span style={{ color:GOLD,fontSize:10 }}>▶</span>Select Beat
-                            </label>
-                            <select
-                              value={giveawayForm.beatId}
-                              onChange={e=>setGiveawayForm({...giveawayForm,beatId:e.target.value})}
-                              className="w-full px-4 py-2.5 rounded-xl text-sm outline-none mb-3"
-                              style={{ background:BG_INPUT,border:`1px solid ${BORDER_SUBTLE}`,color:"var(--adm-dim)" }}>
-                              <option value="">— Choose a beat —</option>
-                              {beats.map(b=>(
-                                <option key={b.id} value={b.id}>{b.title}{b.isFree?" (subscriber-only)":""}</option>
-                              ))}
-                            </select>
-                            {selectedBeat && (
-                              <div className="rounded-xl px-4 py-3 flex items-center gap-3" style={{ background:"rgba(201,168,76,0.06)",border:`1px solid rgba(201,168,76,0.15)` }}>
-                                <span className="text-xl">🎵</span>
-                                <div>
-                                  <p className="text-sm font-bold text-white">{selectedBeat.title}</p>
-                                  <p className="text-xs" style={{ color:TEXT_MUTED }}>
-                                    {selectedBeat.genre} · {selectedBeat.bpm} BPM
-                                    {selectedBeat.isFree && <span className="ml-2 px-1.5 py-0.5 rounded text-xs" style={{ background:"rgba(201,168,76,0.1)",color:GOLD }}>Subscriber-only</span>}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                            <Input label="Email Subject" value={giveawayForm.subject}
-                              onChange={e=>setGiveawayForm({...giveawayForm,subject:e.target.value})}
-                              placeholder={`Your free beat is here — ${selectedBeat?.title||"Beat Title"}`} />
-                          </>
-                        ) : (
                           <>
                             <Input label="Email Subject" value={giveawayForm.subject}
                               onChange={e=>setGiveawayForm({...giveawayForm,subject:e.target.value})}
@@ -2566,7 +2843,6 @@ export default function AdminPage() {
                                 placeholder="https://www.luchibeats.com/beats" />
                             </div>
                           </>
-                        )}
                       </Card>
 
                       <Card>
@@ -2575,7 +2851,6 @@ export default function AdminPage() {
                           {([
                             ["all", "All Subscribers", `Send to every subscriber (${subscribers.length} total)`],
                             ["new30", "New Subscribers", `Only subscribers from the last 30 days (${subscribers.filter(s=>new Date(s.createdAt).getTime()>=cutoff30).length} people)`],
-                            ["nobeat", "Haven't Received This Beat", `Only subscribers who haven't gotten this beat yet (${giveawayForm.beatId?subscribers.filter(s=>!noBeatSet.has(s.email)).length:subscribers.length} people)`],
                           ] as const).map(([val,label,desc])=>(
                             <button key={val} type="button"
                               onClick={()=>setGiveawayForm({...giveawayForm,audience:val})}
@@ -2624,9 +2899,9 @@ export default function AdminPage() {
                             ) : (
                               <button type="button"
                                 onClick={()=>setGiveawayConfirm(true)}
-                                disabled={audienceCount===0 || (giveawayForm.type==="beat"&&!giveawayForm.beatId) || !giveawayForm.subject.trim()}
+                                disabled={audienceCount===0 || !giveawayForm.subject.trim()}
                                 className="px-5 py-2 rounded-xl text-sm font-black transition-all"
-                                style={{ background:audienceCount===0||!giveawayForm.subject.trim()||(giveawayForm.type==="beat"&&!giveawayForm.beatId)?"rgba(255,255,255,0.04)":"rgba(201,168,76,0.12)", color:audienceCount===0||!giveawayForm.subject.trim()||(giveawayForm.type==="beat"&&!giveawayForm.beatId)?TEXT_DIM:GOLD, border:`1px solid ${audienceCount===0||!giveawayForm.subject.trim()||(giveawayForm.type==="beat"&&!giveawayForm.beatId)?BORDER_SUBTLE:"rgba(201,168,76,0.3)"}`, cursor:audienceCount===0||!giveawayForm.subject.trim()||(giveawayForm.type==="beat"&&!giveawayForm.beatId)?"not-allowed":"pointer" }}>
+                                style={{ background:audienceCount===0||!giveawayForm.subject.trim()?"rgba(255,255,255,0.04)":"rgba(201,168,76,0.12)", color:audienceCount===0||!giveawayForm.subject.trim()?TEXT_DIM:GOLD, border:`1px solid ${audienceCount===0||!giveawayForm.subject.trim()?BORDER_SUBTLE:"rgba(201,168,76,0.3)"}`, cursor:audienceCount===0||!giveawayForm.subject.trim()?"not-allowed":"pointer" }}>
                                 Review &amp; Send →
                               </button>
                             )}
@@ -2636,15 +2911,12 @@ export default function AdminPage() {
                           <div className="rounded-xl p-4 mt-3" style={{ background:"rgba(201,168,76,0.06)",border:`1px solid rgba(201,168,76,0.2)` }}>
                             <p className="text-xs font-black tracking-widest mb-3" style={{ color:GOLD }}>CONFIRM BLAST</p>
                             <div className="space-y-2 text-xs" style={{ color:TEXT_MUTED }}>
-                              <div className="flex gap-2"><span style={{ color:TEXT_DIM,width:80,flexShrink:0 }}>Type</span><span className="text-white font-semibold">{giveawayForm.type==="beat"?"Beat Download":"Custom Email"}</span></div>
-                              {giveawayForm.type==="beat" && selectedBeat && <div className="flex gap-2"><span style={{ color:TEXT_DIM,width:80,flexShrink:0 }}>Beat</span><span className="text-white font-semibold">{selectedBeat.title}</span></div>}
                               <div className="flex gap-2"><span style={{ color:TEXT_DIM,width:80,flexShrink:0 }}>Subject</span><span className="text-white font-semibold">{giveawayForm.subject}</span></div>
                               <div className="flex gap-2"><span style={{ color:TEXT_DIM,width:80,flexShrink:0 }}>Audience</span><span className="text-white font-semibold">{audienceCount} subscriber{audienceCount!==1?"s":""}</span></div>
                             </div>
                           </div>
                         )}
                         {!giveawayForm.subject.trim() && <p className="text-xs mt-3" style={{ color:"#f87171" }}>⚠ Enter an email subject to continue.</p>}
-                        {giveawayForm.type==="beat" && !giveawayForm.beatId && <p className="text-xs mt-1" style={{ color:"#f87171" }}>⚠ Select a beat to continue.</p>}
                       </Card>
                     </>
                   );
@@ -2877,8 +3149,8 @@ export default function AdminPage() {
                 <Card>
                   <SectionHeader title="Email Capture Section" />
                   <div className="space-y-3">
-                    <Input label="Badge Text" value={homepageForm.emailBadge} onChange={e=>setHomepageForm({...homepageForm,emailBadge:e.target.value})} placeholder="FREE BEAT" />
-                    <Textarea label="Headline (use a newline to split into two lines — second line gets the gold gradient)" rows={2} value={homepageForm.emailHeadline} onChange={e=>setHomepageForm({...homepageForm,emailHeadline:e.target.value})} placeholder={"Get a Free Beat\nWhen You Subscribe"} />
+                    <Input label="Badge Text" value={homepageForm.emailBadge} onChange={e=>setHomepageForm({...homepageForm,emailBadge:e.target.value})} placeholder="JOIN THE LIST" />
+                    <Textarea label="Headline (use a newline to split into two lines — second line gets the gold gradient)" rows={2} value={homepageForm.emailHeadline} onChange={e=>setHomepageForm({...homepageForm,emailHeadline:e.target.value})} placeholder={"Stay Up To Date\nOn New Drops"} />
                     <Textarea label="Body Text" rows={3} value={homepageForm.emailSubtext} onChange={e=>setHomepageForm({...homepageForm,emailSubtext:e.target.value})} placeholder="Join the list. Be the first to hear new drops…" />
                   </div>
                 </Card>

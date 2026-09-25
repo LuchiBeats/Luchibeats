@@ -6,7 +6,6 @@ const DEFAULT_STATS: StatItem[] = [
   { value: 15,  suffix: "+",  label: "Years of Experience" },
   { value: 150, suffix: "+",  label: "Artists Worked With" },
   { value: 100, suffix: "%",  label: "Client Satisfaction" },
-  { value: 72,  suffix: "hr", label: "Avg. Turnaround" },
 ];
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {
@@ -43,7 +42,7 @@ export default function StatsCounter({ stats }: { stats?: StatItem[] }) {
   return (
     <section className="relative border-y py-10 md:py-20 overflow-hidden" style={{ borderColor: "rgba(201,168,76,0.2)", background: "var(--surface)" }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%)" }} />
-      <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <div className="max-w-5xl mx-auto px-4 grid grid-cols-3 gap-8 text-center">
         {items.map(({ value, suffix, label }) => (
           <div key={label} className="group">
             <p className="text-4xl md:text-6xl font-black mb-2 gold-gradient tabular-nums">

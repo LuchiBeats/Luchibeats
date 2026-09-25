@@ -1,25 +1,34 @@
 import ScrollReveal from "./ScrollReveal";
+import { getTestimonials, type Testimonial } from "@/lib/beats-store";
 
-const testimonials: { quote: string; name: string; title: string; initial: string; image?: string; objectPosition?: string }[] = [
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
+    id: "default-1",
     quote: "Luchi is one of the best engineers I have ever worked with. He has recorded my music for years, and I can say without a doubt he is among the best in the game. His production is very diverse and efficient — when it comes to production all around, Luchi is the one. Easy to work with, a master of sound, and the producer/engineer you need in your corner.",
     name: "Calm King Causey",
     title: "Artist",
-    initial: "C",
     image: "/artists/calm-king-causey.jpg",
     objectPosition: "top",
   },
   {
+    id: "default-2",
     quote: "Luchi is a one-stop shop for everything music related. He produces, can lay down vocals, and much more. I've had the pleasure of working with him on many projects over the years. When it's time to work, he's ready for the moment — I can honestly say I have never been disappointed on anything we've created.",
     name: "Mach City",
     title: "Artist",
-    initial: "M",
     image: "/artists/mach-city.jpg",
     objectPosition: "center",
   },
 ];
 
-export default function Testimonials() {
+export default async function Testimonials() {
+  let testimonials = DEFAULT_TESTIMONIALS;
+  try {
+    const stored = await getTestimonials();
+    if (stored.length > 0) testimonials = stored;
+  } catch {
+    // fallback to defaults
+  }
+
   return (
     <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
       <div className="absolute w-96 h-96 rounded-full pointer-events-none" style={{ background: "rgba(201,168,76,0.05)", filter: "blur(80px)", top: "0", left: "50%", transform: "translateX(-50%)" }} />
@@ -29,12 +38,13 @@ export default function Testimonials() {
       </ScrollReveal>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((t, i) => (
-          <ScrollReveal key={t.name} delay={i * 0.12}>
+          <ScrollReveal key={t.id} delay={i * 0.12}>
             <div className="relative rounded-xl overflow-hidden h-full flex flex-col group hover:border-yellow-600/40 transition-all duration-300"
               style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
               {/* Large photo */}
               {t.image && (
                 <div className="w-full overflow-hidden" style={{ height: "280px" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={t.image}
                     alt={t.name}

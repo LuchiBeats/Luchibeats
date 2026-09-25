@@ -4,7 +4,11 @@ const SITE = "https://www.luchibeats.com";
 const GOLD = "#C9A84C";
 const BG   = "#080808";
 
-function base(content: string): string {
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+}
+
+function base(content: string, footerNote = "You subscribed at luchibeats.com. No spam, ever."): string {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>LuchiBeats</title></head>
 <body style="margin:0;padding:0;background:${BG};font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#ffffff;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG};">
@@ -13,7 +17,7 @@ function base(content: string): string {
       <!-- Logo -->
       <tr><td style="padding-bottom:32px;border-bottom:1px solid rgba(201,168,76,0.18);text-align:center;">
         <p style="margin:0;font-size:22px;font-weight:900;letter-spacing:0.12em;color:${GOLD};">LUCHIBEATS</p>
-        <p style="margin:5px 0 0;font-size:9px;letter-spacing:0.35em;color:rgba(201,168,76,0.4);text-transform:uppercase;">Premium Beats · Mixing · Production</p>
+        <p style="margin:5px 0 0;font-size:9px;letter-spacing:0.35em;color:rgba(201,168,76,0.4);text-transform:uppercase;">Premium Beats · Production</p>
       </td></tr>
       <!-- Body -->
       <tr><td style="padding:40px 0 32px;">${content}</td></tr>
@@ -22,7 +26,7 @@ function base(content: string): string {
         <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.2);">
           <a href="${SITE}" style="color:${GOLD};text-decoration:none;">luchibeats.com</a> &nbsp;·&nbsp; New York
         </p>
-        <p style="margin:8px 0 0;font-size:10px;color:rgba(255,255,255,0.12);">You subscribed at luchibeats.com. No spam, ever.</p>
+        <p style="margin:8px 0 0;font-size:10px;color:rgba(255,255,255,0.12);">${footerNote}</p>
       </td></tr>
     </table>
   </td></tr>
@@ -36,24 +40,6 @@ function btn(label: string, href: string, secondary = false): string {
     : `<a href="${href}" style="display:inline-block;padding:14px 36px;background:linear-gradient(90deg,#A8892E,${GOLD},#E5C76B);color:#000;font-weight:900;font-size:14px;letter-spacing:0.05em;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
-export function freeBeatEmailHtml(beatTitle: string, downloadUrl: string): string {
-  return base(`
-    <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">Free Beat</p>
-    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">Your free beat is ready.</h1>
-    <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">
-      Thanks for subscribing — here's your exclusive beat, on us. Download it and build something fire.
-    </p>
-    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:22px 24px;margin-bottom:32px;">
-      <p style="margin:0 0 5px;font-size:9px;letter-spacing:0.2em;color:rgba(201,168,76,0.45);text-transform:uppercase;">🎵 Your Free Beat</p>
-      <p style="margin:0;font-size:20px;font-weight:900;color:#fff;">${beatTitle}</p>
-    </div>
-    <div style="text-align:center;margin-bottom:36px;">${btn("⬇ Download Beat", downloadUrl)}</div>
-    <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.7;">
-      Stay tuned — as a subscriber you'll get first access to new drops and exclusive deals.
-    </p>
-  `);
-}
-
 export function promoEmailHtml(): string {
   return base(`
     <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">Welcome</p>
@@ -63,12 +49,7 @@ export function promoEmailHtml(): string {
       New heat lands regularly — you'll always hear about it first.
     </p>
     <div style="text-align:center;margin-bottom:24px;">${btn("Browse Beats", `${SITE}/beats`)}</div>
-    <div style="text-align:center;margin-bottom:36px;">
-      <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td style="padding-right:6px;">${btn("Mix &amp; Master", `${SITE}/mixing`, true)}</td>
-        <td style="padding-left:6px;">${btn("Book a Session", `${SITE}/contact`, true)}</td>
-      </tr></table>
-    </div>
+    <div style="text-align:center;margin-bottom:36px;">${btn("Book a Session", `${SITE}/contact`, true)}</div>
     <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.7;">
       15+ years of experience &nbsp;·&nbsp; 150+ artists worked with &nbsp;·&nbsp; 100% client satisfaction
     </p>
@@ -81,34 +62,95 @@ export function giveawayEmailHtml(opts: {
   body: string;
   ctaLabel?: string;
   ctaUrl?: string;
-  beatTitle?: string;
-  downloadUrl?: string;
 }): string {
-  const { badge, headline, body, ctaLabel, ctaUrl, beatTitle, downloadUrl } = opts;
+  const { badge, headline, body, ctaLabel, ctaUrl } = opts;
   return base(`
-    ${badge ? `<p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">${badge}</p>` : ""}
-    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">${headline}</h1>
-    <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">${body.replace(/\n/g, "<br>")}</p>
-    ${beatTitle && downloadUrl ? `
-    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:22px 24px;margin-bottom:32px;">
-      <p style="margin:0 0 5px;font-size:9px;letter-spacing:0.2em;color:rgba(201,168,76,0.45);text-transform:uppercase;">🎵 This Month's Beat</p>
-      <p style="margin:0;font-size:20px;font-weight:900;color:#fff;">${beatTitle}</p>
-    </div>
-    <div style="text-align:center;margin-bottom:36px;">${btn("⬇ Download Beat", downloadUrl)}</div>
-    ` : ctaLabel && ctaUrl ? `<div style="text-align:center;margin-bottom:36px;">${btn(ctaLabel, ctaUrl)}</div>` : ""}
+    ${badge ? `<p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">${esc(badge)}</p>` : ""}
+    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">${esc(headline)}</h1>
+    <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">${esc(body).replace(/\n/g, "<br>")}</p>
+    ${ctaLabel && ctaUrl ? `<div style="text-align:center;margin-bottom:36px;">${btn(esc(ctaLabel), ctaUrl)}</div>` : ""}
     <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.7;">
       As a subscriber you get first access to new drops and exclusive deals — stay tuned.
     </p>
   `);
 }
 
-export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+export function resetPasswordEmailHtml(email: string, resetUrl: string): string {
+  return base(`
+    <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">Admin Account Recovery</p>
+    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">Reset your admin password</h1>
+    <p style="margin:0 0 10px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">
+      Your admin login email is <strong style="color:#fff;">${esc(email)}</strong>.
+    </p>
+    <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">
+      Click below to set a new password. This link expires in 45 minutes and can only be used once.
+    </p>
+    <div style="text-align:center;margin-bottom:36px;">${btn("Reset Password", resetUrl)}</div>
+    <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.7;">
+      If you didn't request this, you can safely ignore this email — your password won't change.
+    </p>
+  `);
+}
+
+export interface PurchaseEmailItem {
+  name: string;
+  amount: number;
+  downloads: { label: string; url: string }[];
+}
+
+export function purchaseEmailHtml(opts: { buyerName: string; items: PurchaseEmailItem[]; total: number; hasLicenses: boolean; orderUrl: string }): string {
+  const { buyerName, items, total, hasLicenses, orderUrl } = opts;
+  const rows = items.map((item) => `
+    <tr><td style="padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+      <p style="margin:0 0 4px;font-size:15px;font-weight:700;color:#fff;">${esc(item.name)}</p>
+      <p style="margin:0 0 12px;font-size:12px;color:rgba(255,255,255,0.4);">$${item.amount.toFixed(2)}</p>
+      ${item.downloads.length
+        ? item.downloads.map((d) => `<span style="display:inline-block;margin:0 8px 8px 0;">${btn(`Download ${esc(d.label)}`, esc(d.url), true)}</span>`).join("")
+        : `<p style="margin:0;font-size:12px;color:${GOLD};">Your files are being prepared — we'll email them to you shortly.</p>`}
+    </td></tr>`).join("");
+  return base(`
+    <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">Order Confirmed</p>
+    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">Thanks${buyerName ? `, ${esc(buyerName.split(" ")[0])}` : ""}! Your files are ready.</h1>
+    <p style="margin:0 0 8px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">
+      Download your files below and save them somewhere safe. For security, download links expire after 7 days — you can always get fresh ones from your order page.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+    <p style="margin:20px 0 0;font-size:14px;font-weight:700;color:#fff;text-align:right;">Total paid: <span style="color:${GOLD};">$${total.toFixed(2)}</span></p>
+    <div style="text-align:center;margin-top:28px;">${btn("View Your Order", esc(orderUrl))}</div>
+    ${hasLicenses ? `<p style="margin:24px 0 0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;">Your license agreement is attached to this email (and linked above). Keep it for your records — it's your proof of the rights you purchased.</p>` : ""}
+    <p style="margin:16px 0 0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;">Questions about your order? Just reply to this email or reach out at <a href="${SITE}/contact" style="color:${GOLD};">luchibeats.com/contact</a>.</p>
+  `, "You're receiving this because you made a purchase at luchibeats.com.");
+}
+
+export function saleAlertEmailHtml(opts: { buyerName: string; buyerEmail: string; items: { name: string; amount: number }[]; total: number }): string {
+  const { buyerName, buyerEmail, items, total } = opts;
+  return base(`
+    <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">New Sale</p>
+    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">💰 $${total.toFixed(2)} from ${esc(buyerName || buyerEmail)}</h1>
+    <p style="margin:0 0 18px;font-size:14px;color:rgba(255,255,255,0.55);">${esc(buyerEmail)}</p>
+    ${items.map((i) => `<p style="margin:0 0 6px;font-size:14px;color:#fff;">${esc(i.name)} — <span style="color:${GOLD};">$${i.amount.toFixed(2)}</span></p>`).join("")}
+    <div style="text-align:center;margin-top:28px;">${btn("Open Orders", `${SITE}/admin`)}</div>
+  `, "Sale notification for the LuchiBeats admin.");
+}
+
+// Either inline text `content` or a remote file `path` (URL) that Resend fetches and attaches
+export interface EmailAttachment {
+  filename: string;
+  content?: string;
+  path?: string;
+}
+
+export async function sendEmail(to: string, subject: string, html: string, attachments?: EmailAttachment[]): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
   const from = process.env.RESEND_FROM_EMAIL ?? `LuchiBeats <noreply@luchibeats.com>`;
   try {
     const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({ from, to, subject, html });
+    const { error } = await resend.emails.send({
+      from, to, subject, html,
+      ...(attachments?.length ? { attachments: attachments.map((a) => (a.path ? { filename: a.filename, path: a.path } : { filename: a.filename, content: Buffer.from(a.content ?? "", "utf-8") })) } : {}),
+    });
+    if (error) console.error("[email] Resend error", error);
     return !error;
   } catch {
     return false;

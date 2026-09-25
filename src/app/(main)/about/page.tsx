@@ -42,7 +42,7 @@ export default function AboutPage() {
       {/* Services Summary */}
       <div className="card-surface rounded-lg p-5 md:p-8 mb-10 md:mb-12">
         <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">What I Offer</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Beat Production</h3>
             <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Licensed in tiers to fit any budget.</p>
@@ -51,10 +51,6 @@ export default function AboutPage() {
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Drum Kits & Sound Kits</h3>
             <p className="text-sm" style={{ color: "var(--muted)" }}>Custom-built kits pulled straight from real studio sessions — drums, samples, and sounds crafted for producers who want something different.</p>
           </div>
-          <div>
-            <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Mixing & Mastering</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Professional mixing that makes your record compete at the highest level.</p>
-          </div>
         </div>
       </div>
 
@@ -62,7 +58,7 @@ export default function AboutPage() {
       <div className="grid grid-cols-3 gap-4 mb-14 md:mb-20">
         {[
           { number: "100+", label: "Artists Worked With" },
-          { number: "500+", label: "Mixes Delivered" },
+          { number: "100%", label: "Client Satisfaction" },
           { number: "10+", label: "Years of Experience" },
         ].map(({ number, label }) => (
           <div key={label} className="card-surface rounded-lg p-4 md:p-6 text-center">

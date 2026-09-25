@@ -1,45 +1,37 @@
-import { put, list } from "@vercel/blob";
-import type { Beat, Artist, DrumKit } from "./types";
+import { put, get } from "@vercel/blob";
+import type { Beat, DrumKit } from "./types";
 
 // ── Generic helpers ──────────────────────────────────────────────────────────
+// All site data lives in the private Blob store (luchibeats-private) — it has no
+// public URLs, so subscribers, orders, messages and admin credentials can only be
+// read through these server-side helpers.
 
-async function getBlob<T>(pathname: string): Promise<T[]> {
+const PRIVATE_TOKEN = () => process.env.PRIVATE_READ_WRITE_TOKEN;
+
+async function readJson<T>(pathname: string, fallback: T): Promise<T> {
   try {
-    const { blobs } = await list({ prefix: pathname });
-    if (blobs.length === 0) return [];
-    const res = await fetch(blobs[0].url, { cache: "no-store" });
-    return await res.json();
-  } catch {
-    return [];
-  }
-}
-
-async function saveBlob<T>(pathname: string, data: T[]): Promise<void> {
-  await put(pathname, JSON.stringify(data), {
-    access: "public",
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
-}
-
-async function getSingleBlob<T>(pathname: string, fallback: T): Promise<T> {
-  try {
-    const { blobs } = await list({ prefix: pathname });
-    if (blobs.length === 0) return fallback;
-    const res = await fetch(blobs[0].url, { cache: "no-store" });
-    return await res.json();
-  } catch {
+    const result = await get(pathname, { access: "private", token: PRIVATE_TOKEN(), useCache: false });
+    if (!result || result.statusCode !== 200) return fallback;
+    return (await new Response(result.stream).json()) as T;
+  } catch (err) {
+    console.error(`[blob] read ${pathname} failed`, err);
     return fallback;
   }
 }
 
-async function saveSingleBlob<T>(pathname: string, data: T): Promise<void> {
+async function writeJson(pathname: string, data: unknown): Promise<void> {
   await put(pathname, JSON.stringify(data), {
-    access: "public",
+    access: "private",
+    token: PRIVATE_TOKEN(),
     allowOverwrite: true,
     contentType: "application/json",
   });
 }
+
+const getBlob = <T,>(pathname: string) => readJson<T[]>(pathname, []);
+const saveBlob = <T,>(pathname: string, data: T[]) => writeJson(pathname, data);
+const getSingleBlob = <T,>(pathname: string, fallback: T) => readJson<T>(pathname, fallback);
+const saveSingleBlob = <T,>(pathname: string, data: T) => writeJson(pathname, data);
 
 // ── Beats ────────────────────────────────────────────────────────────────────
 
@@ -64,11 +56,6 @@ export interface Testimonial {
 
 export const getTestimonials = () => getBlob<Testimonial>("testimonials.json");
 export const saveTestimonials = (t: Testimonial[]) => saveBlob("testimonials.json", t);
-
-// ── Artists (dynamic) ────────────────────────────────────────────────────────
-
-export const getDynamicArtists = () => getBlob<Artist>("artists-catalog.json");
-export const saveDynamicArtists = (a: Artist[]) => saveBlob("artists-catalog.json", a);
 
 // ── Messages ─────────────────────────────────────────────────────────────────
 
@@ -113,6 +100,7 @@ export interface Order {
   status: "pending" | "completed" | "refunded";
   createdAt: string;
   notes?: string;
+  stripeSessionId?: string;
 }
 
 export const getOrders = () => getBlob<Order>("orders.json");
@@ -128,12 +116,14 @@ export interface CountryStat {
 
 export interface Analytics {
   pageViews: number;
+  mobileViews: number;
+  desktopViews: number;
   beatPlays: Record<string, number>;
   countries: Record<string, CountryStat>;
   lastUpdated: string;
 }
 
-const ANALYTICS_FALLBACK: Analytics = { pageViews: 0, beatPlays: {}, countries: {}, lastUpdated: new Date().toISOString() };
+const ANALYTICS_FALLBACK: Analytics = { pageViews: 0, mobileViews: 0, desktopViews: 0, beatPlays: {}, countries: {}, lastUpdated: new Date().toISOString() };
 
 export const getAnalytics = () => getSingleBlob<Analytics>("analytics.json", ANALYTICS_FALLBACK);
 export const saveAnalytics = (a: Analytics) => saveSingleBlob("analytics.json", a);
@@ -173,8 +163,8 @@ export interface HomepageContent {
 const HOMEPAGE_FALLBACK: HomepageContent = {
   marqueeItems: [
     "15+ YEARS OF EXPERIENCE", "150+ ARTISTS WORKED WITH", "100% CLIENT SATISFACTION",
-    "72HR AVG. TURNAROUND", "NEW BEATS AVAILABLE", "PREMIUM MIXING SERVICES",
-    "EXCLUSIVE LICENSES", "ARTIST SPOTLIGHTS", "LUCHIBEATS.COM",
+    "NEW BEATS AVAILABLE", "EXCLUSIVE LICENSES",
+    "LUCHIBEATS.COM",
   ],
   beatsLabel: "FRESH CUTS",
   beatsHeadline: "Latest Beats",
@@ -182,7 +172,6 @@ const HOMEPAGE_FALLBACK: HomepageContent = {
     { value: 15,  suffix: "+",  label: "Years of Experience" },
     { value: 150, suffix: "+",  label: "Artists Worked With" },
     { value: 100, suffix: "%",  label: "Client Satisfaction" },
-    { value: 72,  suffix: "hr", label: "Avg. Turnaround" },
   ],
   productions: [
     { id: "Oma1SZ8utmw", artist: "G Wreck ft Coi Leray",         title: "Froze",               credits: "Beat · Vocal Recording · Mix" },
@@ -195,9 +184,9 @@ const HOMEPAGE_FALLBACK: HomepageContent = {
     { id: "IwreOeCvK1M", artist: "Mysonne",                      title: "That's How We On It", credits: "Vocal Recording · Mix" },
     { id: "zGzpIqC5zvQ", artist: "A Boogie Wit Da Hoodie",       title: "Timeless",            credits: "Initial Vocal Recording" },
   ],
-  emailBadge: "FREE BEAT",
-  emailHeadline: "Get a Free Beat\nWhen You Subscribe",
-  emailSubtext: "Join the list. Be the first to hear new drops, exclusive deals, and get a free beat delivered straight to your inbox.",
+  emailBadge: "JOIN THE LIST",
+  emailHeadline: "Stay Up To Date\nOn New Drops",
+  emailSubtext: "Join the list. Be the first to hear new drops and exclusive deals.",
 };
 
 export const getHomepageContent = () => getSingleBlob<HomepageContent>("homepage-content.json", HOMEPAGE_FALLBACK);
@@ -211,7 +200,6 @@ export interface PushSub {
 }
 
 export interface Settings {
-  freeBeatId?: string;
   pushSubscriptions: PushSub[];
 }
 
@@ -219,6 +207,18 @@ const SETTINGS_FALLBACK: Settings = { pushSubscriptions: [] };
 
 export const getSettings = () => getSingleBlob<Settings>("settings.json", SETTINGS_FALLBACK);
 export const saveSettings = (s: Settings) => saveSingleBlob("settings.json", s);
+
+// ── Admin credentials ────────────────────────────────────────────────────────
+
+export interface AdminCredentials {
+  email: string;
+  passwordHash: string;
+}
+
+const ADMIN_CREDS_FALLBACK: AdminCredentials = { email: "", passwordHash: "" };
+
+export const getAdminCredentials = () => getSingleBlob<AdminCredentials>("admin-credentials.json", ADMIN_CREDS_FALLBACK);
+export const saveAdminCredentials = (c: AdminCredentials) => saveSingleBlob("admin-credentials.json", c);
 
 // ── Exclusive Sale Archive ─────────────────────────────────────────────────────
 // Append-only record of every beat sold exclusive. Survives beat catalog edits.
@@ -234,22 +234,6 @@ export interface SoldExclusiveEntry {
 
 export const getSoldArchive = () => getBlob<SoldExclusiveEntry>("sold-exclusive-archive.json");
 export const saveSoldArchive = (entries: SoldExclusiveEntry[]) => saveBlob("sold-exclusive-archive.json", entries);
-
-// ── Free Beat Deliveries ──────────────────────────────────────────────────────
-
-export interface FreeBeatDelivery {
-  id: string;
-  subscriberEmail: string;
-  subscriberId: string;
-  type: "beat" | "promo";
-  beatId?: string;
-  beatTitle?: string;
-  emailSent: boolean;
-  deliveredAt: string;
-}
-
-export const getFreeBeatDeliveries = () => getBlob<FreeBeatDelivery>("free-beat-deliveries.json");
-export const saveFreeBeatDeliveries = (d: FreeBeatDelivery[]) => saveBlob("free-beat-deliveries.json", d);
 
 // ── Shopify Config ────────────────────────────────────────────────────────────
 

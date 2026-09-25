@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { Beat } from "@/lib/types";
 import { useCart } from "@/lib/store";
 import { Play, Pause, ShoppingCart, Search, X, Check } from "lucide-react";
+import { registerAudio, unregisterAudio } from "@/components/VisibilityPause";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
 const GOLD        = "#C9A84C";
@@ -252,13 +253,14 @@ export default function BeatsPage() {
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
+    registerAudio(audio);
     const onTime    = () => { setCurrentTime(audio.currentTime); setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0); };
     const onMeta    = () => setDuration(audio.duration);
     const onEnded   = () => { setPlayingId(null); setProgress(0); setCurrentTime(0); setDuration(0); };
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("ended", onEnded);
-    return () => { audio.pause(); audio.removeEventListener("timeupdate", onTime); audio.removeEventListener("loadedmetadata", onMeta); audio.removeEventListener("ended", onEnded); };
+    return () => { audio.pause(); unregisterAudio(audio); audio.removeEventListener("timeupdate", onTime); audio.removeEventListener("loadedmetadata", onMeta); audio.removeEventListener("ended", onEnded); };
   }, []);
 
   const togglePlay = useCallback((beat: Beat) => {

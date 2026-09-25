@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-type Tab = "home" | "beats" | "artists" | "inbox" | "menu";
+type Tab = "home" | "beats" | "inbox" | "menu";
 
 const GOLD = "#C9A84C";
 const BG   = "#0a0a0a";
@@ -15,32 +15,11 @@ function HomeIcon({ active }: { active: boolean }) {
 function BeatsIcon({ active }: { active: boolean }) {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? GOLD : MUT}><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/></svg>;
 }
-function ArtistsIcon({ active }: { active: boolean }) {
-  return <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? GOLD : MUT}><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>;
-}
 function InboxIcon({ active }: { active: boolean }) {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? GOLD : MUT}><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>;
 }
 function MenuIcon({ active }: { active: boolean }) {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? GOLD : MUT}><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>;
-}
-
-// ── Artist card ────────────────────────────────────────────────────────────────
-function ArtistCard({ name, genre, img }: { name: string; genre: string; img: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid #1a1a1a" }}>
-      <div style={{ width: 52, height: 52, borderRadius: "50%", overflow: "hidden", border: `2px solid ${GOLD}`, flexShrink: 0, background: "#1a1a1a" }}>
-        <img src={img} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ color: "#fff", fontWeight: 700, fontSize: 14, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</p>
-        <p style={{ color: MUT, fontSize: 12, margin: 0 }}>{genre}</p>
-      </div>
-      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(201,168,76,0.1)", border: `1px solid rgba(201,168,76,0.3)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill={GOLD}><path d="M8 5v14l11-7z"/></svg>
-      </div>
-    </div>
-  );
 }
 
 // ── Beat row ──────────────────────────────────────────────────────────────────
@@ -70,13 +49,6 @@ function BeatRow({ title, bpm, keyNote, genre, price }: { title: string; bpm: nu
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function AppPreview() {
   const [tab, setTab] = useState<Tab>("home");
-
-  const artists = [
-    { name: "Oskama Esteban", genre: "Hip-Hop / Rap", img: "/artists/oskama.jpg" },
-    { name: "Harrd Luck",     genre: "Hip-Hop / Rap", img: "/artists/harrd-luck.jpg" },
-    { name: "Mach City",      genre: "Hip-Hop / Rap", img: "/artists/mach-city.jpg" },
-    { name: "Calm King Causey", genre: "Hip-Hop / R&B", img: "/artists/calm-king-causey.jpg" },
-  ];
 
   const beats = [
     { title: "Dark Tunnel",    bpm: 140, keyNote: "A minor", genre: "Trap",    price: 35 },
@@ -142,11 +114,6 @@ export default function AppPreview() {
             <p style={{ color: "#fff", fontWeight: 900, fontSize: 16, margin: "0 0 4px" }}>Featured Beats</p>
             <p style={{ color: MUT, fontSize: 12, margin: "0 0 12px" }}>Tap to preview</p>
             {beats.slice(0, 3).map((b) => <BeatRow key={b.title} {...b} keyNote={b.keyNote} />)}
-
-            {/* Artists section */}
-            <p style={{ color: "#fff", fontWeight: 900, fontSize: 16, margin: "20px 0 4px" }}>Spotlighted Artists</p>
-            <p style={{ color: MUT, fontSize: 12, margin: "0 0 12px" }}>Artists Luchi has worked with</p>
-            {artists.slice(0, 2).map((a) => <ArtistCard key={a.name} {...a} />)}
           </div>
         )}
 
@@ -161,15 +128,6 @@ export default function AppPreview() {
               ))}
             </div>
             {beats.map((b) => <BeatRow key={b.title} {...b} keyNote={b.keyNote} />)}
-          </div>
-        )}
-
-        {/* ── ARTISTS ── */}
-        {tab === "artists" && (
-          <div>
-            <p style={{ color: GOLD, fontSize: 11, letterSpacing: "0.25em", fontWeight: 700, margin: "0 0 4px" }}>SPOTLIGHTS</p>
-            <p style={{ color: "#fff", fontWeight: 900, fontSize: 22, margin: "0 0 16px" }}>Artists</p>
-            {artists.map((a) => <ArtistCard key={a.name} {...a} />)}
           </div>
         )}
 
@@ -189,8 +147,6 @@ export default function AppPreview() {
                 <p style={{ color: MUT, fontSize: 11, fontWeight: 700, margin: "0 0 6px", letterSpacing: "0.1em" }}>SUBJECT</p>
                 <select style={{ width: "100%", background: SURF, border: "1px solid #222", borderRadius: 10, padding: "12px 14px", color: "#fff", fontSize: 14, outline: "none" }}>
                   <option>Custom Beat Inquiry</option>
-                  <option>Mixing / Mastering</option>
-                  <option>Artist Spotlight</option>
                   <option>Collaboration</option>
                 </select>
               </div>
@@ -214,15 +170,14 @@ export default function AppPreview() {
               </div>
               <div>
                 <p style={{ color: "#fff", fontWeight: 900, fontSize: 16, margin: 0 }}>LuchiBeats</p>
-                <p style={{ color: MUT, fontSize: 12, margin: "2px 0 0" }}>Producer · Engineer · Mixer</p>
+                <p style={{ color: MUT, fontSize: 12, margin: "2px 0 0" }}>Producer · Engineer</p>
               </div>
             </div>
             {[
               { label: "About Luchi", icon: "👤" },
-              { label: "Mixing & Mastering", icon: "🎚️" },
               { label: "Drum Kits", icon: "🥁" },
               { label: "Merch", icon: "👕" },
-              { label: "Subscribe for Free Beat", icon: "🎁" },
+              { label: "Join the List", icon: "📩" },
             ].map((item) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "1px solid #1a1a1a" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -242,7 +197,6 @@ export default function AppPreview() {
         {([
           { id: "home",    label: "Home",    Icon: HomeIcon },
           { id: "beats",   label: "Beats",   Icon: BeatsIcon },
-          { id: "artists", label: "Artists", Icon: ArtistsIcon },
           { id: "inbox",   label: "Contact", Icon: InboxIcon },
           { id: "menu",    label: "More",    Icon: MenuIcon },
         ] as { id: Tab; label: string; Icon: React.ComponentType<{ active: boolean }> }[]).map(({ id, label, Icon }) => (

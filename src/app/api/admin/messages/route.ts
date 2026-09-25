@@ -10,9 +10,16 @@ export async function GET() {
   return NextResponse.json(msgs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 }
 
+const ALLOWED_PATCH_FIELDS = ["read", "starred", "replied", "folder"] as const;
+
 export async function PUT(req: NextRequest) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const { id, ...patch } = await req.json();
+  const { id, ...rawPatch } = await req.json();
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  const patch: Record<string, unknown> = {};
+  for (const field of ALLOWED_PATCH_FIELDS) {
+    if (field in rawPatch) patch[field] = rawPatch[field];
+  }
   const msgs = await getMessages();
   await saveMessages(msgs.map((m) => (m.id === id ? { ...m, ...patch } : m)));
   return NextResponse.json({ ok: true });

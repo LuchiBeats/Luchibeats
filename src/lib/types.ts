@@ -12,7 +12,6 @@ export interface Beat {
   soldExclusive?: boolean;
   hidden?: boolean;
   goLiveAt?: string;
-  isFree?: boolean;
   copyrightTimestamp?: string;
   mp3Url?: string;
   wavUrl?: string;
@@ -26,28 +25,14 @@ export interface License {
   format: string;
   streams: string;
   description: string;
+  agreementUrl?: string;   // uploaded license agreement (e.g. exported from Sound Credit) — required to sell this tier
 }
 
-export interface MixingService {
-  id: string;
-  name: string;
-  price: number;
-  turnaround: string;
-  features: string[];
-  popular?: boolean;
-}
-
-export interface Artist {
-  id: string;
-  name: string;
-  genre: string;
-  imageUrl: string;
-  bio: string;
-  spotifyUrl?: string;
-  instagramUrl?: string;
-  youtubeUrl?: string;
-  linktreeUrl?: string;
-  featuredTrack?: string;
+// A beat can't be live or sold until every license tier has an uploaded agreement.
+export function missingAgreements(beat: Pick<Beat, "licenses">): License["name"][] {
+  return (["Basic", "Premium", "Exclusive"] as const).filter(
+    (name) => !beat.licenses?.find((l) => l.name === name)?.agreementUrl
+  );
 }
 
 export interface DrumKit {
@@ -69,7 +54,7 @@ export interface DrumKit {
 
 export interface CartItem {
   id: string;
-  type: "beat" | "service";
+  type: "beat" | "service" | "drumkit";
   name: string;
   licenseName?: string;
   price: number;

@@ -41,19 +41,14 @@ export default function ArtistsWorkedWith() {
     const track = trackRef.current!;
     if (!track) return;
 
-    // Width of one copy (14 artists). Measured after mount.
     const getOneSetWidth = () => track.scrollWidth / 3;
-
-    const SPEED = 0.9; // px per frame (~54px/s at 60fps)
+    const SPEED = 0.9;
 
     function tick() {
-      if (!pausedRef.current) {
+      if (!pausedRef.current && !document.hidden) {
         posRef.current += SPEED;
         const oneSet = getOneSetWidth();
-        // Once we've scrolled one full copy, jump back — seamless because copy 2 looks identical to copy 1
-        if (posRef.current >= oneSet) {
-          posRef.current -= oneSet;
-        }
+        if (posRef.current >= oneSet) posRef.current -= oneSet;
         track.style.transform = `translateX(-${posRef.current}px)`;
       }
       rafRef.current = requestAnimationFrame(tick);
