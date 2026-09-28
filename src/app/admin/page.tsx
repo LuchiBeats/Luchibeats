@@ -95,11 +95,12 @@ function TagPicker({ value, onChange }: { value: string; onChange: (v: string) =
 }
 
 const BLANK_BEAT = { title:"",audioUrl:"",imageUrl:"",mp3Url:"",wavUrl:"",stemsUrl:"",genre:"Trap",bpm:"",key:"A minor",mood:"Dark",tags:"",basicPrice:"",premiumPrice:"",exclusivePrice:"",goLiveAt:"",basicAgreementUrl:"",premiumAgreementUrl:"",exclusiveAgreementUrl:"" };
+// Beats are sold exclusive-only — one tier, one agreement
 const AGREEMENT_TIERS = [
-  { name:"Basic" as const,     field:"basicAgreementUrl" as const },
-  { name:"Premium" as const,   field:"premiumAgreementUrl" as const },
   { name:"Exclusive" as const, field:"exclusiveAgreementUrl" as const },
 ];
+const exclusiveLicense = (id: string, price: number, agreementUrl?: string): License =>
+  ({ id:`${id}-exclusive`, name:"Exclusive", price, format:"MP3 + WAV + Stems", streams:"Unlimited", description:"Full exclusive rights", ...(agreementUrl ? { agreementUrl } : {}) });
 const BLANK_KIT: { name:string;genre:string;description:string;price:string;sampleCount:string;formats:string;tags:string;includes:string;popular:boolean;imageUrl:string;previewUrl:string;downloadUrl:string } = { name:"",genre:"Hip-Hop / Trap",description:"",price:"",sampleCount:"",formats:"WAV, 24-bit",tags:"",includes:"",popular:false,imageUrl:"",previewUrl:"",downloadUrl:"" };
 const BLANK_ORDER: { type:"beat"|"service"|"drumkit";itemId:string;itemTitle:string;licenseType:string;customerEmail:string;customerName:string;amount:string;status:"pending"|"completed"|"refunded";notes:string } = { type:"beat",itemId:"",itemTitle:"",licenseType:"",customerEmail:"",customerName:"",amount:"",status:"completed",notes:"" };
 
@@ -588,15 +589,14 @@ export default function AdminPage() {
     const missing = AGREEMENT_TIERS.filter(t => !beatForm[t.field]).map(t => t.name);
     if (missing.length) { setBeatMsg(`Error: Upload the ${missing.join(", ")} license agreement${missing.length>1?"s":""} before saving this beat.`); return; }
     setBeatSaving(true);
-    const agreementFor = (name: License["name"]) => beatForm[AGREEMENT_TIERS.find(t => t.name === name)!.field];
     let res: Response;
     if (editingBeat) {
-      const updated: Beat = { ...editingBeat, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, licenses:editingBeat.licenses.map(l=>({ ...l, price:l.name==="Basic"?Number(beatForm.basicPrice):l.name==="Premium"?Number(beatForm.premiumPrice):Number(beatForm.exclusivePrice), agreementUrl:agreementFor(l.name) })) };
+      const updated: Beat = { ...editingBeat, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, licenses:[exclusiveLicense(editingBeat.id, Number(beatForm.exclusivePrice), beatForm.exclusiveAgreementUrl)] };
       res = await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(updated) });
       if (res.ok) { setEditingBeat(null); setBeatMsg("Beat updated!"); }
     } else {
       const id = `beat-${Date.now()}`;
-      const beat: Beat = { id, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(beatForm.basicPrice),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease",agreementUrl:beatForm.basicAgreementUrl },{ id:`${id}-premium`,name:"Premium",price:Number(beatForm.premiumPrice),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems",agreementUrl:beatForm.premiumAgreementUrl },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(beatForm.exclusivePrice),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights",agreementUrl:beatForm.exclusiveAgreementUrl }] };
+      const beat: Beat = { id, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[exclusiveLicense(id, Number(beatForm.exclusivePrice), beatForm.exclusiveAgreementUrl)] };
       res = await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) });
       if (res.ok) { setBeatMsg("Beat added!"); formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setTimeout(()=>setBeatMsg(""), 2500); }
     }
@@ -641,13 +641,16 @@ export default function AdminPage() {
     const text = await file.text();
     const lines = text.trim().split("\n").slice(1); let count = 0;
     for (const line of lines) {
-      const [filename,title,bpm,key,genre,mood,tags,basic,premium,exclusive] = line.split(",").map(s=>s.trim().replace(/^"|"$/g,""));
+      // Columns: filename,title,bpm,key,genre,mood,tags,price — older 3-tier CSVs (…,basic,premium,exclusive) use the last column
+      const cols = line.split(",").map(s=>s.trim().replace(/^"|"$/g,""));
+      const [filename,title,bpm,key,genre,mood,tags] = cols;
+      const exclusive = cols.length >= 10 ? cols[9] : cols[7];
       if (!filename||!title) continue;
       const id = `beat-${Date.now()}-${count}`;
-      const beat: Beat = { id, title, bpm:Number(bpm), key, genre, mood, audioUrl:`https://cdn.luchibeats.com/${filename}`, imageUrl:"/images/beats/default.jpg", tags:tags?tags.split(";").map(t=>t.trim()):[], soldExclusive:false, hidden:true, copyrightTimestamp:new Date().toISOString(), licenses:[{ id:`${id}-basic`,name:"Basic",price:Number(basic),format:"MP3",streams:"100K streams",description:"Non-exclusive MP3 lease" },{ id:`${id}-premium`,name:"Premium",price:Number(premium),format:"WAV + Stems",streams:"500K streams",description:"Non-exclusive WAV + stems" },{ id:`${id}-exclusive`,name:"Exclusive",price:Number(exclusive),format:"WAV + Stems",streams:"Unlimited",description:"Full exclusive rights" }] };
+      const beat: Beat = { id, title, bpm:Number(bpm), key, genre, mood, audioUrl:`https://cdn.luchibeats.com/${filename}`, imageUrl:"/images/beats/default.jpg", tags:tags?tags.split(";").map(t=>t.trim()):[], soldExclusive:false, hidden:true, copyrightTimestamp:new Date().toISOString(), licenses:[exclusiveLicense(id, Number(exclusive))] };
       await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) }); count++;
     }
-    setBeatMsg(`${count} beats imported as hidden drafts — edit each one to upload its license agreements, then unhide it.`);
+    setBeatMsg(`${count} beats imported as hidden drafts — edit each one to upload its exclusive license agreement, then unhide it.`);
     const b = await load("/api/admin/beats"); if (b) setBeats(b); e.target.value = "";
   }
 
@@ -1680,7 +1683,7 @@ export default function AdminPage() {
 
                       {/* Full MP3 — Basic license */}
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Full MP3 <span style={{ color:"#444" }}>— Basic license buyers</span></p>
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Full MP3 <span style={{ color:"#444" }}>— exclusive buyer</span></p>
                         <input ref={beatMp3Ref} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatMp3(f); e.target.value=""; }} />
                         <div className="flex items-center gap-3">
                           <button type="button" disabled={beatMp3Progress !== null} onClick={()=>beatMp3Ref.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatMp3Progress!==null?0.5:1 }}>
@@ -1702,7 +1705,7 @@ export default function AdminPage() {
 
                       {/* WAV — Premium + Exclusive */}
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>WAV File <span style={{ color:"#444" }}>— Premium &amp; Exclusive buyers</span></p>
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>WAV File <span style={{ color:"#444" }}>— exclusive buyer</span></p>
                         <input ref={beatWavRef} type="file" accept=".wav,audio/wav,audio/x-wav" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatWav(f); e.target.value=""; }} />
                         <div className="flex items-center gap-3">
                           <button type="button" disabled={beatWavProgress !== null} onClick={()=>beatWavRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatWavProgress!==null?0.5:1 }}>
@@ -1724,7 +1727,7 @@ export default function AdminPage() {
 
                       {/* Stems ZIP — Premium + Exclusive */}
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Stems ZIP <span style={{ color:"#444" }}>— Premium &amp; Exclusive buyers (all individual tracks)</span></p>
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Stems ZIP <span style={{ color:"#444" }}>— exclusive buyer (all individual tracks)</span></p>
                         <input ref={beatStemsRef} type="file" accept=".zip,application/zip,application/x-zip-compressed" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatStems(f); e.target.value=""; }} />
                         <div className="flex items-center gap-3">
                           <button type="button" disabled={beatStemsProgress !== null} onClick={()=>beatStemsRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatStemsProgress!==null?0.5:1 }}>
@@ -1773,16 +1776,14 @@ export default function AdminPage() {
                       <Input label="Go Live Date (empty = live now)" type="date" value={beatForm.goLiveAt} onChange={e=>setBeatForm({...beatForm,goLiveAt:e.target.value})} />
                     </div>
                     <div className="pt-2 border-t" style={{ borderColor: BORDER_SUBTLE }}>
-                      <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD }}>License Pricing ($)</p>
+                      <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD }}>Exclusive Price ($)</p>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Input label="Basic (MP3)" required type="number" value={beatForm.basicPrice} onChange={e=>setBeatForm({...beatForm,basicPrice:e.target.value})} placeholder="35" />
-                        <Input label="Premium (WAV+Stems)" required type="number" value={beatForm.premiumPrice} onChange={e=>setBeatForm({...beatForm,premiumPrice:e.target.value})} placeholder="99" />
-                        <Input label="Exclusive" required type="number" value={beatForm.exclusivePrice} onChange={e=>setBeatForm({...beatForm,exclusivePrice:e.target.value})} placeholder="499" />
+                        <Input label="Exclusive (MP3 + WAV + Stems)" required type="number" value={beatForm.exclusivePrice} onChange={e=>setBeatForm({...beatForm,exclusivePrice:e.target.value})} placeholder="499" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: GOLD }}>License Agreements (required)</p>
-                      <p className="text-xs mb-3" style={{ color: TEXT_MUTED }}>Upload the agreement for each tier (e.g. exported from Sound Credit — PDF, Word, or TXT). Buyers receive the one matching the license they purchase.</p>
+                      <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: GOLD }}>Exclusive License Agreement (required)</p>
+                      <p className="text-xs mb-3" style={{ color: TEXT_MUTED }}>Upload the exclusive agreement (e.g. exported from Sound Credit — PDF, Word, or TXT). The buyer receives it with their files.</p>
                       <div className="space-y-3">
                         {AGREEMENT_TIERS.map(tier => {
                           const url = beatForm[tier.field];

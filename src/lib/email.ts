@@ -159,8 +159,11 @@ export async function sendEmail(to: string, subject: string, html: string, attac
   const from = process.env.RESEND_FROM_EMAIL ?? `LuchiBeats <noreply@luchibeats.com>`;
   try {
     const resend = new Resend(apiKey);
+    // The from-address has no inbox, so buyer/subscriber replies go to the admin's real email
+    const replyTo = process.env.ADMIN_NOTIFY_EMAIL;
     const { error } = await resend.emails.send({
       from, to, subject, html,
+      ...(replyTo && replyTo !== to ? { replyTo } : {}),
       ...(attachments?.length ? { attachments: attachments.map((a) => (a.path ? { filename: a.filename, path: a.path } : { filename: a.filename, content: Buffer.from(a.content ?? "", "utf-8") })) } : {}),
     });
     if (error) console.error("[email] Resend error", error);

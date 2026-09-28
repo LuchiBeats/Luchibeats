@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBeats } from "@/lib/beats-store";
-import { missingAgreements } from "@/lib/types";
+import { missingAgreements, SOLD_LICENSES } from "@/lib/types";
 
 export async function GET() {
   const beats = await getBeats();
@@ -10,7 +10,9 @@ export async function GET() {
     // Paid files and agreements are only for buyers — never send them to the public store
     .map(({ mp3Url, wavUrl, stemsUrl, exclusiveHold, soldSessionId, ...beat }) => ({
       ...beat,
-      licenses: beat.licenses.map(({ agreementUrl, ...license }) => license),
+      licenses: beat.licenses
+        .filter((l) => (SOLD_LICENSES as readonly string[]).includes(l.name))
+        .map(({ agreementUrl, ...license }) => license),
     }));
   return NextResponse.json(live, {
     headers: { "Cache-Control": "no-store" },

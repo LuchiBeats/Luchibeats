@@ -30,9 +30,12 @@ export interface License {
   agreementUrl?: string;   // uploaded license agreement (e.g. exported from Sound Credit) — required to sell this tier
 }
 
-// A beat can't be live or sold until every license tier has an uploaded agreement.
+// Beats are sold exclusive-only. Basic/Premium stay in the type so older beats and orders still load.
+export const SOLD_LICENSES = ["Exclusive"] as const;
+
+// A beat can't be live or sold until every tier on sale has an uploaded agreement.
 export function missingAgreements(beat: Pick<Beat, "licenses">): License["name"][] {
-  return (["Basic", "Premium", "Exclusive"] as const).filter(
+  return SOLD_LICENSES.filter(
     (name) => !beat.licenses?.find((l) => l.name === name)?.agreementUrl
   );
 }

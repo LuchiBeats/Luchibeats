@@ -417,12 +417,10 @@ export default function BeatsPage() {
         {/* License legend */}
         {!loading && filtered.length > 0 && (
           <div className="mt-10 rounded-xl p-5" style={{ background: BG_ROW, border: `1px solid ${BORDER}` }}>
-            <p className="text-xs font-black tracking-[0.25em] uppercase mb-4" style={{ color: MUTED }}>// License Guide</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <p className="text-xs font-black tracking-[0.25em] uppercase mb-4" style={{ color: MUTED }}>// Exclusive Licenses Only</p>
+            <div className="grid grid-cols-1 gap-4 text-sm">
               {[
-                { name: "Basic", price: "from $35", format: "MP3", features: ["Non-exclusive", "Up to 2,500 streams", "Credit required"] },
-                { name: "Premium", price: "from $99", format: "WAV + Stems", features: ["Non-exclusive", "Up to 50,000 streams", "Credit required"] },
-                { name: "Exclusive", price: "from $499", format: "WAV + Stems", features: ["Full exclusive rights", "Unlimited streams", "Beat removed after purchase", "Credit required"] },
+                { name: "Exclusive", price: "One buyer per beat", format: "MP3 + WAV + Stems", features: ["Full exclusive rights — you're the only artist with this beat", "Unlimited streams, sales and performances", "Beat is removed from the store after purchase", "Signed license agreement delivered with your files", "Credit required"] },
               ].map(tier => (
                 <div key={tier.name} className="rounded-lg p-4" style={{ background: "#080809", border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center justify-between mb-2">

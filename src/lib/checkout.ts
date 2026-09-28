@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { getBeats, saveBeats, getDrumKits } from "./beats-store";
 import { downloadUrlFor } from "./r2";
-import { missingAgreements, type Beat, type License } from "./types";
+import { missingAgreements, SOLD_LICENSES, type Beat, type License } from "./types";
 
 export function getStripe(): Stripe | null {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -71,7 +71,7 @@ export async function resolveCart(refs: CartRef[]): Promise<ResolvedItem[]> {
       const licenseName = LICENSE_NAMES.find((n) => id.endsWith(`-${n}`));
       const beatId = licenseName ? id.slice(0, -(licenseName.length + 1)) : "";
       const beat = beats.find((b) => b.id === beatId);
-      const license = beat?.licenses.find((l) => l.name === licenseName);
+      const license = beat?.licenses.find((l) => l.name === licenseName && (SOLD_LICENSES as readonly string[]).includes(l.name));
       if (!beat || !license || !isLive(beat, now)) {
         throw new Error("One of the beats in your cart is no longer available. Please remove it and try again.");
       }
