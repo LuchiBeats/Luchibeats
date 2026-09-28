@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStripe, resolveCart, type CartRef } from "@/lib/checkout";
+import { getStripe, resolveCart, holdExclusives, CHECKOUT_HOLD_MS, type CartRef } from "@/lib/checkout";
 import { rateLimit } from "@/lib/rate-limit";
 
 // POST /api/checkout — body: { items: CartRef[] } → { url } of a Stripe Checkout page
@@ -23,9 +23,11 @@ export async function POST(req: NextRequest) {
   }
 
   const origin = req.nextUrl.origin;
+  const expiresAt = new Date(Date.now() + CHECKOUT_HOLD_MS);
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      expires_at: Math.floor(expiresAt.getTime() / 1000),
       line_items: items.map((item) => ({
         quantity: 1,
         price_data: {
@@ -42,6 +44,8 @@ export async function POST(req: NextRequest) {
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,
     });
+    const exclusiveIds = items.filter((i) => i.licenseName === "Exclusive").map((i) => i.refId);
+    await holdExclusives(exclusiveIds, session.id, expiresAt);
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error("[checkout] Stripe session create failed", e);

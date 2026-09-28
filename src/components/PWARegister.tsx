@@ -5,7 +5,8 @@ export default function PWARegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     navigator.serviceWorker.register("/sw.js").then(async (reg) => {
-      if (!("PushManager" in window)) return;
+      // Push notifications are admin alerts (new messages) — only the logged-in admin subscribes
+      if (!("PushManager" in window) || !window.location.pathname.startsWith("/admin")) return;
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidKey) return;
 

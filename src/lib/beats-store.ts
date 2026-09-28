@@ -220,6 +220,18 @@ const ADMIN_CREDS_FALLBACK: AdminCredentials = { email: "", passwordHash: "" };
 export const getAdminCredentials = () => getSingleBlob<AdminCredentials>("admin-credentials.json", ADMIN_CREDS_FALLBACK);
 export const saveAdminCredentials = (c: AdminCredentials) => saveSingleBlob("admin-credentials.json", c);
 
+// ── Failed admin logins ──────────────────────────────────────────────────────
+// Stored in Blob so the lockout holds across every serverless instance (the in-memory
+// limiter only sees requests that land on the same instance).
+
+export interface LoginAttempts {
+  byIp: Record<string, { count: number; reset: number }>;
+  total: { count: number; reset: number };
+}
+
+export const getLoginAttempts = () => getSingleBlob<LoginAttempts>("login-attempts.json", { byIp: {}, total: { count: 0, reset: 0 } });
+export const saveLoginAttempts = (a: LoginAttempts) => saveSingleBlob("login-attempts.json", a);
+
 // ── Exclusive Sale Archive ─────────────────────────────────────────────────────
 // Append-only record of every beat sold exclusive. Survives beat catalog edits.
 

@@ -37,6 +37,12 @@ export async function PUT(req: NextRequest) {
 
   // Archive when manually toggling a beat to sold exclusive
   const prev = beats.find((b) => b.id === updated.id);
+
+  // Checkout-managed fields come from the server copy — an admin form loaded before a sale must not wipe them
+  delete updated.exclusiveHold;
+  delete updated.soldSessionId;
+  if (prev?.exclusiveHold) updated.exclusiveHold = prev.exclusiveHold;
+  if (prev?.soldSessionId && updated.soldExclusive) updated.soldSessionId = prev.soldSessionId;
   if (prev && !prev.soldExclusive && updated.soldExclusive) {
     const archive = await getSoldArchive();
     archive.unshift({ beat: prev, soldAt: new Date().toISOString() });

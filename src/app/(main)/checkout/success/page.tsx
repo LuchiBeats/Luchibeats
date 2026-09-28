@@ -66,7 +66,9 @@ export default async function CheckoutSuccessPage({
               <p className="font-semibold text-white text-sm">{item.name}</p>
               <span className="font-bold text-sm" style={{ color: "var(--gold)" }}>${item.amount.toFixed(2)}</span>
             </div>
-            {item.downloads.length ? (
+            {item.soldToSomeoneElse ? (
+              <p className="text-xs" style={{ color: "var(--fire)" }}>Another buyer completed this exclusive moments before you — this item is being refunded to your original payment method.</p>
+            ) : item.downloads.length ? (
               <div className="flex flex-wrap gap-2">
                 {item.downloads.map((d) => (
                   <a key={d.label} href={d.url} target="_blank" rel="noopener noreferrer" download

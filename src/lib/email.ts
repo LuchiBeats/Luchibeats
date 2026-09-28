@@ -133,6 +133,19 @@ export function saleAlertEmailHtml(opts: { buyerName: string; buyerEmail: string
   `, "Sale notification for the LuchiBeats admin.");
 }
 
+export function exclusiveRefundEmailHtml(opts: { buyerName: string; itemName: string; amount: number; refunded: boolean }): string {
+  const { buyerName, itemName, amount, refunded } = opts;
+  return base(`
+    <p style="margin:0 0 6px;font-size:9px;letter-spacing:0.3em;color:${GOLD};text-transform:uppercase;">Order Update</p>
+    <h1 style="margin:0 0 18px;font-size:26px;font-weight:900;color:#fff;line-height:1.2;">Sorry${buyerName ? `, ${esc(buyerName.split(" ")[0])}` : ""} — that exclusive was just sold</h1>
+    <p style="margin:0 0 28px;font-size:14px;color:rgba(255,255,255,0.55);line-height:1.7;">
+      Another buyer completed their purchase of <strong style="color:#fff;">${esc(itemName)}</strong> moments before you.
+      ${refunded ? `Your $${amount.toFixed(2)} has been refunded to your original payment method (it can take 5–10 business days to appear).` : `We'll refund your $${amount.toFixed(2)} shortly.`}
+    </p>
+    <div style="text-align:center;margin-bottom:24px;">${btn("Browse Beats", `${SITE}/beats`)}</div>
+  `, "You're receiving this because you made a purchase at luchibeats.com.");
+}
+
 // Either inline text `content` or a remote file `path` (URL) that Resend fetches and attaches
 export interface EmailAttachment {
   filename: string;

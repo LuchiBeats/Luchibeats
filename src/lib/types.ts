@@ -10,6 +10,8 @@ export interface Beat {
   licenses: License[];
   tags: string[];
   soldExclusive?: boolean;
+  soldSessionId?: string;  // Stripe session that bought the exclusive (set by the webhook)
+  exclusiveHold?: { sessionId: string; until: string }; // exclusive reserved while a buyer is in checkout
   hidden?: boolean;
   goLiveAt?: string;
   copyrightTimestamp?: string;

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMessages, saveMessages } from "@/lib/beats-store";
 import { rateLimit } from "@/lib/rate-limit";
+import { sendPush } from "@/lib/push";
+import { trackEvent, countryFrom } from "@/lib/analytics";
 import { Resend } from "resend";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,7 +28,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Input too long" }, { status: 400 });
   }
 
-  const country = req.headers.get("x-vercel-ip-country") ?? "Unknown";
   const msgs = await getMessages();
   msgs.unshift({
     id: `msg-${Date.now()}`,
@@ -39,21 +40,9 @@ export async function POST(req: NextRequest) {
   });
   await saveMessages(msgs);
 
-  const origin = req.nextUrl.origin;
+  await trackEvent({ type: "contact" }, countryFrom(req.headers.get("x-vercel-ip-country"))).catch(() => {});
 
-  fetch(`${origin}/api/analytics/track`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-vercel-ip-country": country },
-    body: JSON.stringify({ type: "contact" }),
-  }).catch(() => {});
-
-  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-    fetch(`${origin}/api/push/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "authorization": `Bearer ${process.env.ADMIN_PASSWORD}` },
-      body: JSON.stringify({ title: "New Message on LuchiBeats", body: `${name}: ${subject}`, url: "/admin" }),
-    }).catch(() => {});
-  }
+  await sendPush({ title: "New Message on LuchiBeats", body: `${String(name)}: ${String(subject)}`, url: "/admin" }).catch(() => {});
 
   // Forward message to admin email inbox
   if (process.env.RESEND_API_KEY && process.env.ADMIN_NOTIFY_EMAIL) {

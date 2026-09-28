@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/beats-store";
-import { hashPassword, verifyPassword, signSession } from "@/lib/admin-auth";
+import { hashPassword, verifyPassword, signSession, safeEqual, loginLocked, recordLoginFailure, clearLoginFailures } from "@/lib/admin-auth";
 
 function setSessionCookie(res: NextResponse, email: string) {
   res.cookies.set("admin_session", signSession(email), {
@@ -26,6 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
   }
 
+  if (await loginLocked(ip)) {
+    return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+  }
+
   const body = await req.json();
   const creds = await getAdminCredentials();
 
@@ -34,7 +38,8 @@ export async function POST(req: NextRequest) {
     if (creds.email !== "") {
       return NextResponse.json({ error: "Account already set up" }, { status: 400 });
     }
-    if (!process.env.ADMIN_PASSWORD || body.setupKey !== process.env.ADMIN_PASSWORD) {
+    if (!process.env.ADMIN_PASSWORD || !safeEqual(body.setupKey, process.env.ADMIN_PASSWORD)) {
+      await recordLoginFailure(ip);
       return NextResponse.json({ error: "Wrong access key" }, { status: 401 });
     }
     const email = String(body.email || "").trim().toLowerCase();
@@ -52,9 +57,11 @@ export async function POST(req: NextRequest) {
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
   if (creds.email === "" || email !== creds.email || !verifyPassword(password, creds.passwordHash)) {
+    await recordLoginFailure(ip);
     return NextResponse.json({ error: "Wrong email or password" }, { status: 401 });
   }
 
+  await clearLoginFailures(ip);
   const res = NextResponse.json({ ok: true });
   setSessionCookie(res, email);
   return res;

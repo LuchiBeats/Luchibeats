@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSubscribers, saveSubscribers } from "@/lib/beats-store";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendEmail, promoEmailHtml } from "@/lib/email";
+import { trackEvent, countryFrom } from "@/lib/analytics";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,17 +21,12 @@ export async function POST(req: NextRequest) {
   const subs = await getSubscribers();
   if (subs.find((s) => s.email === normalizedEmail)) return NextResponse.json({ ok: true });
 
-  const country = req.headers.get("x-vercel-ip-country") ?? "Unknown";
   subs.unshift({ id: `sub-${Date.now()}`, email: normalizedEmail, createdAt: new Date().toISOString() });
   await saveSubscribers(subs);
 
   await sendEmail(normalizedEmail, "Welcome to LuchiBeats 🔥", promoEmailHtml());
 
-  fetch(`${req.nextUrl.origin}/api/analytics/track`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-vercel-ip-country": country },
-    body: JSON.stringify({ type: "subscriber" }),
-  }).catch(() => {});
+  await trackEvent({ type: "subscriber" }, countryFrom(req.headers.get("x-vercel-ip-country"))).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

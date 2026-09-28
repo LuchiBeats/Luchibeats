@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { getBeats, getDrumKits } from "./beats-store";
+import { getBeats, saveBeats, getDrumKits } from "./beats-store";
 import { downloadUrlFor } from "./r2";
 import { missingAgreements, type Beat, type License } from "./types";
 
@@ -34,6 +34,23 @@ function isLive(b: Beat, now: Date) {
   return !b.soldExclusive && !b.hidden && (!b.goLiveAt || new Date(b.goLiveAt) <= now) && missingAgreements(b).length === 0;
 }
 
+// Checkout sessions expire after this (Stripe's minimum is 30 min) — an exclusive is held for a buyer at most this long
+export const CHECKOUT_HOLD_MS = 31 * 60 * 1000;
+
+function isHeld(b: Beat, now: Date) {
+  return !!b.exclusiveHold && new Date(b.exclusiveHold.until) > now;
+}
+
+// Reserve the exclusive of each beat in this checkout so a second buyer can't pay for it at the same time
+export async function holdExclusives(beatIds: string[], sessionId: string, until: Date): Promise<void> {
+  if (!beatIds.length) return;
+  const beats = await getBeats();
+  for (const beat of beats) {
+    if (beatIds.includes(beat.id)) beat.exclusiveHold = { sessionId, until: until.toISOString() };
+  }
+  await saveBeats(beats);
+}
+
 // Turn cart refs into priced items using the live catalog. Throws with a buyer-facing message if anything is unavailable.
 export async function resolveCart(refs: CartRef[]): Promise<ResolvedItem[]> {
   if (!Array.isArray(refs) || refs.length === 0) throw new Error("Your cart is empty.");
@@ -57,6 +74,9 @@ export async function resolveCart(refs: CartRef[]): Promise<ResolvedItem[]> {
       const license = beat?.licenses.find((l) => l.name === licenseName);
       if (!beat || !license || !isLive(beat, now)) {
         throw new Error("One of the beats in your cart is no longer available. Please remove it and try again.");
+      }
+      if (license.name === "Exclusive" && isHeld(beat, now)) {
+        throw new Error(`Someone is checking out with the exclusive for "${beat.title}" right now. Try again in 30 minutes.`);
       }
       items.push({
         kind: "beat", refId: beat.id, licenseName: license.name,
@@ -115,6 +135,7 @@ export interface PurchasedItem {
   name: string;
   amount: number;          // dollars actually paid for this line
   downloads: DownloadLink[];
+  soldToSomeoneElse?: boolean; // exclusive bought by another buyer first — refunded, no files
 }
 
 // Read back what was bought in a completed Checkout Session, with fresh download links from the current catalog.
@@ -129,9 +150,12 @@ export async function purchasedItems(stripe: Stripe, sessionId: string): Promise
     if (md.kind === "beat") {
       const beat = beats.find((b) => b.id === md.refId);
       const licenseName = md.license as License["name"];
+      // Exclusive already sold through a different checkout — this buyer lost the race and is refunded, no files
+      const lostExclusive = licenseName === "Exclusive" && !!beat?.soldExclusive && beat.soldSessionId !== sessionId;
       out.push({
         kind: "beat", refId: md.refId, licenseName, name: li.description ?? "Beat", amount,
-        downloads: beat ? await resolveLinks(beatFiles(beat, licenseName), `${beat.title} (${licenseName})`) : [],
+        downloads: beat && !lostExclusive ? await resolveLinks(beatFiles(beat, licenseName), `${beat.title} (${licenseName})`) : [],
+        ...(lostExclusive ? { soldToSomeoneElse: true } : {}),
       });
     } else if (md.kind === "drumkit") {
       const kit = kits.find((k) => k.id === md.refId);

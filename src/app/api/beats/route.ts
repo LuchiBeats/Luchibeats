@@ -8,7 +8,7 @@ export async function GET() {
   const live = beats
     .filter((b) => !b.soldExclusive && !b.hidden && (!b.goLiveAt || new Date(b.goLiveAt) <= now) && missingAgreements(b).length === 0)
     // Paid files and agreements are only for buyers — never send them to the public store
-    .map(({ mp3Url, wavUrl, stemsUrl, ...beat }) => ({
+    .map(({ mp3Url, wavUrl, stemsUrl, exclusiveHold, soldSessionId, ...beat }) => ({
       ...beat,
       licenses: beat.licenses.map(({ agreementUrl, ...license }) => license),
     }));
