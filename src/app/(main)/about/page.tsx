@@ -45,7 +45,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Beat Production</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Licensed in tiers to fit any budget.</p>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Sold as exclusives only. One artist per beat, so your record is yours alone.</p>
           </div>
           <div>
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Drum Kits & Sound Kits</h3>

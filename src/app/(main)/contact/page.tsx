@@ -1,11 +1,27 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Send, Check } from "lucide-react";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // "Make Offer" on /beats links here with ?beat=<title>
+  const [offerBeat, setOfferBeat] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const beat = new URLSearchParams(window.location.search).get("beat")?.slice(0, 120);
+    if (!beat) return;
+    setOfferBeat(beat);
+    setSubject(`Exclusive Offer: ${beat}`);
+    setMessage(`Hi Luchi, I'd like to make an offer on the exclusive for "${beat}".
+
+My offer: $
+Artist name / links:
+Release plans:`);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,7 +57,9 @@ export default function ContactPage() {
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>LET&apos;S TALK</p>
         <h1 className="text-4xl font-black text-white mb-4">Get in Touch</h1>
         <p style={{ color: "var(--muted)" }}>
-          For custom beats or general inquiries — reach out below.
+          {offerBeat
+            ? <>Making an offer on <span className="text-white font-semibold">{offerBeat}</span>. Every beat is sold exclusively to one artist.</>
+            : "For custom beats, exclusive offers or general inquiries — reach out below."}
         </p>
       </div>
 
@@ -71,9 +89,10 @@ export default function ContactPage() {
           </div>
           <div>
             <label className="block text-sm font-semibold text-white mb-2">Subject</label>
-            <select required name="subject" className="w-full rounded px-4 py-3 text-sm text-white outline-none"
+            <select required name="subject" value={subject} onChange={e => setSubject(e.target.value)} className="w-full rounded px-4 py-3 text-sm text-white outline-none"
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
               <option value="">Select a topic...</option>
+              {offerBeat && <option value={`Exclusive Offer: ${offerBeat}`}>Exclusive Offer: {offerBeat}</option>}
               <option value="Custom Beat Inquiry">Custom Beat Inquiry</option>
               <option value="Collaboration">Collaboration</option>
               <option value="Other">Other</option>
@@ -81,7 +100,7 @@ export default function ContactPage() {
           </div>
           <div>
             <label className="block text-sm font-semibold text-white mb-2">Message</label>
-            <textarea required name="message" rows={6} placeholder="Tell me about your project, timeline, budget..."
+            <textarea required name="message" rows={6} value={message} onChange={e => setMessage(e.target.value)} placeholder="Tell me about your project, timeline, budget..."
               className="w-full rounded px-4 py-3 text-sm text-white placeholder-gray-600 outline-none resize-none"
               style={{ background: "var(--surface2)", border: "1px solid var(--border)" }} />
           </div>

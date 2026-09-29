@@ -143,7 +143,7 @@ function FeaturedRow({
           </div>
 
           <Link href="/beats" className="text-xs font-bold inline-flex items-center gap-1 transition-colors" style={{ color: GOLD }}>
-            From ${fromPrice} — View License Options <ArrowRight size={11} />
+            Exclusive ${fromPrice} · One Owner Only <ArrowRight size={11} />
           </Link>
         </div>
       </div>

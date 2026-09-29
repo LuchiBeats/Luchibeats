@@ -213,6 +213,14 @@ function BeatRow({
                 onClick={() => onAddToCart(lic)}
               />
             ))}
+            <a href={`/contact?beat=${encodeURIComponent(beat.title)}`}
+              className="flex flex-col items-center justify-center px-3 rounded-lg flex-shrink-0 transition-all"
+              style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, color: DIM }}
+              onMouseEnter={e => { e.currentTarget.style.background = GOLD_DIM; e.currentTarget.style.borderColor = GOLD_BORDER; (e.currentTarget as HTMLAnchorElement).style.color = GOLD; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = BORDER; (e.currentTarget as HTMLAnchorElement).style.color = DIM; }}>
+              <span className="text-xs font-black tracking-wide">MAKE</span>
+              <span className="text-xs font-black tracking-wide">OFFER</span>
+            </a>
             <a href="/cart"
               className="flex items-center justify-center w-10 h-auto rounded-lg flex-shrink-0 transition-all"
               style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, color: MUTED }}
@@ -420,7 +428,7 @@ export default function BeatsPage() {
             <p className="text-xs font-black tracking-[0.25em] uppercase mb-4" style={{ color: MUTED }}>// Exclusive Licenses Only</p>
             <div className="grid grid-cols-1 gap-4 text-sm">
               {[
-                { name: "Exclusive", price: "One buyer per beat", format: "MP3 + WAV + Stems", features: ["Full exclusive rights — you're the only artist with this beat", "Unlimited streams, sales and performances", "Beat is removed from the store after purchase", "Signed license agreement delivered with your files", "Credit required"] },
+                { name: "Exclusive", price: "One buyer per beat", format: "MP3 + WAV + Stems", features: ["Full exclusive rights — you're the only artist with this beat", "Unlimited streams, sales and performances", "Beat is removed from the store after purchase", "Signed license agreement delivered with your files", "Credit required", "Budget different? Hit \"Make Offer\" on any beat"] },
               ].map(tier => (
                 <div key={tier.name} className="rounded-lg p-4" style={{ background: "#080809", border: `1px solid ${BORDER}` }}>
                   <div className="flex items-center justify-between mb-2">

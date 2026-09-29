@@ -1681,7 +1681,7 @@ export default function AdminPage() {
                     <div className="rounded-xl p-4 space-y-4" style={{ background:"#0d0d0d", border:`1px solid ${BORDER_SUBTLE}` }}>
                       <p className="text-xs font-black uppercase tracking-widest" style={{ color: GOLD }}>Download Files (what buyers receive)</p>
 
-                      {/* Full MP3 — Basic license */}
+                      {/* Full MP3 — exclusive buyer */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Full MP3 <span style={{ color:"#444" }}>— exclusive buyer</span></p>
                         <input ref={beatMp3Ref} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatMp3(f); e.target.value=""; }} />
@@ -1703,7 +1703,7 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {/* WAV — Premium + Exclusive */}
+                      {/* WAV — exclusive buyer */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>WAV File <span style={{ color:"#444" }}>— exclusive buyer</span></p>
                         <input ref={beatWavRef} type="file" accept=".wav,audio/wav,audio/x-wav" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatWav(f); e.target.value=""; }} />
@@ -1725,7 +1725,7 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      {/* Stems ZIP — Premium + Exclusive */}
+                      {/* Stems ZIP — exclusive buyer */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Stems ZIP <span style={{ color:"#444" }}>— exclusive buyer (all individual tracks)</span></p>
                         <input ref={beatStemsRef} type="file" accept=".zip,application/zip,application/x-zip-compressed" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatStems(f); e.target.value=""; }} />
@@ -2101,8 +2101,6 @@ export default function AdminPage() {
                           className="w-full px-4 py-3 rounded-lg text-white text-sm outline-none transition-all"
                           style={{ background: BG_INPUT, border: `1px solid ${BORDER_SUBTLE}` }}>
                           <option value="">— Select —</option>
-                          <option value="Basic">Basic</option>
-                          <option value="Premium">Premium</option>
                           <option value="Exclusive">Exclusive</option>
                         </select>
                       </div>
