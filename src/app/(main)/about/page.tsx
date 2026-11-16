@@ -1,4 +1,3 @@
-import { Globe, Tv2, Share2, Music } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -18,26 +17,20 @@ export default function AboutPage() {
       </div>
 
       {/* Bio Section */}
-      <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-14 md:mb-20">
-        <div className="md:w-72 flex-shrink-0">
-          <div className="relative w-full max-w-xs mx-auto md:max-w-none aspect-[2/3] photo-blend">
-            <Image
-              src="/luchi/portrait-studio.webp"
-              alt="Luchi at the board in 934 Studio"
-              fill
-              priority
-              sizes="(max-width: 768px) 320px, 288px"
-              className="object-cover"
-            />
-          </div>
-          <div className="mt-6 flex gap-4 justify-center md:justify-start">
-            <a href="#" className="hover:text-white transition-colors" style={{ color: "var(--muted)" }}><Globe size={20} /></a>
-            <a href="#" className="hover:text-white transition-colors" style={{ color: "var(--muted)" }}><Tv2 size={20} /></a>
-            <a href="#" className="hover:text-white transition-colors" style={{ color: "var(--muted)" }}><Share2 size={20} /></a>
-            <a href="#" className="hover:text-white transition-colors" style={{ color: "var(--muted)" }}><Music size={20} /></a>
-          </div>
+      {/* Portrait sits behind the story and fades out under the text */}
+      <div className="relative mb-14 md:mb-20 md:min-h-[680px]">
+        <div className="photo-backdrop from-right absolute top-0 -left-4 -right-4 h-[560px] md:left-auto md:right-[-1rem] md:w-[62%] md:h-full pointer-events-none" aria-hidden="true">
+          <Image
+            src="/luchi/portrait-studio.webp"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 640px"
+            className="object-cover object-[70%_20%]"
+          />
         </div>
-        <div className="flex-1">
+        <div className="over-photo relative z-10 pt-[400px] md:pt-16 md:pr-[46%]">
+
           <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">My Story</h2>
           <div className="space-y-5 leading-relaxed" style={{ color: "#ffffff" }}>
             <p>
@@ -55,13 +48,16 @@ export default function AboutPage() {
 
       {/* In the Studio */}
       <div className="mb-14 md:mb-20">
-        <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
-        <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">In the Studio</h2>
+        {/* Heading sits in front; the photos rise up behind it */}
+        <div className="over-photo relative z-10">
+          <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
+          <h2 className="text-2xl md:text-4xl font-black text-white">In the Studio</h2>
+        </div>
         {/* Phone: 2 per row, overlapping sideways and between rows. Desktop: 4 in one overlapping row. */}
-        <div className="flex flex-wrap md:flex-nowrap">
+        <div className="flex flex-wrap md:flex-nowrap -mt-10 md:-mt-20 -mx-4 md:mx-0">
           {GALLERY.map(({ src, alt }) => (
             <div key={src}
-              className="photo-tile relative aspect-[2/3] w-[54%] md:w-[28%] overflow-hidden group even:-ml-[8%] [&:nth-child(n+3)]:-mt-[14%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[4%]">
+              className="photo-tile relative aspect-[2/3] w-[60%] md:w-[32%] overflow-hidden group even:-ml-[20%] [&:nth-child(n+3)]:-mt-[22%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[9.33%]">
               <Image
                 src={src}
                 alt={alt}

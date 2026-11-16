@@ -57,10 +57,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Faded logo watermark with heat-shimmer flame animation */}
+        {/* Faded logo watermark with heat-shimmer flame animation — kept low on the screen so it
+            doesn't run into the photos and text */}
         <div
           aria-hidden="true"
-          className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center"
+          className="fixed inset-0 pointer-events-none z-0 flex items-end justify-center pb-[3vh]"
         >
           <svg style={{ position: "absolute", width: 0, height: 0 }}>
             <defs>
@@ -73,7 +74,7 @@ export default function RootLayout({
             </defs>
           </svg>
 
-          <div className="relative w-[70vw] max-w-2xl">
+          <div className="relative w-[60vw] max-w-xl">
             <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.12 }} />
             <img
               src="/logo.png" alt=""

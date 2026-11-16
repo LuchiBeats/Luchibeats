@@ -414,22 +414,48 @@ body.tab-hidden * {
   animation-play-state: paused !important;
 }
 
-/* Photos that blend into the page instead of sitting in a framed box:
-   the edges fade out to transparent so the dark background shows through. */
-.photo-blend {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 70%, transparent 100%),
-                      linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
-  -webkit-mask-composite: source-in;
-          mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 70%, transparent 100%),
-                      linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
-          mask-composite: intersect;
+/* Photos that blend into the page instead of sitting in a box:
+   - an oval fade (no straight edges or corners left to give the shape away)
+   - toned down to the site's dark, warm palette
+   - toned down so it sits in the background */
+.photo-blend, .photo-tile {
+  -webkit-mask-image: radial-gradient(closest-side, #000 45%, rgba(0,0,0,0.6) 72%, transparent 100%);
+          mask-image: radial-gradient(closest-side, #000 45%, rgba(0,0,0,0.6) 72%, transparent 100%);
+  filter: saturate(0.85) brightness(0.9) contrast(1.05) sepia(0.12);
 }
-/* Gallery photos: every edge fades, and neighbours overlap, so the row cross-fades into one strip */
 .photo-tile {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%),
-                      linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  -webkit-mask-composite: source-in;
-          mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%),
-                      linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
-          mask-composite: intersect;
+  -webkit-mask-image: radial-gradient(closest-side, #000 35%, rgba(0,0,0,0.55) 68%, transparent 100%);
+          mask-image: radial-gradient(closest-side, #000 35%, rgba(0,0,0,0.55) 68%, transparent 100%);
 }
+
+/* Backdrop photo: sits behind a section's content and fades out toward it, so the
+   text reads as if it's in front of the photo. Phones fade downward (text below),
+   desktop fades to the right (text beside). */
+.photo-backdrop {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 92%),
+                      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 92%),
+                      linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+          mask-composite: intersect;
+  filter: saturate(0.85) brightness(0.8) contrast(1.05) sepia(0.12);
+}
+@media (min-width: 768px) {
+  .photo-backdrop {
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 40%, transparent 96%),
+                        linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 0%, #000 40%, transparent 96%),
+                        linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
+  }
+}
+/* Same, for a photo on the right that fades out leftward into the text */
+@media (min-width: 768px) {
+  .photo-backdrop.from-right {
+    -webkit-mask-image: linear-gradient(to left, #000 0%, #000 40%, transparent 96%),
+                        linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
+            mask-image: linear-gradient(to left, #000 0%, #000 40%, transparent 96%),
+                        linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
+  }
+}
+/* Text that sits on top of a backdrop photo */
+.over-photo { text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 24px rgba(0,0,0,0.75); }

@@ -113,19 +113,18 @@ export default async function HomePage() {
       {/* Meet Luchi */}
       <section className="relative max-w-5xl mx-auto px-4 py-12 md:py-20 overflow-hidden">
         <div className="orb orb-1 w-96 h-96 -top-20 -left-20" style={{ background: "rgba(201,168,76,0.12)" }} />
-        <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-14">
-          <ScrollReveal className="w-full max-w-sm md:w-[380px] flex-shrink-0">
-            <div className="relative aspect-[2/3] photo-blend">
-              <Image
-                src="/luchi/portrait-closeup.webp"
-                alt="Luchi in the studio"
-                fill
-                sizes="(max-width: 768px) 90vw, 380px"
-                className="object-cover"
-              />
-            </div>
+        {/* Portrait sits behind the text and fades out under it */}
+        <div className="relative md:min-h-[600px] md:flex md:items-center">
+          <ScrollReveal className="photo-backdrop absolute top-0 -left-4 -right-4 h-[520px] md:left-0 md:right-auto md:w-[55%] md:h-full pointer-events-none">
+            <Image
+              src="/luchi/portrait-closeup.webp"
+              alt="Luchi in the studio"
+              fill
+              sizes="(max-width: 768px) 100vw, 560px"
+              className="object-cover object-[center_30%]"
+            />
           </ScrollReveal>
-          <ScrollReveal className="flex-1 text-center md:text-left" delay={0.1}>
+          <ScrollReveal className="over-photo relative z-10 text-center md:text-left pt-[380px] md:pt-0 md:pl-[48%]" delay={0.1}>
             <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>THE PRODUCER</p>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-5">Meet Luchi</h2>
             <p className="leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.8)" }}>
