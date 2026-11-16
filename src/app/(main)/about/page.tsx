@@ -10,7 +10,7 @@ const GALLERY = [
 
 export default function AboutPage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 md:py-12" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(2px)", borderRadius: "1rem" }}>
+    <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
       <div className="mb-10 md:mb-16">
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>THE PRODUCER</p>
         <h1 className="text-3xl md:text-4xl font-black text-white">About LuchiBeats</h1>
@@ -53,11 +53,11 @@ export default function AboutPage() {
           <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
           <h2 className="text-2xl md:text-4xl font-black text-white">In the Studio</h2>
         </div>
-        {/* Phone: 2 per row, overlapping sideways and between rows. Desktop: 4 in one overlapping row. */}
+        {/* Phone: 2 per row. Desktop: 4 across. Neighbours overlap by exactly their fade width so they cross-fade. */}
         <div className="flex flex-wrap md:flex-nowrap -mt-10 md:-mt-20 -mx-4 md:mx-0">
           {GALLERY.map(({ src, alt }) => (
             <div key={src}
-              className="photo-tile relative aspect-[2/3] w-[60%] md:w-[32%] overflow-hidden group even:-ml-[20%] [&:nth-child(n+3)]:-mt-[22%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[9.33%]">
+              className="photo-tile relative aspect-[2/3] w-[57.15%] md:w-[30.77%] overflow-hidden group even:-ml-[14.3%] [&:nth-child(n+3)]:-mt-[26%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[7.69%]">
               <Image
                 src={src}
                 alt={alt}

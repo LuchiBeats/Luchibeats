@@ -16,7 +16,7 @@ export default async function LivePage() {
   const empty = !data.liveNowId && !data.streams.length && !data.shorts.length && !data.videos.length;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 md:py-12" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(2px)", borderRadius: "1rem" }}>
+    <div className="max-w-6xl mx-auto px-4 py-10 md:py-12">
       <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div>
           <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>ON YOUTUBE</p>

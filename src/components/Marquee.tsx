@@ -21,7 +21,10 @@ export default async function Marquee() {
   const displayed = [...items, ...items];
 
   return (
-    <div className="overflow-hidden border-y py-2" style={{ borderColor: "rgba(201,168,76,0.3)", background: "rgba(201,168,76,0.05)" }}>
+    <div className="relative overflow-hidden py-2" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.06) 20%, rgba(201,168,76,0.06) 80%, transparent), var(--bg)" }}>
+      {/* Gold hairlines that fade out at both ends instead of hard borders */}
+      <div className="absolute inset-x-0 top-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.35), transparent)" }} />
+      <div className="absolute inset-x-0 bottom-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.35), transparent)" }} />
       <div className="marquee-track">
         {displayed.map((item, i) => (
           <span key={i} className="flex items-center gap-6 px-6 text-xs tracking-[0.3em] font-semibold whitespace-nowrap" style={{ color: "var(--fire)" }}>

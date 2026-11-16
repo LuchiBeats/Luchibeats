@@ -57,6 +57,9 @@ export default async function HomePage() {
         <div className="lightning-3 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(220,230,255,0.3) 0%, transparent 55%)", mixBlendMode: "screen" }} />
         <div className="lightning-4 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 75% 60%, rgba(255,220,180,0.25) 0%, transparent 50%)", mixBlendMode: "screen" }} />
 
+        {/* Fade the bottom of the video into the page so there's no hard edge */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, var(--bg))" }} />
+
         {/* Hero overlay — only rendered when set in admin */}
         {hp.heroHeadline && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-6 text-center" style={{ background: "rgba(0,0,0,0.35)" }}>
@@ -82,7 +85,7 @@ export default async function HomePage() {
       </section>
 
       {/* Page navigation tabs */}
-      <div className="border-b" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
+      <div className="relative z-10" style={{ background: "var(--bg)" }}>
         <div className="grid grid-cols-3 gap-2 px-3 py-5 sm:gap-3 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
           {[
             { href: "/live",       label: "Luchi Beats Live", short: "Live", icon: Radio },

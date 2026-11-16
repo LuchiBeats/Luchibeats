@@ -418,10 +418,14 @@ body.tab-hidden * {
    - an oval fade (no straight edges or corners left to give the shape away)
    - toned down to the site's dark, warm palette
    - toned down so it sits in the background */
-.photo-blend, .photo-tile {
-  -webkit-mask-image: radial-gradient(closest-side, #000 45%, rgba(0,0,0,0.6) 72%, transparent 100%);
-          mask-image: radial-gradient(closest-side, #000 45%, rgba(0,0,0,0.6) 72%, transparent 100%);
-  filter: saturate(0.85) brightness(0.9) contrast(1.05) sepia(0.12);
+.photo-blend, /* Gallery photos cross-fade: each one fades out over the same strip where the next fades in */
+.photo-tile {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 25%, #000 75%, transparent 100%),
+                      linear-gradient(to bottom, transparent 0%, #000 18%, #000 78%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to right, transparent 0%, #000 25%, #000 75%, transparent 100%),
+                      linear-gradient(to bottom, transparent 0%, #000 18%, #000 78%, transparent 100%);
+          mask-composite: intersect;
 }
 .photo-tile {
   -webkit-mask-image: radial-gradient(closest-side, #000 35%, rgba(0,0,0,0.55) 68%, transparent 100%);
@@ -442,18 +446,18 @@ body.tab-hidden * {
 }
 @media (min-width: 768px) {
   .photo-backdrop {
-    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 40%, transparent 96%),
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 42%, transparent 96%),
                         linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
-            mask-image: linear-gradient(to right, #000 0%, #000 40%, transparent 96%),
+            mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 42%, transparent 96%),
                         linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
   }
 }
 /* Same, for a photo on the right that fades out leftward into the text */
 @media (min-width: 768px) {
   .photo-backdrop.from-right {
-    -webkit-mask-image: linear-gradient(to left, #000 0%, #000 40%, transparent 96%),
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, #000 14%, #000 42%, transparent 96%),
                         linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
-            mask-image: linear-gradient(to left, #000 0%, #000 40%, transparent 96%),
+            mask-image: linear-gradient(to left, transparent 0%, #000 14%, #000 42%, transparent 96%),
                         linear-gradient(to bottom, transparent 0%, #000 14%, #000 72%, transparent 100%);
   }
 }

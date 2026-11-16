@@ -57,12 +57,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* Faded logo watermark with heat-shimmer flame animation — kept low on the screen so it
-            doesn't run into the photos and text */}
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 pointer-events-none z-0 flex items-end justify-center pb-[3vh]"
-        >
+        <PWARegister />
+        <PageTracker />
+        <VisibilityPause />
+        <CustomCursor />
+        <main className="relative z-10 flex-1">{children}</main>
+        {/* Logo sign-off at the bottom of every page, with the heat-shimmer flame effect.
+            It used to be pinned behind the content, where photos and text ran into it. */}
+        <div aria-hidden="true" className="relative z-10 pointer-events-none flex justify-center pt-16 -mb-12">
           <svg style={{ position: "absolute", width: 0, height: 0 }}>
             <defs>
               <filter id="fireWarp" x="-5%" y="-30%" width="110%" height="150%" colorInterpolationFilters="sRGB">
@@ -73,21 +75,15 @@ export default function RootLayout({
               </filter>
             </defs>
           </svg>
-
-          <div className="relative w-[60vw] max-w-xl">
-            <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.12 }} />
+          <div className="relative w-[70vw] max-w-lg">
+            <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.25 }} />
             <img
               src="/logo.png" alt=""
               className="w-full select-none absolute inset-0 hidden md:block"
-              style={{ opacity: 0.22, filter: "url(#fireWarp) brightness(1.4)" }}
+              style={{ opacity: 0.4, filter: "url(#fireWarp) brightness(1.4)" }}
             />
           </div>
         </div>
-        <PWARegister />
-        <PageTracker />
-        <VisibilityPause />
-        <CustomCursor />
-        <main className="relative z-10 flex-1">{children}</main>
         <Footer />
       </body>
     </html>

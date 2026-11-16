@@ -29,7 +29,7 @@ function YouTubeIcon() {
 
 export default function Footer() {
   return (
-    <footer className="border-t mt-24 py-12" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+    <footer className="mt-24 pt-20 pb-12" style={{ background: "linear-gradient(to bottom, transparent, var(--surface) 140px)" }}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
