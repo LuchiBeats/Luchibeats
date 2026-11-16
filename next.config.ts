@@ -36,11 +36,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   turbopack: {},
   poweredByHeader: false,
-  // The beat store and merch store were taken down. Send old links and bookmarks to the homepage.
+  // The beat store, drum kits and merch store were taken down. Send old links and bookmarks to the homepage.
   async redirects() {
     return [
       { source: "/beats", destination: "/", permanent: false },
       { source: "/merch", destination: "/", permanent: false },
+      { source: "/drum-kits", destination: "/", permanent: false },
+      { source: "/cart", destination: "/", permanent: false },
     ];
   },
   async headers() {

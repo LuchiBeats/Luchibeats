@@ -2,21 +2,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ShoppingCart, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { useCart } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/drum-kits", label: "Drum Kits" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { items } = useCart();
   const [open, setOpen] = useState(false);
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
@@ -51,14 +48,6 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="relative" aria-label="Cart">
-            <ShoppingCart size={24} className="text-gray-100 hover:text-[var(--fire-light)] transition-colors" />
-            {items.length > 0 && (
-              <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold" style={{ background: "var(--fire)", color: "#000" }}>
-                {items.length}
-              </span>
-            )}
-          </Link>
           <button className="md:hidden flex items-center gap-2 px-3 py-2 rounded-full border text-sm font-bold uppercase tracking-wider"
             style={{ color: "var(--fire)", borderColor: "rgba(201,168,76,0.4)" }}
             onClick={() => setOpen(!open)} aria-expanded={open} aria-label="Menu">

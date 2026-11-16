@@ -1,5 +1,5 @@
-const CACHE = "luchibeats-v4";
-const STATIC = ["/", "/about", "/contact", "/drum-kits", "/logo.png", "/icons/icon-192x192.png", "/icons/icon-512x512.png"];
+const CACHE = "luchibeats-v5";
+const STATIC = ["/", "/about", "/contact", "/logo.png", "/icons/icon-192x192.png", "/icons/icon-512x512.png"];
 
 // Never store private or per-buyer responses on the device: admin data, API responses,
 // order pages (they contain download links) and the cart.
@@ -16,7 +16,7 @@ self.addEventListener("install", (e) => {
   self.skipWaiting();
 });
 
-// Activating v4 deletes older caches, which may hold admin or order data saved by the previous worker
+// Activating a new version deletes older caches, which may hold admin or order data saved by the previous worker
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))));
   self.clients.claim();

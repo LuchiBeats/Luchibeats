@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Phone, Info, Drum, ArrowRight } from "lucide-react";
+import { Phone, Info, ArrowRight } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
@@ -83,9 +83,8 @@ export default async function HomePage() {
 
       {/* Page navigation tabs */}
       <div className="border-b" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
-        <div className="grid grid-cols-3 gap-2 px-3 py-5 sm:gap-3 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 gap-2 px-3 py-5 sm:gap-3 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
           {[
-            { href: "/drum-kits",  label: "Drum Kits",    icon: Drum },
             { href: "/about",      label: "About",        icon: Info },
             { href: "/contact",    label: "Contact",      icon: Phone },
           ].map(({ href, label, icon: Icon }) => (

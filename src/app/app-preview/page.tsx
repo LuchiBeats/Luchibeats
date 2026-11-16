@@ -175,8 +175,6 @@ export default function AppPreview() {
             </div>
             {[
               { label: "About Luchi", icon: "👤" },
-              { label: "Drum Kits", icon: "🥁" },
-              { label: "Merch", icon: "👕" },
               { label: "Join the List", icon: "📩" },
             ].map((item) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "1px solid #1a1a1a" }}>

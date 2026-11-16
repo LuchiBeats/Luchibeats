@@ -90,7 +90,7 @@ export default async function CheckoutSuccessPage({
       </div>
 
       <div className="text-center">
-        <Link href="/drum-kits" className="text-sm underline" style={{ color: "var(--muted)" }}>Keep browsing drum kits</Link>
+        <Link href="/" className="text-sm underline" style={{ color: "var(--muted)" }}>Back to home</Link>
       </div>
     </div>
   );

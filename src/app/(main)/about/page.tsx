@@ -82,8 +82,8 @@ export default function AboutPage() {
             <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Custom production built around your sound, from the first idea to the final mix.</p>
           </div>
           <div>
-            <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Drum Kits & Sound Kits</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Custom-built kits pulled straight from real studio sessions — drums, samples, and sounds crafted for producers who want something different.</p>
+            <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Recording, Mixing & Mastering</h3>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>Vocal recording, mixing and mastering from someone who knows the record from the inside out — radio-ready and true to your sound.</p>
           </div>
         </div>
       </div>
@@ -104,7 +104,6 @@ export default function AboutPage() {
 
       <div className="flex flex-wrap gap-4">
         <Link href="/contact" className="btn-gold px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
-        <Link href="/drum-kits" className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Drum Kits</Link>
       </div>
     </div>
   );
