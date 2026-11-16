@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Send, Check } from "lucide-react";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -64,14 +65,15 @@ Release plans:`);
       </div>
 
       {sent ? (
-        <div className="card-surface rounded-lg p-12 text-center">
+        <ScrollReveal className="card-surface rounded-lg p-12 text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(201,168,76,0.15)" }}>
             <Check size={28} style={{ color: "var(--gold)" }} />
           </div>
           <h2 className="text-2xl font-black text-white mb-2">Message Sent</h2>
           <p style={{ color: "var(--muted)" }}>I&apos;ll get back to you within 24–48 hours.</p>
-        </div>
+        </ScrollReveal>
       ) : (
+        <ScrollReveal>
         <form onSubmit={handleSubmit} className="card-surface rounded-lg p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -113,6 +115,7 @@ Release plans:`);
             {loading ? "Sending..." : <><Send size={16} /> Send Message</>}
           </button>
         </form>
+        </ScrollReveal>
       )}
     </div>
   );

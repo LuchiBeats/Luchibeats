@@ -39,11 +39,10 @@ export default async function Testimonials() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((t, i) => (
           <ScrollReveal key={t.id} delay={i * 0.12}>
-            <div className="relative rounded-xl overflow-hidden h-full flex flex-col group hover:border-yellow-600/40 transition-all duration-300"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="card-surface relative rounded-xl overflow-hidden h-full flex flex-col group transition-all duration-300">
               {/* Large photo */}
               {t.image && (
-                <div className="w-full overflow-hidden" style={{ height: "280px" }}>
+                <div className="w-full overflow-hidden" style={{ height: "280px", WebkitMaskImage: "linear-gradient(to bottom, #000 55%, transparent)", maskImage: "linear-gradient(to bottom, #000 55%, transparent)" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={t.image}

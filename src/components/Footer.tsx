@@ -70,7 +70,8 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="border-t pt-6 flex flex-col md:flex-row justify-between items-center gap-2" style={{ borderColor: "var(--border)" }}>
+        <div className="relative pt-6 flex flex-col md:flex-row justify-between items-center gap-2">
+          <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.25), transparent)" }} />
           <p className="text-xs" style={{ color: "var(--muted)" }}>© {new Date().getFullYear()} LuchiBeats. All rights reserved.</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>luchibeats.com</p>
         </div>

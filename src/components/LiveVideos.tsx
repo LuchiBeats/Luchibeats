@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Play, X, ExternalLink, Radio } from "lucide-react";
 import type { ChannelVideo } from "@/lib/youtube";
+import ScrollReveal from "./ScrollReveal";
 
 const watchUrl = (v: ChannelVideo) =>
   v.kind === "short" ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`;
@@ -44,8 +45,8 @@ function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: Channe
       )}
     </>
   );
-  const cls = `group relative block w-full overflow-hidden rounded-lg border ${vertical ? "aspect-[9/16]" : "aspect-video"}`;
-  const style = { borderColor: "var(--border)", background: "#000" };
+  const cls = `group relative block w-full overflow-hidden rounded-lg ${vertical ? "aspect-[9/16]" : "aspect-video"}`;
+  const style = { background: "#000", boxShadow: "0 20px 50px rgba(0,0,0,0.55)" };
   return v.embeddable ? (
     <button type="button" onClick={() => onPlay(v)} className={cls} style={style} aria-label={`Play ${v.title}`}>{inner}</button>
   ) : (
@@ -61,12 +62,12 @@ function Section({ label, title, items, onPlay }: { label: string; title: string
       <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{label}</p>
       <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">{title}</h2>
       <div className={vertical ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"}>
-        {items.map((v) => (
-          <div key={v.id}>
+        {items.map((v, i) => (
+          <ScrollReveal key={v.id} delay={(i % 4) * 0.1}>
             <Thumb v={v} onPlay={onPlay} />
             <p className={`font-bold text-white mt-3 leading-snug ${vertical ? "text-xs md:text-sm" : "text-sm md:text-base"}`}>{v.title}</p>
             {!vertical && <Meta v={v} />}
-          </div>
+          </ScrollReveal>
         ))}
       </div>
     </section>
@@ -100,7 +101,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
               <Radio size={14} className="animate-pulse" /> LIVE NOW
             </span>
           </div>
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden border" style={{ borderColor: "rgba(220,38,38,0.5)" }}>
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden" style={{ boxShadow: "0 0 60px rgba(220,38,38,0.25)" }}>
             <iframe className="absolute inset-0 w-full h-full" src={embedSrc(liveNowId, true) + "&mute=1"} title="Luchi Beats live now"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
           </div>
@@ -115,8 +116,10 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
         <section className="mb-14 md:mb-20">
           <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{streams.length ? "LATEST STREAM" : "LATEST VIDEO"}</p>
           <h2 className="text-xl md:text-3xl font-black text-white mb-5">{featured.title}</h2>
-          <Thumb v={featured} onPlay={setPlaying} big />
-          <Meta v={featured} />
+          <ScrollReveal>
+            <Thumb v={featured} onPlay={setPlaying} big />
+            <Meta v={featured} />
+          </ScrollReveal>
         </section>
       )}
 

@@ -19,7 +19,7 @@ export default function Navbar() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <nav className="w-full border-b" style={{ background: "rgba(0,0,0,0.95)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
+    <nav className="w-full" style={{ background: "linear-gradient(to bottom, #000, var(--bg))" }}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-20">
         <Link href="/">
           <Image src="/logo.png" alt="LuchiBeats" width={120} height={60} className="object-contain h-12 w-auto" />
@@ -60,7 +60,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t px-4 py-4 flex flex-col gap-2" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+        <div className="md:hidden px-4 py-4 flex flex-col gap-2" style={{ background: "var(--bg)" }}>
           {links.map((l) => {
             const active = isActive(l.href);
             return (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const GALLERY = [
   { src: "/luchi/session-laptop.webp", alt: "Luchi working on a beat in the studio" },
@@ -71,7 +72,7 @@ export default function AboutPage() {
       </div>
 
       {/* Services Summary */}
-      <div className="card-surface rounded-lg p-5 md:p-8 mb-10 md:mb-12">
+      <ScrollReveal className="card-surface rounded-lg p-5 md:p-8 mb-10 md:mb-12">
         <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">What I Offer</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -83,7 +84,7 @@ export default function AboutPage() {
             <p className="text-sm" style={{ color: "var(--muted)" }}>Vocal recording, mixing and mastering from someone who knows the record from the inside out — radio-ready and true to your sound.</p>
           </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-14 md:mb-20">
@@ -91,11 +92,11 @@ export default function AboutPage() {
           { number: "100+", label: "Artists Worked With" },
           { number: "100%", label: "Client Satisfaction" },
           { number: "10+", label: "Years of Experience" },
-        ].map(({ number, label }) => (
-          <div key={label} className="card-surface rounded-lg p-4 md:p-6 text-center">
+        ].map(({ number, label }, i) => (
+          <ScrollReveal key={label} delay={i * 0.12} className="card-surface rounded-lg p-4 md:p-6 text-center">
             <p className="text-2xl md:text-3xl font-black mb-1 gold-gradient">{number}</p>
             <p className="text-xs md:text-sm" style={{ color: "var(--muted)" }}>{label}</p>
-          </div>
+          </ScrollReveal>
         ))}
       </div>
 

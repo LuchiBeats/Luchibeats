@@ -38,8 +38,6 @@ export default function EmailCapture({
   return (
     <section className="relative py-14 md:py-28 overflow-hidden" style={{ background: "linear-gradient(to bottom, transparent, var(--surface) 25%, var(--surface) 75%, transparent)" }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.07) 0%, transparent 65%)" }} />
-      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent)" }} />
-      <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent)" }} />
 
       <div className="relative max-w-2xl mx-auto px-4 text-center">
         <ScrollReveal>
