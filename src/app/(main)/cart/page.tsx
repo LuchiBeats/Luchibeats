@@ -35,8 +35,8 @@ export default function CartPage() {
       <div className="max-w-2xl mx-auto px-4 py-24 text-center">
         <ShoppingBag size={48} className="mx-auto mb-6" style={{ color: "var(--muted)" }} />
         <h1 className="text-2xl font-black text-white mb-2">Your cart is empty</h1>
-        <p className="mb-8" style={{ color: "var(--muted)" }}>Head over to the store and grab some beats.</p>
-        <Link href="/beats" className="btn-gold px-8 py-3 rounded text-sm">Browse Beats</Link>
+        <p className="mb-8" style={{ color: "var(--muted)" }}>Head over to the drum kits and grab something new.</p>
+        <Link href="/drum-kits" className="btn-gold px-8 py-3 rounded text-sm">Browse Drum Kits</Link>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShoppingBag, Phone, Info, Drum } from "lucide-react";
+import Image from "next/image";
+import { Phone, Info, Drum, ArrowRight } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
@@ -8,7 +9,6 @@ import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
-import FeaturedPlayer from "@/components/FeaturedPlayer";
 import { getHomepageContent } from "@/lib/beats-store";
 
 // Homepage content is admin-editable and blob-backed — render per-request so
@@ -70,7 +70,7 @@ export default async function HomePage() {
             )}
             {hp.heroCta && (
               <Link
-                href={hp.heroCtaUrl || "/beats"}
+                href={hp.heroCtaUrl || "/contact"}
                 className="mt-8 px-8 py-4 rounded-lg font-bold text-black text-sm transition-all hover:scale-105"
                 style={{ background: "linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: "0 4px 30px rgba(201,168,76,0.4)" }}
               >
@@ -83,9 +83,8 @@ export default async function HomePage() {
 
       {/* Page navigation tabs */}
       <div className="border-b" style={{ background: "rgba(10,10,10,0.98)", backdropFilter: "blur(12px)", borderColor: "var(--border)" }}>
-        <div className="grid grid-cols-2 gap-3 px-4 py-5 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-3 gap-2 px-3 py-5 sm:gap-3 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
           {[
-            { href: "/beats",      label: "Beats",        icon: ShoppingBag },
             { href: "/drum-kits",  label: "Drum Kits",    icon: Drum },
             { href: "/about",      label: "About",        icon: Info },
             { href: "/contact",    label: "Contact",      icon: Phone },
@@ -93,7 +92,7 @@ export default async function HomePage() {
             <Link
               key={href}
               href={href}
-              className="home-tab flex items-center justify-center gap-2.5 px-6 py-3.5 md:px-8 rounded-full text-[15px] md:text-base font-bold uppercase tracking-wider whitespace-nowrap border transition-all"
+              className="home-tab flex items-center justify-center gap-1.5 sm:gap-2.5 px-2 sm:px-6 py-3.5 md:px-8 rounded-full text-[13px] sm:text-[15px] md:text-base font-bold uppercase tracking-wider whitespace-nowrap border transition-all"
             >
               <Icon size={18} />
               {label}
@@ -111,14 +110,37 @@ export default async function HomePage() {
       {/* Portfolio Artists */}
       <ArtistsWorkedWith />
 
-      {/* Featured Beats */}
+      {/* Meet Luchi */}
       <section className="relative max-w-5xl mx-auto px-4 py-12 md:py-20 overflow-hidden">
         <div className="orb orb-1 w-96 h-96 -top-20 -left-20" style={{ background: "rgba(201,168,76,0.12)" }} />
-        <ScrollReveal className="mb-8">
-          <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>{hp.beatsLabel || "FRESH CUTS"}</p>
-          <h2 className="text-3xl md:text-4xl font-black text-white">{hp.beatsHeadline || "Latest Beats"}</h2>
-        </ScrollReveal>
-        <FeaturedPlayer />
+        <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-14">
+          <ScrollReveal className="w-full max-w-sm md:w-[380px] flex-shrink-0">
+            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(201,168,76,0.35)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)" }}>
+              <Image
+                src="/luchi/portrait-closeup.webp"
+                alt="Luchi in the studio"
+                fill
+                sizes="(max-width: 768px) 90vw, 380px"
+                className="object-cover"
+              />
+            </div>
+          </ScrollReveal>
+          <ScrollReveal className="flex-1 text-center md:text-left" delay={0.1}>
+            <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>THE PRODUCER</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-5">Meet Luchi</h2>
+            <p className="leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.8)" }}>
+              Producer and engineer out of Paterson, New Jersey. Years in the room with some of the most
+              respected names in the culture — producing, engineering, and helping artists find the sound
+              they&apos;ve been chasing.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+              <Link href="/about" className="btn-gold px-8 py-3 rounded text-sm tracking-wide inline-flex items-center gap-2">
+                My Story <ArrowRight size={16} />
+              </Link>
+              <Link href="/contact" className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
+            </div>
+          </ScrollReveal>
+        </div>
       </section>
 
       {/* Productions */}

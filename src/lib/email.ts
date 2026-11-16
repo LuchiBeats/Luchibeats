@@ -48,7 +48,7 @@ export function promoEmailHtml(): string {
       You're now on the list for exclusive drops, early access, and subscriber-only deals.
       New heat lands regularly — you'll always hear about it first.
     </p>
-    <div style="text-align:center;margin-bottom:24px;">${btn("Browse Beats", `${SITE}/beats`)}</div>
+    <div style="text-align:center;margin-bottom:24px;">${btn("Visit LuchiBeats", `${SITE}`)}</div>
     <div style="text-align:center;margin-bottom:36px;">${btn("Book a Session", `${SITE}/contact`, true)}</div>
     <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.7;">
       15+ years of experience &nbsp;·&nbsp; 150+ artists worked with &nbsp;·&nbsp; 100% client satisfaction
@@ -142,7 +142,7 @@ export function exclusiveRefundEmailHtml(opts: { buyerName: string; itemName: st
       Another buyer completed their purchase of <strong style="color:#fff;">${esc(itemName)}</strong> moments before you.
       ${refunded ? `Your $${amount.toFixed(2)} has been refunded to your original payment method (it can take 5–10 business days to appear).` : `We'll refund your $${amount.toFixed(2)} shortly.`}
     </p>
-    <div style="text-align:center;margin-bottom:24px;">${btn("Browse Beats", `${SITE}/beats`)}</div>
+    <div style="text-align:center;margin-bottom:24px;">${btn("Visit LuchiBeats", `${SITE}`)}</div>
   `, "You're receiving this because you made a purchase at luchibeats.com.");
 }
 

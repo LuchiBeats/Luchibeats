@@ -163,7 +163,7 @@ export interface HomepageContent {
 const HOMEPAGE_FALLBACK: HomepageContent = {
   marqueeItems: [
     "15+ YEARS OF EXPERIENCE", "150+ ARTISTS WORKED WITH", "100% CLIENT SATISFACTION",
-    "NEW BEATS AVAILABLE", "EXCLUSIVE LICENSES",
+    "PRODUCTION & ENGINEERING", "NEW DRUM KITS AVAILABLE",
     "LUCHIBEATS.COM",
   ],
   beatsLabel: "FRESH CUTS",

@@ -1,5 +1,13 @@
 import { Globe, Tv2, Share2, Music } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+
+const GALLERY = [
+  { src: "/luchi/session-laptop.webp", alt: "Luchi working on a beat in the studio" },
+  { src: "/luchi/studio-window.webp", alt: "Luchi behind the board, seen through the studio glass" },
+  { src: "/luchi/session-cigar.webp", alt: "Luchi mid-session at the laptop" },
+  { src: "/luchi/portrait-half.webp", alt: "Portrait of Luchi" },
+];
 
 export default function AboutPage() {
   return (
@@ -11,10 +19,17 @@ export default function AboutPage() {
 
       {/* Bio Section */}
       <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-14 md:mb-20">
-        <div className="md:w-64 flex-shrink-0">
-          <div className="w-full max-w-xs mx-auto md:max-w-none aspect-square rounded-lg flex items-center justify-center text-6xl font-black"
-            style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(201,168,76,0.05))", color: "var(--gold)" }}>
-            L
+        <div className="md:w-72 flex-shrink-0">
+          <div className="relative w-full max-w-xs mx-auto md:max-w-none aspect-[2/3] rounded-lg overflow-hidden border"
+            style={{ borderColor: "rgba(201,168,76,0.35)" }}>
+            <Image
+              src="/luchi/portrait-studio.webp"
+              alt="Luchi at the board in 934 Studio"
+              fill
+              priority
+              sizes="(max-width: 768px) 320px, 288px"
+              className="object-cover"
+            />
           </div>
           <div className="mt-6 flex gap-4 justify-center md:justify-start">
             <a href="#" className="hover:text-white transition-colors" style={{ color: "var(--muted)" }}><Globe size={20} /></a>
@@ -39,13 +54,32 @@ export default function AboutPage() {
         </div>
       </div>
 
+      {/* In the Studio */}
+      <div className="mb-14 md:mb-20">
+        <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
+        <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">In the Studio</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {GALLERY.map(({ src, alt }) => (
+            <div key={src} className="relative aspect-[2/3] rounded-lg overflow-hidden border group" style={{ borderColor: "var(--border)" }}>
+              <Image
+                src={src}
+                alt={alt}
+                fill
+                sizes="(max-width: 768px) 50vw, 240px"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Services Summary */}
       <div className="card-surface rounded-lg p-5 md:p-8 mb-10 md:mb-12">
         <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">What I Offer</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Beat Production</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Sold as exclusives only. One artist per beat, so your record is yours alone.</p>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Custom production built around your sound, from the first idea to the final mix.</p>
           </div>
           <div>
             <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Drum Kits & Sound Kits</h3>
@@ -69,8 +103,8 @@ export default function AboutPage() {
       </div>
 
       <div className="flex flex-wrap gap-4">
-        <Link href="/beats" className="btn-gold px-8 py-3 rounded text-sm tracking-wide">Shop Beats</Link>
-        <Link href="/contact" className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
+        <Link href="/contact" className="btn-gold px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
+        <Link href="/drum-kits" className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Drum Kits</Link>
       </div>
     </div>
   );

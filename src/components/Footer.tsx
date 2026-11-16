@@ -34,12 +34,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <p className="text-xl font-black tracking-widest gold-gradient mb-2">LUCHIBEATS</p>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Premium beats<br />and artist development.</p>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>Production, engineering<br />and artist development.</p>
           </div>
           <div>
             <p className="text-sm font-semibold text-white mb-3 tracking-wide">NAVIGATE</p>
             <div className="flex flex-col gap-2">
-              {[["Beats", "/beats"], ["About", "/about"], ["Contact", "/contact"]].map(([label, href]) => (
+              {[["Drum Kits", "/drum-kits"], ["About", "/about"], ["Contact", "/contact"]].map(([label, href]) => (
                 <Link key={href} href={href} className="text-sm hover:text-white transition-colors" style={{ color: "var(--muted)" }}>{label}</Link>
               ))}
             </div>

@@ -36,6 +36,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   turbopack: {},
   poweredByHeader: false,
+  // The beat store and merch store were taken down. Send old links and bookmarks to the homepage.
+  async redirects() {
+    return [
+      { source: "/beats", destination: "/", permanent: false },
+      { source: "/merch", destination: "/", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {
