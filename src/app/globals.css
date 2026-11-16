@@ -413,3 +413,23 @@ body {
 body.tab-hidden * {
   animation-play-state: paused !important;
 }
+
+/* Photos that blend into the page instead of sitting in a framed box:
+   the edges fade out to transparent so the dark background shows through. */
+.photo-blend {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 70%, transparent 100%),
+                      linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 70%, transparent 100%),
+                      linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+          mask-composite: intersect;
+}
+/* Gallery photos: every edge fades, and neighbours overlap, so the row cross-fades into one strip */
+.photo-tile {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%),
+                      linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%),
+                      linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+          mask-composite: intersect;
+}

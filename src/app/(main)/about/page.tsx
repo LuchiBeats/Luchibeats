@@ -20,8 +20,7 @@ export default function AboutPage() {
       {/* Bio Section */}
       <div className="flex flex-col md:flex-row gap-8 md:gap-12 mb-14 md:mb-20">
         <div className="md:w-72 flex-shrink-0">
-          <div className="relative w-full max-w-xs mx-auto md:max-w-none aspect-[2/3] rounded-lg overflow-hidden border"
-            style={{ borderColor: "rgba(201,168,76,0.35)" }}>
+          <div className="relative w-full max-w-xs mx-auto md:max-w-none aspect-[2/3] photo-blend">
             <Image
               src="/luchi/portrait-studio.webp"
               alt="Luchi at the board in 934 Studio"
@@ -58,9 +57,11 @@ export default function AboutPage() {
       <div className="mb-14 md:mb-20">
         <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
         <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">In the Studio</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {/* Phone: 2 per row, overlapping sideways and between rows. Desktop: 4 in one overlapping row. */}
+        <div className="flex flex-wrap md:flex-nowrap">
           {GALLERY.map(({ src, alt }) => (
-            <div key={src} className="relative aspect-[2/3] rounded-lg overflow-hidden border group" style={{ borderColor: "var(--border)" }}>
+            <div key={src}
+              className="photo-tile relative aspect-[2/3] w-[54%] md:w-[28%] overflow-hidden group even:-ml-[8%] [&:nth-child(n+3)]:-mt-[14%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[4%]">
               <Image
                 src={src}
                 alt={alt}

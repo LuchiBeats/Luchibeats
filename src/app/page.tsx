@@ -115,7 +115,7 @@ export default async function HomePage() {
         <div className="orb orb-1 w-96 h-96 -top-20 -left-20" style={{ background: "rgba(201,168,76,0.12)" }} />
         <div className="relative flex flex-col md:flex-row items-center gap-8 md:gap-14">
           <ScrollReveal className="w-full max-w-sm md:w-[380px] flex-shrink-0">
-            <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border" style={{ borderColor: "rgba(201,168,76,0.35)", boxShadow: "0 20px 60px rgba(0,0,0,0.6)" }}>
+            <div className="relative aspect-[2/3] photo-blend">
               <Image
                 src="/luchi/portrait-closeup.webp"
                 alt="Luchi in the studio"
