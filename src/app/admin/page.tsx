@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Music, ShoppingBag, Drum, Star, Mail, Globe, LogOut, TrendingUp, FileText, List, Sun, Moon, Tag, ChevronLeft, ChevronRight, GripVertical, type LucideIcon } from "lucide-react";
-import { missingAgreements, type Beat, type DrumKit, type License } from "@/lib/types";
-import type { Testimonial, Message, Subscriber, Order, HomepageContent, SoldExclusiveEntry, StatItem, ProductionVideo, ShopifyConfig } from "@/lib/beats-store";
+import { ShoppingBag, Star, Mail, Globe, LogOut, TrendingUp, FileText, Sun, Moon, Tag, ChevronLeft, ChevronRight, GripVertical, type LucideIcon } from "lucide-react";
+import type { Beat } from "@/lib/types";
+import type { Testimonial, Message, Subscriber, Order, HomepageContent, StatItem, ProductionVideo, ShopifyConfig } from "@/lib/beats-store";
 
 
 // ── Country helpers ──────────────────────────────────────────────────────────
@@ -37,79 +37,14 @@ function downloadCSV(filename: string, headers: string[], rows: string[][]) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const GENRES    = ["Trap","Hip-Hop","R&B","Drill","Afrobeats","Boom Bap","Pop","Melodic Trap"];
-const MOODS     = ["Dark","Hard","Melodic","Chill","Aggressive","Soulful","Hype","Smooth"];
-const KEYS      = ["C major","C minor","C# major","C# minor","D major","D minor","D# major","D# minor","E major","E minor","F major","F minor","F# major","F# minor","G major","G minor","G# major","G# minor","A major","A minor","A# major","A# minor","B major","B minor"];
-const KIT_GENRES = ["Hip-Hop / Trap","Boom Bap / Hip-Hop","R&B / Melodic","Drill","Afrobeats","All Genres"];
-
-const PRESET_TAGS = [
-  // Genre
-  "Trap","Hip-Hop","Rap","Drill","R&B","Afrobeats","Boom Bap","Pop","Melodic Trap",
-  "Lo-Fi","Jersey Club","UK Drill","Latin Trap","Dancehall","Gospel","Reggaeton",
-  // Mood / vibe
-  "Dark","Hard","Melodic","Chill","Aggressive","Soulful","Hype","Smooth","Emotional","Cinematic",
-  // Sound
-  "808s","Guitar","Piano","Strings","Choir","Flute","Violin","Synth","Horns","Church Bells",
-];
-
-function TagPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const active = new Set(value.split(",").map(t => t.trim().toLowerCase()).filter(Boolean));
-  function toggle(tag: string) {
-    const key = tag.toLowerCase();
-    const next = new Set(active);
-    if (next.has(key)) next.delete(key); else next.add(key);
-    // preserve original casing from PRESET_TAGS where possible, else keep as typed
-    const ordered = PRESET_TAGS.filter(t => next.has(t.toLowerCase()));
-    const extra = [...next].filter(k => !PRESET_TAGS.some(t => t.toLowerCase() === k));
-    onChange([...ordered, ...extra].join(", "));
-  }
-  return (
-    <div>
-      <label className="flex items-center gap-1.5 text-xs font-bold tracking-[0.18em] mb-2 uppercase" style={{ color: "#6e6e7a" }}>
-        <span style={{ color: "#C9A84C", fontSize: 10 }}>▶</span>Tags
-      </label>
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {PRESET_TAGS.map(tag => {
-          const on = active.has(tag.toLowerCase());
-          return (
-            <button key={tag} type="button" onClick={() => toggle(tag)}
-              className="text-xs px-2.5 py-1 rounded-md font-bold transition-all"
-              style={{ background: on ? "rgba(201,168,76,0.18)" : "rgba(255,255,255,0.04)", color: on ? "#C9A84C" : "#3e3e45", border: `1px solid ${on ? "rgba(201,168,76,0.35)" : "#1a1a1e"}`, boxShadow: on ? "0 0 8px rgba(201,168,76,0.15)" : "none" }}>
-              {on ? "✓ " : ""}{tag}
-            </button>
-          );
-        })}
-      </div>
-      <input
-        type="text"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder="or type custom tags separated by commas…"
-        className="w-full px-3 py-2 rounded-lg text-xs outline-none transition-all"
-        style={{ background: "#111114", border: "1px solid #1a1a1e", color: "#6e6e7a" }}
-        onFocus={e => { e.target.style.borderColor = "#C9A84C"; e.target.style.boxShadow = "0 0 0 3px rgba(201,168,76,0.18)"; }}
-        onBlur={e => { e.target.style.borderColor = "#1a1a1e"; e.target.style.boxShadow = "none"; }}
-      />
-    </div>
-  );
-}
-
-const BLANK_BEAT = { title:"",audioUrl:"",imageUrl:"",mp3Url:"",wavUrl:"",stemsUrl:"",genre:"Trap",bpm:"",key:"A minor",mood:"Dark",tags:"",basicPrice:"",premiumPrice:"",exclusivePrice:"",goLiveAt:"",basicAgreementUrl:"",premiumAgreementUrl:"",exclusiveAgreementUrl:"" };
-// Beats are sold exclusive-only — one tier, one agreement
-const AGREEMENT_TIERS = [
-  { name:"Exclusive" as const, field:"exclusiveAgreementUrl" as const },
-];
-const exclusiveLicense = (id: string, price: number, agreementUrl?: string): License =>
-  ({ id:`${id}-exclusive`, name:"Exclusive", price, format:"MP3 + WAV + Stems", streams:"Unlimited", description:"Full exclusive rights", ...(agreementUrl ? { agreementUrl } : {}) });
-const BLANK_KIT: { name:string;genre:string;description:string;price:string;sampleCount:string;formats:string;tags:string;includes:string;popular:boolean;imageUrl:string;previewUrl:string;downloadUrl:string } = { name:"",genre:"Hip-Hop / Trap",description:"",price:"",sampleCount:"",formats:"WAV, 24-bit",tags:"",includes:"",popular:false,imageUrl:"",previewUrl:"",downloadUrl:"" };
 const BLANK_ORDER: { type:"beat"|"service"|"drumkit";itemId:string;itemTitle:string;licenseType:string;customerEmail:string;customerName:string;amount:string;status:"pending"|"completed"|"refunded";notes:string } = { type:"beat",itemId:"",itemTitle:"",licenseType:"",customerEmail:"",customerName:"",amount:"",status:"completed",notes:"" };
 
-const TABS = ["Overview","Beats","Beat Inventory","Orders","Drum Kits","Kit Inventory","Add Artist Testimonial","Messages","Subscribers","Merch","Homepage"] as const;
+const TABS = ["Overview","Orders","Add Artist Testimonial","Messages","Subscribers","Merch","Homepage"] as const;
 type Tab = typeof TABS[number];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const TAB_ICONS: Record<Tab, any> = {
-  Overview: TrendingUp, Beats: Music, "Beat Inventory": List, Orders: ShoppingBag, "Drum Kits": Drum, "Kit Inventory": List,
+  Overview: TrendingUp, Orders: ShoppingBag,
   "Add Artist Testimonial": Star, Messages: Mail, Subscribers: FileText, Merch: Tag, Homepage: Globe,
 };
 
@@ -310,42 +245,10 @@ export default function AdminPage() {
   const [messages, setMessages]         = useState<Message[]>([]);
   const [subscribers, setSubscribers]   = useState<Subscriber[]>([]);
   const [analytics, setAnalytics]       = useState<Record<string, unknown> | null>(null);
-  const [drumKits, setDrumKits]         = useState<DrumKit[]>([]);
   const [orders, setOrders]             = useState<Order[]>([]);
   const [settings, setSettings]         = useState<{ pushSubCount: number } | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [homepageContent, setHomepageContent] = useState<HomepageContent | null>(null);
-  const [soldArchive, setSoldArchive] = useState<SoldExclusiveEntry[]>([]);
-
-  // Beat form
-  const [beatForm, setBeatForm]       = useState(BLANK_BEAT);
-  const [editingBeat, setEditingBeat] = useState<Beat | null>(null);
-  const [beatMsg, setBeatMsg]         = useState("");
-  const [beatSaving, setBeatSaving]   = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const beatAudioRef  = useRef<HTMLInputElement>(null);
-  const beatImageRef  = useRef<HTMLInputElement>(null);
-  const beatMp3Ref    = useRef<HTMLInputElement>(null);
-  const beatWavRef    = useRef<HTMLInputElement>(null);
-  const beatStemsRef  = useRef<HTMLInputElement>(null);
-  const [beatAudioProgress,  setBeatAudioProgress]  = useState<number | null>(null);
-  const [beatImageUploading, setBeatImageUploading] = useState(false);
-  const [beatMp3Progress,    setBeatMp3Progress]    = useState<number | null>(null);
-  const [beatWavProgress,    setBeatWavProgress]    = useState<number | null>(null);
-  const [beatStemsProgress,  setBeatStemsProgress]  = useState<number | null>(null);
-  const [agreementProgress,  setAgreementProgress]  = useState<Partial<Record<License["name"], number>>>({});
-
-  // Kit form
-  const [kitForm, setKitForm]       = useState(BLANK_KIT);
-  const [editingKit, setEditingKit] = useState<DrumKit | null>(null);
-  const [kitMsg, setKitMsg]         = useState("");
-  const [kitSaving, setKitSaving]   = useState(false);
-  const kitImageRef   = useRef<HTMLInputElement>(null);
-  const kitPreviewRef = useRef<HTMLInputElement>(null);
-  const kitZipRef     = useRef<HTMLInputElement>(null);
-  const [kitImageUploading,   setKitImageUploading]   = useState(false);
-  const [kitPreviewProgress,  setKitPreviewProgress]  = useState<number | null>(null);
-  const [kitZipProgress,      setKitZipProgress]      = useState<number | null>(null);
 
   // Order form
   const [orderForm, setOrderForm]   = useState(BLANK_ORDER);
@@ -367,7 +270,7 @@ export default function AdminPage() {
   // Homepage form
   const [homepageForm, setHomepageForm] = useState({
     marqueeText:"", beatsLabel:"FRESH CUTS", beatsHeadline:"Latest Beats",
-    heroHeadline:"", heroSubtext:"", heroCta:"", heroCtaUrl:"/beats",
+    heroHeadline:"", heroSubtext:"", heroCta:"", heroCtaUrl:"/contact",
     emailBadge:"JOIN THE LIST", emailHeadline:"Stay Up To Date\nOn New Drops",
     emailSubtext:"Join the list. Be the first to hear new drops and exclusive deals.",
     seoTitle:"", seoDescription:"",
@@ -405,14 +308,12 @@ export default function AdminPage() {
     headline: "",
     body: "",
     ctaLabel: "Browse Beats",
-    ctaUrl: "https://www.luchibeats.com/beats",
+    ctaUrl: "https://www.luchibeats.com",
     audience: "all" as "all"|"new30",
   });
   const [giveawaySending, setGiveawaySending] = useState(false);
   const [giveawayResult, setGiveawayResult] = useState<{sent:number;failed:number;total:number}|null>(null);
   const [giveawayConfirm, setGiveawayConfirm] = useState(false);
-  const [visFilter, setVisFilter] = useState<"All"|"Live"|"Hidden"|"Sold">("All");
-  const [kitVisFilter, setKitVisFilter] = useState<"All"|"Live"|"Hidden">("All");
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("adm-theme") !== "light";
@@ -441,18 +342,17 @@ export default function AdminPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [b, t, m, s, an, dk, or_, hp, st, sa, sh] = await Promise.all([
+    const [b, t, m, s, an, or_, hp, st, sh] = await Promise.all([
       load("/api/admin/beats"), load("/api/admin/testimonials"),
       load("/api/admin/messages"), load("/api/admin/subscribers"), load("/api/admin/analytics"),
-      load("/api/admin/drum-kits"), load("/api/admin/orders"), load("/api/admin/homepage"), load("/api/admin/settings"),
-      load("/api/admin/sold-archive"), load("/api/admin/shopify"),
+      load("/api/admin/orders"), load("/api/admin/homepage"), load("/api/admin/settings"),
+      load("/api/admin/shopify"),
     ]);
     if (b)   setBeats(b);
     if (t)   setTestimonials(t);
     if (m)   { setMessages(m); (m as Message[]).forEach(msg => seenMsgIdsRef.current.add(msg.id)); }
     if (s)   setSubscribers(s);
     if (an)  setAnalytics(an);
-    if (dk)  setDrumKits(dk);
     if (or_) setOrders(or_);
     if (hp)  {
       setHomepageContent(hp);
@@ -463,7 +363,7 @@ export default function AdminPage() {
         heroHeadline:hp.heroHeadline??"",
         heroSubtext:hp.heroSubtext??"",
         heroCta:hp.heroCta??"",
-        heroCtaUrl:hp.heroCtaUrl??"/beats",
+        heroCtaUrl:hp.heroCtaUrl??"/contact",
         emailBadge:hp.emailBadge??"JOIN THE LIST",
         emailHeadline:hp.emailHeadline??"Stay Up To Date\nOn New Drops",
         emailSubtext:hp.emailSubtext??"Join the list. Be the first to hear new drops and exclusive deals.",
@@ -474,7 +374,6 @@ export default function AdminPage() {
       if (hp.productions?.length) setFormProductions(hp.productions as ProductionVideo[]);
     }
     if (st)  setSettings(st);
-    if (sa)  setSoldArchive(sa);
     if (sh)  { setShopifyConfig(sh); setShopifyForm({ storeHandle:sh.storeHandle??"", storefrontToken:sh.storefrontToken??"", collectionId:sh.collectionId??"" }); }
   }, [load]);
 
@@ -582,100 +481,6 @@ export default function AdminPage() {
   function lockTabOrder() { localStorage.setItem("adm-tab-order", JSON.stringify(tabOrder)); setReorderMode(false); }
   function resetTabOrder() { const d = [...TABS]; setTabOrder(d); localStorage.setItem("adm-tab-order", JSON.stringify(d)); setReorderMode(false); }
 
-  // ── Beats ──────────────────────────────────────────────────────────────────
-
-  async function saveBeat(e: React.FormEvent) {
-    e.preventDefault(); setBeatMsg("");
-    const missing = AGREEMENT_TIERS.filter(t => !beatForm[t.field]).map(t => t.name);
-    if (missing.length) { setBeatMsg(`Error: Upload the ${missing.join(", ")} license agreement${missing.length>1?"s":""} before saving this beat.`); return; }
-    setBeatSaving(true);
-    let res: Response;
-    if (editingBeat) {
-      const updated: Beat = { ...editingBeat, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, licenses:[exclusiveLicense(editingBeat.id, Number(beatForm.exclusivePrice), beatForm.exclusiveAgreementUrl)] };
-      res = await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(updated) });
-      if (res.ok) { setEditingBeat(null); setBeatMsg("Beat updated!"); }
-    } else {
-      const id = `beat-${Date.now()}`;
-      const beat: Beat = { id, title:beatForm.title, audioUrl:beatForm.audioUrl, imageUrl:beatForm.imageUrl||"/images/beats/default.jpg", mp3Url:beatForm.mp3Url||undefined, wavUrl:beatForm.wavUrl||undefined, stemsUrl:beatForm.stemsUrl||undefined, genre:beatForm.genre, bpm:Number(beatForm.bpm), key:beatForm.key, mood:beatForm.mood, tags:beatForm.tags.split(",").map(t=>t.trim()).filter(Boolean), goLiveAt:beatForm.goLiveAt||undefined, soldExclusive:false, copyrightTimestamp:new Date().toISOString(), licenses:[exclusiveLicense(id, Number(beatForm.exclusivePrice), beatForm.exclusiveAgreementUrl)] };
-      res = await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) });
-      if (res.ok) { setBeatMsg("Beat added!"); formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setTimeout(()=>setBeatMsg(""), 2500); }
-    }
-    setBeatSaving(false);
-    if (!res.ok) { const d = await res.json().catch(()=>({})); setBeatMsg(`Error: ${d.error ?? "Couldn't save beat."}`); return; }
-    setBeatForm(BLANK_BEAT);
-    const b = await load("/api/admin/beats"); if (b) setBeats(b);
-  }
-
-  function startEditBeat(beat: Beat) {
-    setEditingBeat(beat);
-    setBeatForm({ title:beat.title, audioUrl:beat.audioUrl, imageUrl:beat.imageUrl, mp3Url:beat.mp3Url??"", wavUrl:beat.wavUrl??"", stemsUrl:beat.stemsUrl??"", genre:beat.genre, bpm:String(beat.bpm), key:beat.key, mood:beat.mood, tags:beat.tags.join(", "), goLiveAt:beat.goLiveAt?beat.goLiveAt.slice(0,10):"", basicPrice:String(beat.licenses.find(l=>l.name==="Basic")?.price??""), premiumPrice:String(beat.licenses.find(l=>l.name==="Premium")?.price??""), exclusivePrice:String(beat.licenses.find(l=>l.name==="Exclusive")?.price??""), basicAgreementUrl:beat.licenses.find(l=>l.name==="Basic")?.agreementUrl??"", premiumAgreementUrl:beat.licenses.find(l=>l.name==="Premium")?.agreementUrl??"", exclusiveAgreementUrl:beat.licenses.find(l=>l.name==="Exclusive")?.agreementUrl??"" });
-    formRef.current?.scrollIntoView({ behavior:"smooth", block:"start" });
-  }
-
-  async function deleteBeat(id: string) {
-    if (!confirm("Remove this beat?")) return;
-    await fetch("/api/admin/beats", { method:"DELETE", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id }) });
-    const b = await load("/api/admin/beats"); if (b) setBeats(b);
-  }
-
-  async function toggleSoldExclusive(beat: Beat) {
-    await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...beat, soldExclusive:!beat.soldExclusive }) });
-    const [b, sa] = await Promise.all([load("/api/admin/beats"), load("/api/admin/sold-archive")]);
-    if (b) setBeats(b);
-    if (sa) setSoldArchive(sa);
-  }
-
-  async function toggleHidden(beat: Beat) {
-    const res = await fetch("/api/admin/beats", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...beat, hidden:!beat.hidden }) });
-    if (!res.ok) { const d = await res.json().catch(()=>({})); setBeatMsg(`Error: ${d.error ?? "Couldn't update beat."}`); }
-    const b = await load("/api/admin/beats"); if (b) setBeats(b);
-  }
-
-  async function toggleKitHidden(kit: DrumKit) {
-    await fetch("/api/admin/drum-kits", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...kit, hidden:!kit.hidden }) });
-    const dk = await load("/api/admin/drum-kits"); if (dk) setDrumKits(dk);
-  }
-
-  async function importCSV(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return;
-    const text = await file.text();
-    const lines = text.trim().split("\n").slice(1); let count = 0;
-    for (const line of lines) {
-      // Columns: filename,title,bpm,key,genre,mood,tags,price — older 3-tier CSVs (…,basic,premium,exclusive) use the last column
-      const cols = line.split(",").map(s=>s.trim().replace(/^"|"$/g,""));
-      const [filename,title,bpm,key,genre,mood,tags] = cols;
-      const exclusive = cols.length >= 10 ? cols[9] : cols[7];
-      if (!filename||!title) continue;
-      const id = `beat-${Date.now()}-${count}`;
-      const beat: Beat = { id, title, bpm:Number(bpm), key, genre, mood, audioUrl:`https://cdn.luchibeats.com/${filename}`, imageUrl:"/images/beats/default.jpg", tags:tags?tags.split(";").map(t=>t.trim()):[], soldExclusive:false, hidden:true, copyrightTimestamp:new Date().toISOString(), licenses:[exclusiveLicense(id, Number(exclusive))] };
-      await fetch("/api/admin/beats", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(beat) }); count++;
-    }
-    setBeatMsg(`${count} beats imported as hidden drafts — edit each one to upload its exclusive license agreement, then unhide it.`);
-    const b = await load("/api/admin/beats"); if (b) setBeats(b); e.target.value = "";
-  }
-
-  // ── Drum Kits ──────────────────────────────────────────────────────────────
-
-  async function saveKit(e: React.FormEvent) {
-    e.preventDefault(); setKitSaving(true); setKitMsg("");
-    const kit: DrumKit = { id:editingKit?.id??`kit-${Date.now()}`, name:kitForm.name, genre:kitForm.genre, description:kitForm.description, price:Number(kitForm.price), sampleCount:Number(kitForm.sampleCount), formats:kitForm.formats.split(",").map(f=>f.trim()).filter(Boolean), tags:kitForm.tags.split(",").map(t=>t.trim()).filter(Boolean), includes:kitForm.includes.split("\n").map(i=>i.trim()).filter(Boolean), popular:kitForm.popular, imageUrl:kitForm.imageUrl||undefined, previewUrl:kitForm.previewUrl||undefined, downloadUrl:kitForm.downloadUrl||undefined };
-    if (editingKit) { await fetch("/api/admin/drum-kits", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(kit) }); setEditingKit(null); setKitMsg("Kit updated!"); }
-    else { await fetch("/api/admin/drum-kits", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(kit) }); setKitMsg("Kit added!"); }
-    setKitForm(BLANK_KIT); setKitSaving(false);
-    const dk = await load("/api/admin/drum-kits"); if (dk) setDrumKits(dk); setTimeout(()=>setKitMsg(""), 2500);
-  }
-
-  function startEditKit(kit: DrumKit) {
-    setEditingKit(kit);
-    setKitForm({ name:kit.name, genre:kit.genre, description:kit.description, price:String(kit.price), sampleCount:String(kit.sampleCount), formats:kit.formats.join(", "), tags:kit.tags.join(", "), includes:kit.includes.join("\n"), popular:kit.popular??false, imageUrl:kit.imageUrl??"", previewUrl:kit.previewUrl??"", downloadUrl:kit.downloadUrl??"" });
-  }
-
-  async function deleteKit(id: string) {
-    if (!confirm("Remove this drum kit?")) return;
-    await fetch("/api/admin/drum-kits", { method:"DELETE", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ id }) });
-    const dk = await load("/api/admin/drum-kits"); if (dk) setDrumKits(dk);
-  }
-
   // ── Orders ─────────────────────────────────────────────────────────────────
 
   async function saveOrder(e: React.FormEvent) {
@@ -684,10 +489,9 @@ export default function AdminPage() {
     await fetch("/api/admin/orders", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ ...orderForm, amount:Number(orderForm.amount) }) });
     setOrderForm(BLANK_ORDER); setOrderSaving(false);
     setOrderMsg(wasExclusive ? "Order recorded — beat removed from store and archived!" : "Order recorded!");
-    const [or_, b, sa] = await Promise.all([load("/api/admin/orders"), load("/api/admin/beats"), load("/api/admin/sold-archive")]);
+    const [or_, b] = await Promise.all([load("/api/admin/orders"), load("/api/admin/beats")]);
     if (or_) setOrders(or_);
     if (b) setBeats(b);
-    if (sa) setSoldArchive(sa);
     setTimeout(()=>setOrderMsg(""), 4000);
   }
 
@@ -727,142 +531,6 @@ export default function AdminPage() {
     const data = await res.json();
     if (data.url) setTestForm(f => ({ ...f, image: data.url }));
     setTestUploading(false);
-  }
-
-  async function uploadToR2(
-    file: File,
-    folder: "beats" | "covers" | "previews" | "kits" | "mp3s" | "wavs" | "stems" | "agreements",
-    onProgress: (pct: number) => void
-  ): Promise<string> {
-    const res = await fetch(
-      `/api/admin/upload-r2?folder=${folder}&filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}`
-    );
-    const { presignedUrl, cdnUrl, error } = await res.json();
-    if (error) throw new Error(error);
-
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", presignedUrl);
-      xhr.setRequestHeader("Content-Type", file.type);
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-      });
-      xhr.addEventListener("load", () =>
-        xhr.status < 300 ? resolve() : reject(new Error(`R2 upload failed: ${xhr.status}`))
-      );
-      xhr.addEventListener("error", () => reject(new Error("Network error")));
-      xhr.send(file);
-    });
-
-    return cdnUrl;
-  }
-
-  async function uploadBeatAudio(file: File) {
-    setBeatAudioProgress(0);
-    try {
-      const url = await uploadToR2(file, "beats", setBeatAudioProgress);
-      setBeatForm(f => ({ ...f, audioUrl: url }));
-    } catch (err) {
-      setBeatMsg(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setBeatAudioProgress(null);
-    }
-  }
-
-  async function uploadBeatImage(file: File) {
-    setBeatImageUploading(true);
-    try {
-      const url = await uploadToR2(file, "covers", () => {});
-      setBeatForm(f => ({ ...f, imageUrl: url }));
-    } catch (err) {
-      setBeatMsg(err instanceof Error ? err.message : "Image upload failed");
-    } finally {
-      setBeatImageUploading(false);
-    }
-  }
-
-  async function uploadBeatMp3(file: File) {
-    setBeatMp3Progress(0);
-    try {
-      const url = await uploadToR2(file, "mp3s", setBeatMp3Progress);
-      setBeatForm(f => ({ ...f, mp3Url: url }));
-    } catch (err) {
-      setBeatMsg(err instanceof Error ? err.message : "MP3 upload failed");
-    } finally {
-      setBeatMp3Progress(null);
-    }
-  }
-
-  async function uploadBeatWav(file: File) {
-    setBeatWavProgress(0);
-    try {
-      const url = await uploadToR2(file, "wavs", setBeatWavProgress);
-      setBeatForm(f => ({ ...f, wavUrl: url }));
-    } catch (err) {
-      setBeatMsg(err instanceof Error ? err.message : "WAV upload failed");
-    } finally {
-      setBeatWavProgress(null);
-    }
-  }
-
-  async function uploadAgreement(tier: typeof AGREEMENT_TIERS[number], file: File) {
-    setAgreementProgress(p => ({ ...p, [tier.name]: 0 }));
-    try {
-      const url = await uploadToR2(file, "agreements", pct => setAgreementProgress(p => ({ ...p, [tier.name]: pct })));
-      setBeatForm(f => ({ ...f, [tier.field]: url }));
-    } catch (err) {
-      setBeatMsg(`Error: ${err instanceof Error ? err.message : `${tier.name} agreement upload failed`}`);
-    } finally {
-      setAgreementProgress(p => { const n = { ...p }; delete n[tier.name]; return n; });
-    }
-  }
-
-  async function uploadBeatStems(file: File) {
-    setBeatStemsProgress(0);
-    try {
-      const url = await uploadToR2(file, "stems", setBeatStemsProgress);
-      setBeatForm(f => ({ ...f, stemsUrl: url }));
-    } catch (err) {
-      setBeatMsg(err instanceof Error ? err.message : "Stems upload failed");
-    } finally {
-      setBeatStemsProgress(null);
-    }
-  }
-
-  async function uploadKitImage(file: File) {
-    setKitImageUploading(true);
-    try {
-      const url = await uploadToR2(file, "covers", () => {});
-      setKitForm(f => ({ ...f, imageUrl: url }));
-    } catch (err) {
-      setKitMsg(err instanceof Error ? err.message : "Image upload failed");
-    } finally {
-      setKitImageUploading(false);
-    }
-  }
-
-  async function uploadKitPreview(file: File) {
-    setKitPreviewProgress(0);
-    try {
-      const url = await uploadToR2(file, "previews", setKitPreviewProgress);
-      setKitForm(f => ({ ...f, previewUrl: url }));
-    } catch (err) {
-      setKitMsg(err instanceof Error ? err.message : "Preview upload failed");
-    } finally {
-      setKitPreviewProgress(null);
-    }
-  }
-
-  async function uploadKitZip(file: File) {
-    setKitZipProgress(0);
-    try {
-      const url = await uploadToR2(file, "kits", setKitZipProgress);
-      setKitForm(f => ({ ...f, downloadUrl: url }));
-    } catch (err) {
-      setKitMsg(err instanceof Error ? err.message : "Kit file upload failed");
-    } finally {
-      setKitZipProgress(null);
-    }
   }
 
   // ── Messages ───────────────────────────────────────────────────────────────
@@ -912,7 +580,7 @@ export default function AdminPage() {
       heroHeadline: homepageForm.heroHeadline,
       heroSubtext: homepageForm.heroSubtext,
       heroCta: homepageForm.heroCta,
-      heroCtaUrl: homepageForm.heroCtaUrl || "/beats",
+      heroCtaUrl: homepageForm.heroCtaUrl || "/contact",
       stats: formStats.map(s=>({ value:Number(s.value)||0, suffix:s.suffix, label:s.label })),
       emailBadge: homepageForm.emailBadge,
       emailHeadline: homepageForm.emailHeadline,
@@ -1389,7 +1057,6 @@ export default function AdminPage() {
                 {/* ── Status strip ── */}
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { label:"CATALOG", value:`${beats.filter(b=>!b.hidden&&!b.soldExclusive).length} LIVE`, color:"#4ade80" },
                     { label:"SUBSCRIBERS", value:subscribers.length, color:GOLD },
                     { label:"INBOX", value:unreadCount>0?`${unreadCount} UNREAD`:"CLEAR", color:unreadCount>0?GOLD:"#4ade80" },
                     { label:"ORDERS", value:`${orders.filter(o=>o.status==="pending").length} PENDING`, color:orders.filter(o=>o.status==="pending").length>0?"#f59e0b":"#4ade80" },
@@ -1420,8 +1087,7 @@ export default function AdminPage() {
                   );
                   return (
                     <>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {hudCard("BEAT CATALOG", beats.length, beats.filter(b=>b.hidden).length>0?`${beats.filter(b=>b.hidden).length} HIDDEN`:null, GOLD)}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {hudCard("SUBSCRIBERS", subscribers.length, `+${subscribers.filter(s=>new Date(s.createdAt)>=new Date(Date.now()-30*86400000)).length} THIS MONTH`, "#4ade80")}
                         {hudCard("INBOX", messages.length, unreadCount>0?`${unreadCount} UNREAD`:null, unreadCount>0?GOLD:"#4ade80")}
                         {hudCard("PAGE VIEWS", (analytics?.pageViews as number)??0, null, "#60a5fa")}
@@ -1435,42 +1101,11 @@ export default function AdminPage() {
                   );
                 })()}
 
-                {/* ── Spectrum + Activity ── */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-
-                  {/* Signal Spectrum (beat plays) */}
-                  <div className="md:col-span-3 rounded-xl p-5" style={{ background:"rgba(201,168,76,0.02)",border:"1px solid rgba(201,168,76,0.09)" }}>
-                    <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:18 }}>// SIGNAL SPECTRUM — BEAT PLAYS</p>
-                    {beats.length===0 ? (
-                      <p style={{ fontFamily:"monospace",fontSize:10,color:TEXT_MUTED }}>NO SIGNAL — Upload beats to start tracking plays</p>
-                    ) : (() => {
-                      const beatPlays = (analytics?.beatPlays as Record<string,number>)??{};
-                      const sorted = beats.map(b=>({ ...b,plays:beatPlays[b.id]??0 })).sort((a,b)=>b.plays-a.plays).slice(0,8);
-                      const maxPlays = Math.max(...sorted.map(b=>b.plays), 1);
-                      return (
-                        <div className="space-y-4">
-                          {sorted.map((b, i) => (
-                            <div key={b.id}>
-                              <div className="flex items-center justify-between mb-1.5">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED,width:12,flexShrink:0 }}>{String(i+1).padStart(2,"0")}</span>
-                                  <span style={{ fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{b.title}</span>
-                                  {b.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD</Badge>}
-                                </div>
-                                <span style={{ fontFamily:"monospace",fontSize:10,color:GOLD,letterSpacing:"0.08em",flexShrink:0,marginLeft:8,textShadow:`0 0 10px ${GOLD}60` }}>{b.plays.toLocaleString()}</span>
-                              </div>
-                              <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.04)" }}>
-                                <div className="adm-bar h-full rounded-full" style={{ width:`${(b.plays/maxPlays)*100}%`, background:`linear-gradient(90deg,rgba(201,168,76,0.35),${GOLD})`, boxShadow:`0 0 8px ${GOLD}55`, animationDelay:`${i*60}ms` }} />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
+                {/* ── Activity ── */}
+                <div className="grid grid-cols-1 gap-4">
 
                   {/* Live Activity Feed */}
-                  <div className="md:col-span-2 rounded-xl p-5" style={{ background:"rgba(201,168,76,0.02)",border:"1px solid rgba(201,168,76,0.09)" }}>
+                  <div className="rounded-xl p-5" style={{ background:"rgba(201,168,76,0.02)",border:"1px solid rgba(201,168,76,0.09)" }}>
                     <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:18 }}>// LIVE ACTIVITY FEED</p>
                     {(() => {
                       type FeedItem = {id:string;type:"MSG"|"ORDER";label:string;sub:string;time:string;color:string};
@@ -1626,439 +1261,6 @@ export default function AdminPage() {
               </>
             )}
 
-            {/* ── BEATS ── */}
-            {tab === "Beats" && (
-              <>
-                {/* CSV import bar */}
-                <div className="flex items-center justify-between p-4 rounded-2xl" style={{ background: "#0f0f0f", border: `1px solid ${BORDER_SUBTLE}` }}>
-                  <div>
-                    <p className="text-sm font-bold text-white">Bulk Import</p>
-                    <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>Upload a filled CSV to add multiple beats at once</p>
-                  </div>
-                  <label className="cursor-pointer" style={{ flexShrink: 0 }}>
-                    <GoldBtn>Upload CSV</GoldBtn>
-                    <input type="file" accept=".csv" className="hidden" onChange={importCSV} />
-                  </label>
-                </div>
-                {beatMsg.includes("imported") && <p className="text-sm font-medium" style={{ color: "#4ade80" }}>{beatMsg}</p>}
-
-                {/* Beat form */}
-                <FormSection title={editingBeat ? `Editing: ${editingBeat.title}` : "Add New Beat"}>
-                  <form ref={formRef} onSubmit={saveBeat} className="space-y-4">
-                    {/* Audio file upload */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Beat File (MP3 / WAV) *</p>
-                      <input ref={beatAudioRef} type="file" accept="audio/*,.mp3,.wav,.flac" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatAudio(f); e.target.value=""; }} />
-                      <div className="flex items-center gap-3">
-                        <button type="button" disabled={beatAudioProgress !== null} onClick={()=>beatAudioRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatAudioProgress!==null?0.5:1 }}>
-                          {beatAudioProgress !== null ? `Uploading ${beatAudioProgress}%…` : beatForm.audioUrl ? "Change File" : "Choose File"}
-                        </button>
-                        {beatAudioProgress !== null && (
-                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                            <div className="h-full rounded-full transition-all" style={{ width:`${beatAudioProgress}%`, background:GOLD }} />
-                          </div>
-                        )}
-                        {beatForm.audioUrl && beatAudioProgress === null && (
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>✓ {beatForm.audioUrl.split("/").pop()}</span>
-                            <button type="button" onClick={()=>setBeatForm(f=>({...f,audioUrl:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
-                          </div>
-                        )}
-                      </div>
-                      {/* still allow manual URL if they already have one on R2 */}
-                      <input
-                        type="text"
-                        required
-                        value={beatForm.audioUrl}
-                        onChange={e=>setBeatForm({...beatForm,audioUrl:e.target.value})}
-                        placeholder="or paste existing URL — https://cdn.luchibeats.com/beat.mp3"
-                        className="mt-2 w-full text-xs rounded-lg px-3 py-2 outline-none"
-                        style={{ background:BG_INPUT, border:`1px solid ${BORDER_SUBTLE}`, color:"#666" }}
-                      />
-                    </div>
-
-                    {/* Download files section */}
-                    <div className="rounded-xl p-4 space-y-4" style={{ background:"#0d0d0d", border:`1px solid ${BORDER_SUBTLE}` }}>
-                      <p className="text-xs font-black uppercase tracking-widest" style={{ color: GOLD }}>Download Files (what buyers receive)</p>
-
-                      {/* Full MP3 — exclusive buyer */}
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Full MP3 <span style={{ color:"#444" }}>— exclusive buyer</span></p>
-                        <input ref={beatMp3Ref} type="file" accept=".mp3,audio/mpeg" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatMp3(f); e.target.value=""; }} />
-                        <div className="flex items-center gap-3">
-                          <button type="button" disabled={beatMp3Progress !== null} onClick={()=>beatMp3Ref.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatMp3Progress!==null?0.5:1 }}>
-                            {beatMp3Progress !== null ? `Uploading ${beatMp3Progress}%…` : beatForm.mp3Url ? "Change MP3" : "Choose MP3"}
-                          </button>
-                          {beatMp3Progress !== null && (
-                            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                              <div className="h-full rounded-full transition-all" style={{ width:`${beatMp3Progress}%`, background:GOLD }} />
-                            </div>
-                          )}
-                          {beatForm.mp3Url && beatMp3Progress === null && (
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>✓ {beatForm.mp3Url.split("/").pop()}</span>
-                              <button type="button" onClick={()=>setBeatForm(f=>({...f,mp3Url:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* WAV — exclusive buyer */}
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>WAV File <span style={{ color:"#444" }}>— exclusive buyer</span></p>
-                        <input ref={beatWavRef} type="file" accept=".wav,audio/wav,audio/x-wav" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatWav(f); e.target.value=""; }} />
-                        <div className="flex items-center gap-3">
-                          <button type="button" disabled={beatWavProgress !== null} onClick={()=>beatWavRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatWavProgress!==null?0.5:1 }}>
-                            {beatWavProgress !== null ? `Uploading ${beatWavProgress}%…` : beatForm.wavUrl ? "Change WAV" : "Choose WAV"}
-                          </button>
-                          {beatWavProgress !== null && (
-                            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                              <div className="h-full rounded-full transition-all" style={{ width:`${beatWavProgress}%`, background:GOLD }} />
-                            </div>
-                          )}
-                          {beatForm.wavUrl && beatWavProgress === null && (
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>✓ {beatForm.wavUrl.split("/").pop()}</span>
-                              <button type="button" onClick={()=>setBeatForm(f=>({...f,wavUrl:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Stems ZIP — exclusive buyer */}
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Stems ZIP <span style={{ color:"#444" }}>— exclusive buyer (all individual tracks)</span></p>
-                        <input ref={beatStemsRef} type="file" accept=".zip,application/zip,application/x-zip-compressed" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatStems(f); e.target.value=""; }} />
-                        <div className="flex items-center gap-3">
-                          <button type="button" disabled={beatStemsProgress !== null} onClick={()=>beatStemsRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0" style={{ background:GOLD_DIM, color:GOLD, opacity:beatStemsProgress!==null?0.5:1 }}>
-                            {beatStemsProgress !== null ? `Uploading ${beatStemsProgress}%…` : beatForm.stemsUrl ? "Change Stems ZIP" : "Choose Stems ZIP"}
-                          </button>
-                          {beatStemsProgress !== null && (
-                            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                              <div className="h-full rounded-full transition-all" style={{ width:`${beatStemsProgress}%`, background:GOLD }} />
-                            </div>
-                          )}
-                          {beatForm.stemsUrl && beatStemsProgress === null && (
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>✓ {beatForm.stemsUrl.split("/").pop()}</span>
-                              <button type="button" onClick={()=>setBeatForm(f=>({...f,stemsUrl:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Cover art upload */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>Cover Art (optional)</p>
-                      <input ref={beatImageRef} type="file" accept="image/*" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadBeatImage(f); e.target.value=""; }} />
-                      <div className="flex items-center gap-3">
-                        {beatForm.imageUrl && (
-                          <div className="relative flex-shrink-0">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={beatForm.imageUrl} alt="cover" className="w-12 h-12 rounded-lg object-cover border" style={{ borderColor:GOLD_BORDER }} />
-                            <button type="button" onClick={()=>setBeatForm(f=>({...f,imageUrl:""}))} className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black border flex items-center justify-center text-xs leading-none" style={{ borderColor:"#333",color:"#888" }}>×</button>
-                          </div>
-                        )}
-                        <button type="button" disabled={beatImageUploading} onClick={()=>beatImageRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors" style={{ background:GOLD_DIM, color:GOLD, opacity:beatImageUploading?0.5:1 }}>
-                          {beatImageUploading ? "Uploading…" : beatForm.imageUrl ? "Change Art" : "Choose Image"}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input label="Beat Title *" required value={beatForm.title} onChange={e=>setBeatForm({...beatForm,title:e.target.value})} placeholder="Dark Tunnel" />
-                      <Input label="BPM *" required type="number" value={beatForm.bpm} onChange={e=>setBeatForm({...beatForm,bpm:e.target.value})} placeholder="140" />
-                      <Sel label="Key *" options={KEYS} value={beatForm.key} onChange={e=>setBeatForm({...beatForm,key:e.target.value})} />
-                      <Sel label="Genre" options={GENRES} value={beatForm.genre} onChange={e=>setBeatForm({...beatForm,genre:e.target.value})} />
-                      <Sel label="Mood" options={MOODS} value={beatForm.mood} onChange={e=>setBeatForm({...beatForm,mood:e.target.value})} />
-                      <TagPicker value={beatForm.tags} onChange={v=>setBeatForm({...beatForm,tags:v})} />
-                      <Input label="Go Live Date (empty = live now)" type="date" value={beatForm.goLiveAt} onChange={e=>setBeatForm({...beatForm,goLiveAt:e.target.value})} />
-                    </div>
-                    <div className="pt-2 border-t" style={{ borderColor: BORDER_SUBTLE }}>
-                      <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD }}>Exclusive Price ($)</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <Input label="Exclusive (MP3 + WAV + Stems)" required type="number" value={beatForm.exclusivePrice} onChange={e=>setBeatForm({...beatForm,exclusivePrice:e.target.value})} placeholder="499" />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold tracking-widest uppercase mb-1" style={{ color: GOLD }}>Exclusive License Agreement (required)</p>
-                      <p className="text-xs mb-3" style={{ color: TEXT_MUTED }}>Upload the exclusive agreement (e.g. exported from Sound Credit — PDF, Word, or TXT). The buyer receives it with their files.</p>
-                      <div className="space-y-3">
-                        {AGREEMENT_TIERS.map(tier => {
-                          const url = beatForm[tier.field];
-                          const pct = agreementProgress[tier.name];
-                          return (
-                            <div key={tier.name} className="flex items-center gap-3 flex-wrap">
-                              <span className="text-xs font-bold w-20 flex-shrink-0" style={{ color: url ? "#4ade80" : "#f87171" }}>{url ? "✓" : "✗"} {tier.name}</span>
-                              <label className="text-sm px-4 py-2 rounded-lg font-semibold flex-shrink-0 cursor-pointer" style={{ background:GOLD_DIM, color:GOLD, opacity:pct!==undefined?0.5:1, pointerEvents:pct!==undefined?"none":"auto" }}>
-                                {pct !== undefined ? `Uploading ${pct}%…` : url ? "Replace" : "Upload Agreement"}
-                                <input type="file" accept=".pdf,.doc,.docx,.txt,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden"
-                                  onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadAgreement(tier, f); e.target.value=""; }} />
-                              </label>
-                              {url && pct === undefined && (
-                                <div className="flex items-center gap-2 min-w-0">
-                                  {url.startsWith("http")
-                                    ? <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs truncate max-w-[200px] underline" style={{ color:"#4ade80" }}>{url.split("/").pop()}</a>
-                                    : <span className="text-xs truncate max-w-[200px]" style={{ color:"#4ade80" }}>🔒 {url.split("/").pop()}</span>}
-                                  <button type="button" onClick={()=>setBeatForm(f=>({...f,[tier.field]:""}))} className="text-xs flex-shrink-0" style={{ color:"#555" }}>×</button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    {beatMsg && !beatMsg.includes("imported") && <p className="text-sm font-medium" style={{ color: beatMsg.includes("Error")?"#f87171":"#4ade80" }}>{beatMsg}</p>}
-                    <div className="flex gap-3 pt-2">
-                      <GoldSubmit saving={beatSaving} label={editingBeat?"Save Changes":"Add Beat"} />
-                      {editingBeat && <button type="button" onClick={()=>{setEditingBeat(null);setBeatForm(BLANK_BEAT);}} className="px-6 py-3 rounded-xl text-sm font-bold" style={{ background:"#1a1a1a",color:"#666" }}>Cancel</button>}
-                    </div>
-                  </form>
-                </FormSection>
-
-                {/* Beat list — active only */}
-                <div>
-                  <SectionHeader title={`Catalog (${beats.filter(b=>!b.soldExclusive&&!b.hidden).length} live · ${beats.filter(b=>b.hidden&&!b.soldExclusive).length} hidden · ${beats.filter(b=>b.soldExclusive).length} sold)`} />
-                  {beats.length===0 ? <p className="text-sm" style={{ color:"#444" }}>No beats yet.</p> : (
-                    <div className="space-y-2">
-                      {beats.map(beat => {
-                        const isScheduled = beat.goLiveAt && new Date(beat.goLiveAt)>new Date();
-                        const borderColor = beat.soldExclusive ? "rgba(239,68,68,0.3)" : beat.hidden ? "rgba(111,111,111,0.3)" : BORDER_SUBTLE;
-                        return (
-                          <div key={beat.id} className="rounded-2xl p-4" style={{ background: BG_CARD, border: `1px solid ${borderColor}` }}>
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap mb-1">
-                                  <p className="font-bold text-white text-sm">{beat.title}</p>
-                                  {beat.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD EXCLUSIVE</Badge>}
-                                  {beat.hidden && !beat.soldExclusive && <Badge color="#888" bg="rgba(255,255,255,0.06)">HIDDEN</Badge>}
-                                  {!beat.soldExclusive && missingAgreements(beat).length>0 && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">NEEDS LICENSE AGREEMENTS</Badge>}
-                                  {isScheduled && <Badge color="#fbbf24" bg="rgba(251,191,36,0.12)">DROPS {new Date(beat.goLiveAt!).toLocaleDateString()}</Badge>}
-                                </div>
-                                <p className="text-xs mb-1" style={{ color:"#555" }}>{beat.genre} · {beat.bpm} BPM · {beat.key} · {beat.mood}</p>
-                                {beat.copyrightTimestamp && (
-                                  <p className="text-xs mb-1 font-mono" style={{ color: GOLD, opacity: 0.7 }}>
-                                    © {new Date(beat.copyrightTimestamp).toLocaleString("en-US",{ month:"short", day:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit" })} · Ariel Jesus Muniz / LuchiBeats
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: beat.mp3Url?"rgba(74,222,128,0.1)":"rgba(255,255,255,0.04)", color: beat.mp3Url?"#4ade80":"#333" }}>MP3 {beat.mp3Url?"✓":"–"}</span>
-                                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: beat.wavUrl?"rgba(74,222,128,0.1)":"rgba(255,255,255,0.04)", color: beat.wavUrl?"#4ade80":"#333" }}>WAV {beat.wavUrl?"✓":"–"}</span>
-                                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: beat.stemsUrl?"rgba(74,222,128,0.1)":"rgba(255,255,255,0.04)", color: beat.stemsUrl?"#4ade80":"#333" }}>STEMS {beat.stemsUrl?"✓":"–"}</span>
-                                </div>
-                                <audio controls src={beat.audioUrl} className="w-full" style={{ height:32, accentColor:GOLD }} />
-                              </div>
-                              <div className="flex flex-col gap-2 flex-shrink-0 items-end">
-                                <div className="flex gap-1.5">
-                                  <GoldBtn onClick={()=>startEditBeat(beat)} small>Edit</GoldBtn>
-                                  <button onClick={()=>deleteBeat(beat.id)} className="text-xs px-3 py-1.5 rounded-lg hover:text-red-400 transition-colors" style={{ color:"#444",background:"#1a1a1a" }}>Remove</button>
-                                </div>
-                                <button onClick={()=>toggleHidden(beat)} className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                                  style={{ color:beat.hidden?"#4ade80":"#888", background:beat.hidden?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.05)" }}>
-                                  {beat.hidden ? "Show on Store" : "Hide from Store"}
-                                </button>
-                                {!beat.soldExclusive && (
-                                  <button onClick={()=>toggleSoldExclusive(beat)} className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                                    style={{ color:"#f87171", background:"rgba(239,68,68,0.08)" }}>
-                                    Mark Sold
-                                  </button>
-                                )}
-                                {beat.soldExclusive && (
-                                  <button onClick={()=>toggleSoldExclusive(beat)} className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                                    style={{ color:"#4ade80", background:"rgba(74,222,128,0.08)" }}>
-                                    Un-Mark Sold
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Exclusive Sale Archive */}
-                {soldArchive.length > 0 && (
-                  <div>
-                    <SectionHeader title={`Exclusive Archive (${soldArchive.length})`} />
-                    <div className="space-y-2">
-                      {soldArchive.map((entry, i) => (
-                        <div key={i} className="rounded-2xl p-4" style={{ background: BG_CARD, border: "1px solid rgba(239,68,68,0.2)" }}>
-                          <div className="flex items-start justify-between gap-4 flex-wrap">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-bold text-white text-sm">{entry.beat.title}</p>
-                                <Badge color="#f87171" bg="rgba(239,68,68,0.12)">EXCLUSIVE SOLD</Badge>
-                              </div>
-                              <p className="text-xs mb-0.5" style={{ color:"#555" }}>{entry.beat.genre} · {entry.beat.bpm} BPM · {entry.beat.key}</p>
-                              {entry.beat.copyrightTimestamp && (
-                                <p className="text-xs font-mono mb-1" style={{ color: GOLD, opacity: 0.7 }}>
-                                  © {new Date(entry.beat.copyrightTimestamp).toLocaleString("en-US",{ month:"short", day:"numeric", year:"numeric" })} · LuchiBeats
-                                </p>
-                              )}
-                              <p className="text-xs mt-1" style={{ color:"#666" }}>
-                                Sold {new Date(entry.soldAt).toLocaleString("en-US",{ month:"short", day:"numeric", year:"numeric", hour:"2-digit", minute:"2-digit" })}
-                                {entry.customerName ? ` · ${entry.customerName}` : ""}
-                                {entry.customerEmail ? ` · ${entry.customerEmail}` : ""}
-                              </p>
-                            </div>
-                            {entry.amount != null && (
-                              <p className="text-base font-black flex-shrink-0" style={{ color: GOLD }}>${entry.amount}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* ── VISIBILITY ── */}
-            {tab === "Beat Inventory" && (
-              <>
-                {/* Summary bar */}
-                <div className="grid grid-cols-3 gap-3">
-                  <StatCard label="Live on Store" value={beats.filter(b=>!b.soldExclusive&&!b.hidden).length} icon={List} />
-                  <StatCard label="Hidden" value={beats.filter(b=>b.hidden&&!b.soldExclusive).length} />
-                  <StatCard label="Sold Exclusive" value={beats.filter(b=>b.soldExclusive).length} />
-                </div>
-
-                {/* ── Subscriber Breakdown ── */}
-                {(() => {
-                  const countries = (analytics?.countries as Record<string,{views:number;contacts:number;subscribers:number}>) ?? {};
-                  const sorted = Object.entries(countries)
-                    .filter(([, s]) => s.subscribers > 0)
-                    .map(([code, s]) => ({ code, ...s }))
-                    .sort((a, b) => b.subscribers - a.subscribers);
-                  const total = sorted.reduce((s, c) => s + c.subscribers, 0);
-                  const maxSubs = Math.max(...sorted.map(c => c.subscribers), 1);
-                  return (
-                    <div className="rounded-xl overflow-hidden" style={{ background:"rgba(8,8,14,0.95)", border:"1px solid rgba(201,168,76,0.12)" }}>
-                      <div className="px-5 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                        <div>
-                          <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:4 }}>// SUBSCRIBER BREAKDOWN — BY COUNTRY</p>
-                          <p className="text-sm font-black text-white">Where Your Fans Are From</p>
-                        </div>
-                        <div style={{ textAlign:"right" }}>
-                          <p style={{ fontFamily:"monospace",fontSize:22,fontWeight:900,color:"#4ade80",textShadow:"0 0 20px #4ade8050" }}>{total}</p>
-                          <p style={{ fontFamily:"monospace",fontSize:7,color:TEXT_MUTED,letterSpacing:"0.15em" }}>TOTAL SUBSCRIBERS</p>
-                        </div>
-                      </div>
-                      <div className="px-5 py-5">
-                        {sorted.length === 0 ? (
-                          <p style={{ fontFamily:"monospace",fontSize:10,color:TEXT_MUTED }}>No subscriber data yet — country tracking starts with the next sign-up.</p>
-                        ) : (
-                          <div className="space-y-3">
-                            {sorted.map((c, i) => (
-                              <div key={c.code} className="grid items-center gap-3" style={{ gridTemplateColumns:"20px 20px 1fr auto" }}>
-                                <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED }}>{i+1}</span>
-                                <span className="text-base">{countryFlag(c.code)}</span>
-                                <div>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <span style={{ fontSize:11,color:"rgba(255,255,255,0.85)",fontWeight:600 }}>{countryName(c.code)}</span>
-                                    <span style={{ fontFamily:"monospace",fontSize:9,color:TEXT_MUTED }}>{total > 0 ? Math.round((c.subscribers/total)*100) : 0}%</span>
-                                  </div>
-                                  <div className="relative h-1.5 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
-                                    <div className="adm-bar h-full rounded-full" style={{ width:`${(c.subscribers/maxSubs)*100}%`, background:`linear-gradient(90deg,rgba(74,222,128,0.4),#4ade80)` }} />
-                                  </div>
-                                </div>
-                                <p style={{ fontFamily:"monospace",fontSize:16,fontWeight:900,color:"#4ade80",flexShrink:0 }}>{c.subscribers}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Filter chips */}
-                <div className="flex gap-2 flex-wrap">
-                  {(["All","Live","Hidden","Sold"] as const).map(f => (
-                    <button key={f} type="button" onClick={()=>setVisFilter(f)}
-                      className="text-xs px-4 py-1.5 rounded-full font-bold transition-all"
-                      style={{ background: visFilter===f ? GOLD_DIM : "rgba(255,255,255,0.04)", color: visFilter===f ? GOLD : TEXT_MUTED, border: `1px solid ${visFilter===f ? GOLD_BORDER : BORDER_SUBTLE}` }}>
-                      {f}
-                      <span className="ml-1.5 opacity-60">
-                        {f==="All"?beats.length:f==="Live"?beats.filter(b=>!b.hidden&&!b.soldExclusive).length:f==="Hidden"?beats.filter(b=>b.hidden&&!b.soldExclusive).length:beats.filter(b=>b.soldExclusive).length}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Beat rows */}
-                {beats.length === 0 ? (
-                  <p className="text-sm" style={{ color:"#444" }}>No beats uploaded yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {beats
-                      .filter(b => visFilter==="All" || (visFilter==="Live"&&!b.hidden&&!b.soldExclusive) || (visFilter==="Hidden"&&b.hidden&&!b.soldExclusive) || (visFilter==="Sold"&&b.soldExclusive))
-                      .map(beat => {
-                        const plays = ((analytics?.beatPlays as Record<string,number>)??{})[beat.id]??0;
-                        const isLive = !beat.hidden && !beat.soldExclusive && missingAgreements(beat).length===0;
-                        const rowBorder = beat.soldExclusive ? "rgba(239,68,68,0.25)" : beat.hidden ? "rgba(255,255,255,0.07)" : "rgba(201,168,76,0.15)";
-                        return (
-                          <div key={beat.id} className="rounded-2xl p-4 flex items-center gap-4" style={{ background: BG_CARD, border:`1px solid ${rowBorder}`, opacity: beat.hidden ? 0.65 : 1 }}>
-                            {/* Cover art */}
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={beat.imageUrl||"/images/beats/default.jpg"} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" style={{ border:`1px solid ${BORDER_SUBTLE}` }} />
-
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                <p className="font-bold text-white text-sm truncate">{beat.title}</p>
-                                {beat.soldExclusive && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">SOLD</Badge>}
-                                {beat.hidden && !beat.soldExclusive && <Badge color="#666" bg="rgba(255,255,255,0.05)">HIDDEN</Badge>}
-                                {!beat.soldExclusive && missingAgreements(beat).length>0 && <Badge color="#f87171" bg="rgba(239,68,68,0.12)">NO AGREEMENTS</Badge>}
-                                {isLive && <Badge color="#4ade80" bg="rgba(74,222,128,0.08)">LIVE</Badge>}
-                              </div>
-                              <p className="text-xs" style={{ color:"#555" }}>{beat.genre} · {beat.bpm} BPM · {beat.key}</p>
-                              <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                                <span className="text-xs font-semibold" style={{ color: plays>0?GOLD:"#333" }}>{plays} play{plays!==1?"s":""}</span>
-                                <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: beat.mp3Url?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)", color: beat.mp3Url?"#4ade80":"#333" }}>MP3{beat.mp3Url?" ✓":" –"}</span>
-                                <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: beat.wavUrl?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)", color: beat.wavUrl?"#4ade80":"#333" }}>WAV{beat.wavUrl?" ✓":" –"}</span>
-                                <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: beat.stemsUrl?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)", color: beat.stemsUrl?"#4ade80":"#333" }}>STEMS{beat.stemsUrl?" ✓":" –"}</span>
-                              </div>
-                            </div>
-
-                            {/* Prices */}
-                            <div className="hidden md:flex flex-col gap-0.5 flex-shrink-0 text-right">
-                              {beat.licenses.map(l => (
-                                <span key={l.id} className="text-xs" style={{ color: l.name==="Exclusive"?GOLD:"#555" }}>
-                                  {l.name} <span className="font-bold text-white">${l.price}</span>
-                                </span>
-                              ))}
-                            </div>
-
-                            {/* Actions */}
-                            {!beat.soldExclusive && (
-                              <div className="flex flex-col gap-1.5 flex-shrink-0">
-                                <button onClick={()=>toggleHidden(beat)}
-                                  className="text-xs px-4 py-2 rounded-xl font-bold transition-all w-36 text-center"
-                                  style={{ background: beat.hidden ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.06)", color: beat.hidden ? "#4ade80" : "#888", border: `1px solid ${beat.hidden?"rgba(74,222,128,0.2)":"rgba(255,255,255,0.08)"}` }}>
-                                  {beat.hidden ? "Show on Store" : "Hide from Store"}
-                                </button>
-                                <button onClick={()=>{ startEditBeat(beat); setTab("Beats"); }}
-                                  className="text-xs px-4 py-2 rounded-xl font-bold transition-all w-36 text-center"
-                                  style={{ background: GOLD_DIM, color: GOLD, border:`1px solid ${GOLD_BORDER}` }}>
-                                  Edit Beat
-                                </button>
-                              </div>
-                            )}
-                            {beat.soldExclusive && (
-                              <div className="flex-shrink-0 text-xs font-bold" style={{ color:"#f87171" }}>SOLD</div>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </>
-            )}
-
             {/* ── ORDERS ── */}
             {tab === "Orders" && (
               <>
@@ -2151,205 +1353,6 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
-              </>
-            )}
-
-            {/* ── DRUM KITS ── */}
-            {tab === "Drum Kits" && (
-              <>
-                <FormSection title={editingKit?`Editing: ${editingKit.name}`:"Add Drum Kit"}>
-                  <form onSubmit={saveKit} className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input label="Kit Name *" required value={kitForm.name} onChange={e=>setKitForm({...kitForm,name:e.target.value})} placeholder="Luchi Essentials Vol. 2" />
-                      <Sel label="Genre" options={KIT_GENRES} value={kitForm.genre} onChange={e=>setKitForm({...kitForm,genre:e.target.value})} />
-                      <Input label="Price ($) *" required type="number" step="0.01" value={kitForm.price} onChange={e=>setKitForm({...kitForm,price:e.target.value})} placeholder="29.99" />
-                      <Input label="Sample Count *" required type="number" value={kitForm.sampleCount} onChange={e=>setKitForm({...kitForm,sampleCount:e.target.value})} placeholder="150" />
-                      <Input label="Formats (comma separated)" value={kitForm.formats} onChange={e=>setKitForm({...kitForm,formats:e.target.value})} placeholder="WAV, 24-bit" />
-                      <TagPicker value={kitForm.tags} onChange={v=>setKitForm({...kitForm,tags:v})} />
-                      <div className="flex items-center gap-3 pt-5">
-                        <input type="checkbox" id="kitPopular" checked={kitForm.popular} onChange={e=>setKitForm({...kitForm,popular:e.target.checked})} className="w-4 h-4 rounded" style={{ accentColor:GOLD }} />
-                        <label htmlFor="kitPopular" className="text-sm text-white cursor-pointer">Mark as Popular</label>
-                      </div>
-                    </div>
-                    <Textarea label="Description *" required rows={3} value={kitForm.description} onChange={e=>setKitForm({...kitForm,description:e.target.value})} placeholder="What's in this kit and what makes it special?" />
-                    <Textarea label="What's Included (one item per line)" rows={5} value={kitForm.includes} onChange={e=>setKitForm({...kitForm,includes:e.target.value})} placeholder={"50 Drum Hits\n30 808s & Bass\n25 Hi-Hats & Cymbals"} />
-
-                    {/* Cover art */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color:TEXT_MUTED }}>Cover Art (optional)</p>
-                      <input ref={kitImageRef} type="file" accept="image/*" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadKitImage(f); e.target.value=""; }} />
-                      <div className="flex items-center gap-3">
-                        {kitForm.imageUrl && (
-                          <div className="relative flex-shrink-0">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={kitForm.imageUrl} alt="cover" className="w-12 h-12 rounded-lg object-cover border" style={{ borderColor:GOLD_BORDER }} />
-                            <button type="button" onClick={()=>setKitForm(f=>({...f,imageUrl:""}))} className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black border flex items-center justify-center text-xs leading-none" style={{ borderColor:"#333",color:"#888" }}>×</button>
-                          </div>
-                        )}
-                        <button type="button" disabled={kitImageUploading} onClick={()=>kitImageRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors" style={{ background:GOLD_DIM,color:GOLD,opacity:kitImageUploading?0.5:1 }}>
-                          {kitImageUploading ? "Uploading…" : kitForm.imageUrl ? "Change Art" : "Choose Image"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Preview audio */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color:TEXT_MUTED }}>Preview Audio (optional — short MP3 clip)</p>
-                      <input ref={kitPreviewRef} type="file" accept="audio/*,.mp3,.wav" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadKitPreview(f); e.target.value=""; }} />
-                      <div className="flex items-center gap-3">
-                        <button type="button" disabled={kitPreviewProgress!==null} onClick={()=>kitPreviewRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors flex-shrink-0" style={{ background:GOLD_DIM,color:GOLD,opacity:kitPreviewProgress!==null?0.5:1 }}>
-                          {kitPreviewProgress!==null ? `Uploading ${kitPreviewProgress}%…` : kitForm.previewUrl ? "Change Preview" : "Choose Preview"}
-                        </button>
-                        {kitPreviewProgress!==null && (
-                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                            <div className="h-full rounded-full transition-all" style={{ width:`${kitPreviewProgress}%`,background:GOLD }} />
-                          </div>
-                        )}
-                        {kitForm.previewUrl && kitPreviewProgress===null && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs" style={{ color:"#4ade80" }}>✓ {kitForm.previewUrl.split("/").pop()}</span>
-                            <button type="button" onClick={()=>setKitForm(f=>({...f,previewUrl:""}))} className="text-xs" style={{ color:"#555" }}>×</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Kit download file */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color:TEXT_MUTED }}>Kit File (ZIP / RAR — the actual download)</p>
-                      <input ref={kitZipRef} type="file" accept=".zip,.rar,.7z" className="hidden" onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadKitZip(f); e.target.value=""; }} />
-                      <div className="flex items-center gap-3">
-                        <button type="button" disabled={kitZipProgress!==null} onClick={()=>kitZipRef.current?.click()} className="text-sm px-4 py-2 rounded-lg font-semibold transition-colors flex-shrink-0" style={{ background:GOLD_DIM,color:GOLD,opacity:kitZipProgress!==null?0.5:1 }}>
-                          {kitZipProgress!==null ? `Uploading ${kitZipProgress}%…` : kitForm.downloadUrl ? "Change File" : "Choose Kit File"}
-                        </button>
-                        {kitZipProgress!==null && (
-                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background:"#222" }}>
-                            <div className="h-full rounded-full transition-all" style={{ width:`${kitZipProgress}%`,background:GOLD }} />
-                          </div>
-                        )}
-                        {kitForm.downloadUrl && kitZipProgress===null && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs" style={{ color:"#4ade80" }}>✓ {kitForm.downloadUrl.split("/").pop()}</span>
-                            <button type="button" onClick={()=>setKitForm(f=>({...f,downloadUrl:""}))} className="text-xs" style={{ color:"#555" }}>×</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {kitMsg && <p className="text-sm font-medium" style={{ color:"#4ade80" }}>{kitMsg}</p>}
-                    <div className="flex gap-3">
-                      <GoldSubmit saving={kitSaving} label={editingKit?"Save Changes":"Add Kit"} />
-                      {editingKit && <button type="button" onClick={()=>{setEditingKit(null);setKitForm(BLANK_KIT);}} className="px-6 py-3 rounded-xl text-sm font-bold" style={{ background:"#1a1a1a",color:"#666" }}>Cancel</button>}
-                    </div>
-                  </form>
-                </FormSection>
-
-                <div>
-                  <SectionHeader title={`Kits (${drumKits.length})`} />
-                  {drumKits.length===0 ? <p className="text-sm" style={{ color:"#444" }}>No kits added yet.</p> : (
-                    <div className="space-y-2">
-                      {drumKits.map(kit => (
-                        <div key={kit.id} className="flex items-center justify-between p-4 rounded-2xl" style={{ background:BG_CARD, border:`1px solid ${BORDER_SUBTLE}` }}>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-bold text-white text-sm">{kit.name}</p>
-                              {kit.popular && <Badge color={GOLD} bg={GOLD_DIM}>POPULAR</Badge>}
-                            </div>
-                            <p className="text-xs mt-0.5" style={{ color:"#555" }}>{kit.genre} · {kit.sampleCount} samples · ${kit.price}</p>
-                          </div>
-                          <div className="flex gap-1.5">
-                            <GoldBtn onClick={()=>startEditKit(kit)} small>Edit</GoldBtn>
-                            <button onClick={()=>deleteKit(kit.id)} className="text-xs px-3 py-1.5 rounded-lg hover:text-red-400 transition-colors" style={{ color:"#444",background:"#1a1a1a" }}>Remove</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* ── KIT INVENTORY ── */}
-            {tab === "Kit Inventory" && (
-              <>
-                {/* Summary */}
-                <div className="grid grid-cols-2 gap-3">
-                  <StatCard label="Live Kits" value={drumKits.filter(k=>!k.hidden).length} icon={Drum} />
-                  <StatCard label="Hidden" value={drumKits.filter(k=>k.hidden).length} />
-                </div>
-
-                {/* Filter chips */}
-                <div className="flex gap-2 flex-wrap">
-                  {(["All","Live","Hidden"] as const).map(f => (
-                    <button key={f} type="button" onClick={()=>setKitVisFilter(f)}
-                      className="text-xs px-4 py-1.5 rounded-full font-bold transition-all"
-                      style={{ background: kitVisFilter===f ? GOLD_DIM : "rgba(255,255,255,0.04)", color: kitVisFilter===f ? GOLD : TEXT_MUTED, border: `1px solid ${kitVisFilter===f ? GOLD_BORDER : BORDER_SUBTLE}` }}>
-                      {f}
-                      <span className="ml-1.5 opacity-60">
-                        {f==="All"?drumKits.length:f==="Live"?drumKits.filter(k=>!k.hidden).length:drumKits.filter(k=>k.hidden).length}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Kit rows */}
-                {drumKits.length === 0 ? (
-                  <p className="text-sm" style={{ color:"#444" }}>No drum kits uploaded yet.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {drumKits
-                      .filter(k => kitVisFilter==="All" || (kitVisFilter==="Live"&&!k.hidden) || (kitVisFilter==="Hidden"&&k.hidden))
-                      .map(kit => (
-                        <div key={kit.id} className="rounded-2xl p-4 flex items-center gap-4"
-                          style={{ background: BG_CARD, border:`1px solid ${kit.hidden ? "rgba(255,255,255,0.07)" : "rgba(201,168,76,0.15)"}`, opacity: kit.hidden ? 0.65 : 1 }}>
-
-                          {/* Cover art */}
-                          {kit.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={kit.imageUrl} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" style={{ border:`1px solid ${BORDER_SUBTLE}` }} />
-                          ) : (
-                            <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: BG_INPUT, border:`1px solid ${BORDER_SUBTLE}` }}>
-                              <Drum size={20} style={{ color: TEXT_MUTED }} />
-                            </div>
-                          )}
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                              <p className="font-bold text-white text-sm truncate">{kit.name}</p>
-                              {kit.hidden ? <Badge color="#666" bg="rgba(255,255,255,0.05)">HIDDEN</Badge> : <Badge color="#4ade80" bg="rgba(74,222,128,0.08)">LIVE</Badge>}
-                              {kit.popular && <Badge color={GOLD} bg={GOLD_DIM}>POPULAR</Badge>}
-                            </div>
-                            <p className="text-xs" style={{ color:"#555" }}>{kit.genre} · {kit.sampleCount} samples</p>
-                            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                              <span className="text-xs font-semibold" style={{ color: GOLD }}>${kit.price}</span>
-                              <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: kit.previewUrl?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)", color: kit.previewUrl?"#4ade80":"#333" }}>Preview{kit.previewUrl?" ✓":" –"}</span>
-                              <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: kit.downloadUrl?"rgba(74,222,128,0.08)":"rgba(255,255,255,0.03)", color: kit.downloadUrl?"#4ade80":"#333" }}>Download{kit.downloadUrl?" ✓":" –"}</span>
-                            </div>
-                          </div>
-
-                          {/* Formats */}
-                          <div className="hidden md:block text-xs text-right flex-shrink-0" style={{ color: TEXT_MUTED }}>
-                            {kit.formats.join(" · ")}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex flex-col gap-1.5 flex-shrink-0">
-                            <button onClick={()=>toggleKitHidden(kit)}
-                              className="text-xs px-4 py-2 rounded-xl font-bold transition-all w-36 text-center"
-                              style={{ background: kit.hidden?"rgba(74,222,128,0.12)":"rgba(255,255,255,0.06)", color: kit.hidden?"#4ade80":"#888", border:`1px solid ${kit.hidden?"rgba(74,222,128,0.2)":"rgba(255,255,255,0.08)"}` }}>
-                              {kit.hidden ? "Show on Store" : "Hide from Store"}
-                            </button>
-                            <button onClick={()=>{ startEditKit(kit); setTab("Drum Kits"); }}
-                              className="text-xs px-4 py-2 rounded-xl font-bold transition-all w-36 text-center"
-                              style={{ background: GOLD_DIM, color: GOLD, border:`1px solid ${GOLD_BORDER}` }}>
-                              Edit Kit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
               </>
             )}
 
@@ -2839,7 +1842,7 @@ export default function AdminPage() {
                                 placeholder="Browse Beats" />
                               <Input label="Button URL" value={giveawayForm.ctaUrl}
                                 onChange={e=>setGiveawayForm({...giveawayForm,ctaUrl:e.target.value})}
-                                placeholder="https://www.luchibeats.com/beats" />
+                                placeholder="https://www.luchibeats.com" />
                             </div>
                           </>
                       </Card>
@@ -3033,7 +2036,7 @@ export default function AdminPage() {
                     <Input label="Subtext (optional)" value={homepageForm.heroSubtext} onChange={e=>setHomepageForm({...homepageForm,heroSubtext:e.target.value})} placeholder="e.g. Trap · R&B · Afrobeats · Drill" />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <Input label="CTA Button Text (optional)" value={homepageForm.heroCta} onChange={e=>setHomepageForm({...homepageForm,heroCta:e.target.value})} placeholder="e.g. Browse Beats" />
-                      <Input label="CTA Button Link" value={homepageForm.heroCtaUrl} onChange={e=>setHomepageForm({...homepageForm,heroCtaUrl:e.target.value})} placeholder="/beats" />
+                      <Input label="CTA Button Link" value={homepageForm.heroCtaUrl} onChange={e=>setHomepageForm({...homepageForm,heroCtaUrl:e.target.value})} placeholder="/contact" />
                     </div>
                   </div>
                 </Card>
