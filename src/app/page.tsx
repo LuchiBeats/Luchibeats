@@ -45,8 +45,8 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero — full screen video with lightning */}
-      <section className="relative overflow-hidden aspect-video md:aspect-auto md:h-[100dvh]">
+      {/* Hero — video with lightning. Kept shorter than the screen so the next section peeks in and invites scrolling */}
+      <section className="relative overflow-hidden aspect-video md:aspect-auto md:h-[70dvh] md:min-h-[460px]">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hero-video">
           <source src="/hero-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
           <source src="/hero-desktop.mp4" type="video/mp4" />

@@ -2,15 +2,19 @@ import { getHomepageContent } from "@/lib/beats-store";
 
 const STATIC_ITEMS = [
   "15+ YEARS OF EXPERIENCE", "150+ ARTISTS WORKED WITH", "100% CLIENT SATISFACTION",
-  "PRODUCTION & ENGINEERING", "NEW DRUM KITS AVAILABLE",
+  "PRODUCTION & ENGINEERING", "RECORDING · MIXING · MASTERING",
   "LUCHIBEATS.COM",
 ];
+
+// Nothing is sold on the site anymore — skip saved ticker lines that advertise kits or the old stores
+const RETIRED = /drum\s*kit|merch|beat\s*store|free\s*beat/i;
 
 export default async function Marquee() {
   let items = STATIC_ITEMS;
   try {
     const content = await getHomepageContent();
-    if (content.marqueeItems?.length > 0) items = content.marqueeItems;
+    const saved = (content.marqueeItems ?? []).filter((t) => !RETIRED.test(t));
+    if (saved.length > 0) items = saved;
   } catch {
     // fallback to static
   }
