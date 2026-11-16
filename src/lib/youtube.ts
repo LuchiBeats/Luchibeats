@@ -98,6 +98,13 @@ async function isEmbeddable(id: string): Promise<boolean> {
   }
 }
 
+// A video's own page says whether it was a live broadcast and whether it is only scheduled.
+// Backs up the Live tab (which can fail to load) and filters out streams that haven't started.
+async function getWatchInfo(id: string): Promise<{ wasLive: boolean; upcoming: boolean }> {
+  const html = await getText(`https://www.youtube.com/watch?v=${id}`);
+  return { wasLive: !!html && /"isLiveContent":true/.test(html), upcoming: !!html && /"isUpcoming":true/.test(html) };
+}
+
 // The channel's /live URL resolves to the current broadcast when one is running.
 async function getLiveNowId(): Promise<string | null> {
   const html = await getText(`${YT_CHANNEL_URL}/live`);
@@ -118,13 +125,18 @@ export async function getChannelData(): Promise<ChannelData> {
   for (const e of feed) byId.set(e.id, e);
   for (const t of [...streamTab, ...shortTab]) if (!byId.has(t.id) && t.title) byId.set(t.id, { id: t.id, title: t.title });
 
-  const all = await Promise.all(
-    [...byId.values()].map(async (e): Promise<ChannelVideo> => ({
-      ...e,
-      kind: streamIds.has(e.id) ? "stream" : shortIds.has(e.id) ? "short" : "video",
-      embeddable: await isEmbeddable(e.id),
-    })),
-  );
+  const all = (await Promise.all(
+    [...byId.values()].map(async (e): Promise<ChannelVideo | null> => {
+      let kind: VideoKind = streamIds.has(e.id) ? "stream" : shortIds.has(e.id) ? "short" : "video";
+      if (kind !== "short") {
+        const info = await getWatchInfo(e.id);
+        // Skip scheduled streams that haven't started — once one goes live it shows as LIVE NOW
+        if (info.upcoming && e.id !== liveNowId) return null;
+        if (info.wasLive) kind = "stream";
+      }
+      return { ...e, kind, embeddable: await isEmbeddable(e.id) };
+    }),
+  )).filter((v): v is ChannelVideo => v !== null);
 
   // Newest first; tab-only entries (no date) keep the order YouTube listed them in, after dated ones
   const sorted = all.sort((a, b) => (b.published ?? "").localeCompare(a.published ?? ""));

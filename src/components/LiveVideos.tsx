@@ -87,7 +87,8 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   }, [playing]);
 
   // The newest stream is featured at the top; if nothing is streamed yet, the newest video is
-  const [featured, ...pastStreams] = streams.length ? streams : videos;
+  const featured = streams[0] ?? videos[0];
+  const pastStreams = streams.slice(1);
   const otherVideos = streams.length ? videos : videos.slice(1);
 
   return (
