@@ -2,16 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
-import StatsCounter from "@/components/StatsCounter";
 import ScrollStory, { type StoryBlock } from "@/components/ScrollStory";
 import StudioGallery from "@/components/StudioGallery";
 import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
 import { ScrambleWords } from "@/components/ContactFX";
-import { getHomepageContent } from "@/lib/beats-store";
 
-// Stats come from the admin Homepage tab so About and the homepage always show the same numbers
-export const dynamic = "force-dynamic";
 
 // Luchi's story, with the artists' words pulled out as quotes
 const STORY: StoryBlock[] = [
@@ -23,9 +19,7 @@ const STORY: StoryBlock[] = [
   { punch: "That's not praise. That's a track record." },
 ];
 
-export default async function AboutPage() {
-  let stats;
-  try { stats = (await getHomepageContent()).stats; } catch {}
+export default function AboutPage() {
   return (
     <>
     <HomeFX />
@@ -73,9 +67,6 @@ export default async function AboutPage() {
       </section>
 
     </div>
-
-    {/* Same numbers as the homepage */}
-    <StatsCounter stats={stats} />
 
     {/* Closing call to action */}
     <ScrollReveal className="max-w-3xl mx-auto px-4 pt-6 pb-4 text-center">
