@@ -33,7 +33,7 @@ function PatersonClock() {
     return () => { window.clearTimeout(first); window.clearInterval(id); };
   }, []);
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-8 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
+    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8 text-sm" style={{ color: "rgba(255,255,255,0.7)" }}>
       <span className="flex items-center gap-2">
         <span className="relative flex w-2 h-2">
           <span className="absolute inset-0 rounded-full animate-ping" style={{ background: "var(--gold)", opacity: 0.6 }} />
@@ -131,49 +131,21 @@ Release plans:`);
     <>
     <HomeFX />
     <Embers />
-    <div className="max-w-6xl mx-auto px-4 py-10 md:py-16 grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-12 md:gap-20">
-      <div className="relative">
-        <div className="relative">
-          <p className="eyebrow mb-3">Get in Touch</p>
-          <h1 className="section-title mb-6">Let&apos;s make<br /><ScrambleWords words={HEADLINE_WORDS} /></h1>
-          <p className="md:text-lg leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
-            {offerBeat
-              ? <>Making an offer on <span className="text-white font-semibold">{offerBeat}</span>. Every beat is sold exclusively to one artist.</>
-              : "Custom beats, recording, mixing and mastering, or just an idea you want to run by me. Send a message and let's get to work."}
-          </p>
-          <PatersonClock />
-        </div>
-        <div className="relative mt-10 md:mt-14">
-          <p className="eyebrow mb-4">Or find me on</p>
-          <ul>
-            {SOCIALS.map(({ label, handle, href }) => (
-              <li key={label}>
-                <a href={href} target="_blank" rel="noopener noreferrer" className="social-row group relative flex items-center justify-between py-4 px-1 overflow-hidden">
-                  <span className="relative z-10">
-                    <span className="block text-white font-bold text-lg transition-colors duration-300 group-hover:text-black">{label}</span>
-                    <span className="text-sm transition-colors duration-300 text-[var(--muted)] group-hover:text-black/75">{handle}</span>
-                  </span>
-                  <ArrowUpRight size={22} className="relative z-10 transition-all duration-300 group-hover:rotate-45 group-hover:text-black" style={{ color: "var(--gold)" }} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <div className="max-w-3xl mx-auto px-4 py-10 md:py-16">
+      {/* ── Heading ── */}
+      <header className="text-center">
+        <p className="eyebrow mb-3">Get in Touch</p>
+        <h1 className="section-title mb-6">Let&apos;s make<br /><ScrambleWords words={HEADLINE_WORDS} /></h1>
+        <p className="md:text-lg leading-relaxed max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.75)" }}>
+          {offerBeat
+            ? <>Making an offer on <span className="text-white font-semibold">{offerBeat}</span>. Every beat is sold exclusively to one artist.</>
+            : "Custom beats, recording, mixing and mastering, or just an idea you want to run by me. Send a message and let's get to work."}
+        </p>
+        <PatersonClock />
+      </header>
 
-        {/* Record: speeds up as you type, races when you send */}
-        <div className="relative mt-12 flex items-center gap-5 md:gap-7">
-          <Vinyl className="w-32 h-32 md:w-52 md:h-52 shrink-0" />
-          <div className="min-w-0">
-            <p className="eyebrow mb-2">Now Spinning</p>
-            <p className="text-lg md:text-2xl font-black text-white leading-tight transition-all duration-300">
-              {sent ? "Sent. Talk soon." : topics.length ? topics.join(" + ") : "Your next record"}
-            </p>
-            <p className="text-sm mt-2" style={{ color: "var(--muted)" }}>{sent ? "Your message is in the mix." : "Start typing. Watch it spin."}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="md:pt-6">
+      {/* ── The form ── */}
+      <div className="contact-form mt-12 md:mt-16">
       {sent ? (
         <div className="relative py-16 text-center" role="status" style={{ animation: "fadeSlide 0.5s ease-out" }}>
           <div className="relative w-24 h-24 mx-auto mb-6">
@@ -206,8 +178,8 @@ Release plans:`);
           </div>
 
           <fieldset>
-            <legend className="eyebrow mb-4">What are we working on?</legend>
-            <div className="flex flex-wrap gap-2.5">
+            <legend className="eyebrow mb-4 w-full text-center">What are we working on?</legend>
+            <div className="flex flex-wrap justify-center gap-2.5">
               {topicList.map(({ label }) => {
                 const on = topics.includes(label);
                 return (
@@ -254,12 +226,40 @@ Release plans:`);
           )}
           <div className="-mt-4"><TypingWave /></div>
           <button type="submit" disabled={loading} data-magnetic
-            className="send-btn btn-gold w-full md:w-auto md:px-12 py-4 rounded text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-60">
+            className="send-btn btn-gold w-full md:w-auto md:px-14 mx-auto py-4 rounded text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-60">
             {loading ? "Sending..." : <><Send size={16} className="send-icon" /> Send Message</>}
           </button>
         </form>
         </ScrollReveal>
       )}
+      </div>
+
+      {/* ── Record: speeds up as you type, races when you send ── */}
+      <div className="mt-12 md:mt-14 flex flex-col items-center text-center">
+        <Vinyl className="w-40 h-40 md:w-52 md:h-52" />
+        <p className="eyebrow mt-6 mb-2">Now Spinning</p>
+        <p className="text-xl md:text-2xl font-black text-white leading-tight transition-all duration-300">
+          {sent ? "Sent. Talk soon." : topics.length ? topics.join(" + ") : "Your next record"}
+        </p>
+        <p className="text-sm mt-2" style={{ color: "var(--muted)" }}>{sent ? "Your message is in the mix." : "Start typing. Watch it spin."}</p>
+      </div>
+
+      {/* ── Socials ── */}
+      <div className="mt-16 md:mt-20 text-center">
+        <p className="eyebrow mb-5">Or find me on</p>
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+          {SOCIALS.map(({ label, handle, href }) => (
+            <li key={label}>
+              <a href={href} target="_blank" rel="noopener noreferrer" className="social-tile group">
+                <span className="relative z-10 flex flex-col items-center">
+                  <span className="text-white font-bold text-lg transition-colors duration-300 group-hover:text-black">{label}</span>
+                  <span className="text-sm transition-colors duration-300 text-[var(--muted)] group-hover:text-black/75">{handle}</span>
+                </span>
+                <ArrowUpRight size={18} className="social-tile-arrow" />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
     </>

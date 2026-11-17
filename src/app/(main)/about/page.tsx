@@ -65,7 +65,7 @@ export default async function AboutPage() {
       <section className="mb-12 md:mb-16 text-center">
         <ScrollReveal>
           <p className="eyebrow mb-3">The Portfolio</p>
-          <h2 className="section-title mb-8 md:mb-12">Worked in the Room With</h2>
+          <h2 className="section-title mb-8 md:mb-12">Worked With Artists Such As</h2>
         </ScrollReveal>
         <ArtistGrid />
       </section>
