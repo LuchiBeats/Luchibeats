@@ -493,3 +493,43 @@ body.tab-hidden * {
 /* About: story words light up as you scroll */
 .scroll-story.is-ready .sw { opacity: 0.22; transition: opacity 0.35s ease; }
 .scroll-story.is-ready .sw.lit { opacity: 1; }
+
+/* ── Contact page ── */
+/* Gold line sweeps across under the field you're typing in */
+.field-wrap { position: relative; }
+.field-wrap::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, #A8892E, #F0D878);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.field-wrap:focus-within::after { transform: scaleX(1); }
+.field-wrap textarea.field { display: block; }
+
+/* Social rows fill with gold from the left on hover */
+.social-row { border-bottom: 1px solid rgba(255,255,255,0.08); }
+.social-row::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, #A8892E, #C9A84C, #E5C76B);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.45s cubic-bezier(.2,.8,.2,1);
+}
+.social-row:hover::before, .social-row:focus-visible::before { transform: scaleX(1); }
+.social-row { transition: padding 0.3s; }
+.social-row:hover { padding-left: 1rem; padding-right: 1rem; }
+
+.topic-chip:hover { transform: translateY(-2px); }
+.send-btn:hover .send-icon { transform: translate(3px, -3px) rotate(-8deg); }
+.send-icon { transition: transform 0.3s; }
+
+/* Success: check draws itself, sparks fly out */
+.draw-circle { stroke-dasharray: 151; stroke-dashoffset: 151; animation: draw 0.7s ease-out forwards; }
+.draw-check { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw 0.45s 0.55s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.spark { left: 0; top: 0; opacity: 0; animation: spark 0.9s 0.5s cubic-bezier(.2,.8,.2,1) forwards; }
+@keyframes spark {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0.3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-circle, .draw-check { stroke-dashoffset: 0; animation: none; }
+  .spark { display: none; }
+}
