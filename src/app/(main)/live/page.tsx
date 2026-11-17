@@ -52,10 +52,6 @@ export default async function LivePage() {
             className="btn-gold inline-flex items-center gap-2 px-6 py-3 rounded text-sm tracking-wide">
             <Bell size={16} /> Subscribe
           </a>
-          <a href="https://kick.com/luchibeats" target="_blank" rel="noopener noreferrer" data-magnetic
-            className="btn-outline inline-flex items-center gap-2 px-6 py-3 rounded text-sm tracking-wide">
-            <span className="font-black">K</span> Watch on Kick
-          </a>
           <a href={`${YT_CHANNEL_URL}/streams`} target="_blank" rel="noopener noreferrer" data-magnetic
             className="btn-outline inline-flex items-center gap-2 px-6 py-3 rounded text-sm tracking-wide">
             <MonitorPlay size={16} /> YouTube
