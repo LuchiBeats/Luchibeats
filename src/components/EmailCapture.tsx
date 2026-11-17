@@ -14,7 +14,7 @@ interface Props {
 export default function EmailCapture({
   badge = "JOIN THE LIST",
   headline = "Stay Up To Date\nOn New Drops",
-  subtext = "Join the list. Be the first to hear new drops and exclusive deals.",
+  subtext = "Join the list. Be the first to hear new music, live streams and studio sessions.",
 }: Props) {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);

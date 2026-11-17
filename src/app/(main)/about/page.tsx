@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ChevronDown } from "lucide-react";
@@ -8,6 +9,12 @@ import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
 import { ScrambleWords } from "@/components/ContactFX";
 
+
+export const metadata: Metadata = {
+  title: "About",
+  description: "Luchi Beats: producer and engineer out of Paterson, New Jersey, who has worked with A Boogie, Fabolous, Dave East, Raekwon, Conway The Machine, Coi Leray and more.",
+  openGraph: { title: "About Luchi Beats", description: "Producer and engineer out of Paterson, New Jersey." },
+};
 
 // Luchi's story, with the artists' words pulled out as quotes
 const STORY: StoryBlock[] = [

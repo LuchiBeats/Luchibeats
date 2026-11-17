@@ -4,13 +4,13 @@ import Image from "next/image";
 import { Phone, Info, ArrowRight, Radio } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
-import StatsCounter from "@/components/StatsCounter";
 import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
 import StudioScene from "@/components/StudioScene";
 import HomeFX from "@/components/HomeFX";
+import MixCompare from "@/components/MixCompare";
 import { getHomepageContent } from "@/lib/beats-store";
 
 // Homepage content is admin-editable and blob-backed — render per-request so
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 // Free beat giveaways are retired — ignore any saved copy that still mentions one
 // so the component's default subscribe text is shown instead.
-const noFreeBeat = (text?: string) => (text && /free\s*beat/i.test(text) ? undefined : text);
+const noFreeBeat = (text?: string) => (text && /free\s*beat|deals/i.test(text) ? undefined : text);
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -52,7 +52,7 @@ export default async function HomePage() {
       <section data-hero className="relative overflow-hidden aspect-video md:aspect-auto md:h-[70dvh] md:min-h-[460px]">
         {/* Video + lightning move together: HomeFX zooms and fades this layer on scroll */}
         <div data-hero-media className="absolute inset-0 will-change-transform">
-        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hero-video">
+        <video autoPlay muted loop playsInline preload="auto" poster="/hero-poster.webp" className="absolute inset-0 w-full h-full object-cover hero-video">
           <source src="/hero-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
           <source src="/hero-desktop.mp4" type="video/mp4" />
         </video>
@@ -117,9 +117,6 @@ export default async function HomePage() {
       {/* Marquee ticker */}
       <Marquee />
 
-      {/* Stats counter */}
-      <StatsCounter stats={hp.stats} />
-
       {/* Portfolio Artists */}
       <ArtistsWorkedWith />
 
@@ -151,6 +148,9 @@ export default async function HomePage() {
 
       {/* Productions */}
       <Productions videos={hp.productions} />
+
+      {/* Before / after mix (appears once the two audio files are uploaded) */}
+      <MixCompare />
 
       {/* Testimonials */}
       <Testimonials />

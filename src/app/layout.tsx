@@ -7,6 +7,12 @@ import PWARegister from "@/components/PWARegister";
 import PageTracker from "@/components/PageTracker";
 import VisibilityPause from "@/components/VisibilityPause";
 import SiteBackdrop from "@/components/SiteBackdrop";
+import PageTransition from "@/components/PageTransition";
+import IntroSplash from "@/components/IntroSplash";
+import SoundButton from "@/components/SoundButton";
+
+const SITE_TITLE = "LuchiBeats — Producer & Engineer, Paterson NJ";
+const SITE_DESC = "Luchi Beats: producer and engineer out of Paterson, New Jersey. Custom beats, recording, mixing and mastering, and live studio streams.";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +25,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LuchiBeats — Premium Beats & Production",
-  description: "Buy premium beats — all in one place.",
+  metadataBase: new URL("https://www.luchibeats.com"),
+  title: { default: SITE_TITLE, template: "%s | LuchiBeats" },
+  description: SITE_DESC,
   applicationName: "LuchiBeats",
   appleWebApp: {
     capable: true,
@@ -29,17 +36,17 @@ export const metadata: Metadata = {
   },
   formatDetection: { telephone: false },
   openGraph: {
-    title: "LuchiBeats — Premium Beats & Production",
-    description: "Buy premium beats — all in one place.",
+    title: SITE_TITLE,
+    description: SITE_DESC,
     url: "https://www.luchibeats.com",
     siteName: "LuchiBeats",
-    images: [{ url: "https://www.luchibeats.com/og-image.png", width: 1200, height: 630, alt: "LuchiBeats" }],
+    images: [{ url: "https://www.luchibeats.com/og-image.png", width: 1200, height: 630, alt: "Luchi Beats — Producer & Engineer, Paterson NJ" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LuchiBeats — Premium Beats & Production",
-    description: "Buy premium beats — all in one place.",
+    title: SITE_TITLE,
+    description: SITE_DESC,
     images: ["https://www.luchibeats.com/og-image.png"],
   },
   icons: {
@@ -55,14 +62,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <IntroSplash />
         <PWARegister />
         <PageTracker />
         <VisibilityPause />
         <CustomCursor />
         <SiteBackdrop />
+        <PageTransition />
+        <SoundButton />
         <main className="relative z-10 flex-1">{children}</main>
         {/* Logo sign-off at the bottom of every page, with the heat-shimmer flame effect.
             It used to be pinned behind the content, where photos and text ran into it. */}
@@ -80,9 +91,9 @@ export default function RootLayout({
           {/* logo.png is square with empty space above and below the artwork; trim it */}
           <div className="w-[70vw] max-w-md">
           <div className="relative" style={{ marginTop: "-17%", marginBottom: "-22%" }}>
-            <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.25 }} />
+            <img src="/logo-900.webp" alt="" loading="lazy" className="w-full select-none" style={{ opacity: 0.25 }} />
             <img
-              src="/logo.png" alt=""
+              src="/logo-900.webp" alt="" loading="lazy"
               className="w-full select-none absolute inset-0 hidden md:block"
               style={{ opacity: 0.4, filter: "url(#fireWarp) brightness(1.4)" }}
             />
