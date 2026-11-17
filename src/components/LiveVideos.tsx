@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Permanent_Marker, VT323 } from "next/font/google";
 import { ExternalLink, Play } from "lucide-react";
@@ -81,8 +81,38 @@ function Static({ on }: { on: boolean }) {
   return <canvas ref={ref} width={160} height={120} aria-hidden="true" className="absolute inset-0 w-full h-full transition-opacity duration-200" style={{ opacity: on ? 1 : 0, imageRendering: "pixelated" }} />;
 }
 
+/* ── Episode numbers ──
+   Streams are numbered as episodes, oldest first. A title that says "Episode N" keeps N;
+   "Pt 1" / "Pt 2" streams of the same show share one episode number and get a part. */
+type Tag = { kind: "EP" | "CLIP" | "TAPE"; num: number; part?: number };
+const pad = (n: number) => String(n).padStart(2, "0");
+const tagText = (t?: Tag) => (t ? `${t.kind} ${pad(t.num)}${t.part ? ` · PT ${t.part}` : ""}` : "");
+
+function buildTags(streams: ChannelVideo[], shorts: ChannelVideo[], videos: ChannelVideo[]) {
+  const tags = new Map<string, Tag>();
+  const time = (v: ChannelVideo) => (v.published ? Date.parse(v.published) : 0);
+  const byBase = new Map<string, number>();
+  let next = 1;
+  [...streams].sort((a, b) => time(a) - time(b)).forEach((v) => {
+    const ep = v.title.match(/episode\s*#?\s*(\d+)/i);
+    const pt = v.title.match(/\b(?:pt|part)\.?\s*(\d+)/i);
+    let num: number;
+    if (ep) num = Number(ep[1]);
+    else {
+      const base = v.title.replace(/\s*[-–]?\s*\b(?:pt|part)\.?\s*\d+\b.*$/i, "").trim().toLowerCase();
+      num = byBase.get(base) ?? next;
+      byBase.set(base, num);
+    }
+    next = Math.max(next, num + 1);
+    tags.set(v.id, { kind: "EP", num, part: pt ? Number(pt[1]) : undefined });
+  });
+  [...shorts].sort((a, b) => time(a) - time(b)).forEach((v, i) => tags.set(v.id, { kind: "CLIP", num: i + 1 }));
+  [...videos].sort((a, b) => time(a) - time(b)).forEach((v, i) => tags.set(v.id, { kind: "TAPE", num: i + 1 }));
+  return tags;
+}
+
 /* ── A cassette ── */
-function TapeFace({ v, n }: { v: ChannelVideo; n: number }) {
+function TapeFace({ v, tag }: { v: ChannelVideo; tag?: Tag }) {
   const clip = v.kind === "short";
   return (
     <>
@@ -90,7 +120,7 @@ function TapeFace({ v, n }: { v: ChannelVideo; n: number }) {
           <span className="vhs-stripe" />
           <span className={`vhs-title ${marker.className}`}>{v.title}</span>
           <span className={`vhs-meta ${vcr.className}`}>
-            <span>{clip ? "CLIP" : "TAPE"} {String(n).padStart(2, "0")}</span>
+            <span>{tagText(tag)}</span>
             <span>{shortDate(v.published)}</span>
           </span>
         </span>
@@ -102,35 +132,63 @@ function TapeFace({ v, n }: { v: ChannelVideo; n: number }) {
   );
 }
 
-type Grab = (v: ChannelVideo, n: number, e: React.PointerEvent<HTMLButtonElement>) => void;
+/* ── The cardboard sleeve the tape lives in, printed with the episode number ── */
+function Sleeve({ v, tag, empty }: { v: ChannelVideo; tag?: Tag; empty: boolean }) {
+  const word = tag?.kind === "EP" ? "Episode" : tag?.kind === "CLIP" ? "Clip" : "Tape";
+  return (
+    <span className="sleeve" aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={poster(v)} alt="" loading="lazy" className="sleeve-art" />
+      <span className="sleeve-mouth" />
+      <span className="sleeve-spine" />
+      <span className="sleeve-top">
+        <span>LUCHI BEATS LIVE</span>
+        <span className={vcr.className}>{shortDate(v.published)}</span>
+      </span>
+      <span className="sleeve-ep">
+        <span className="sleeve-word">{word}</span>
+        <span className="sleeve-num">{tag ? pad(tag.num) : "··"}</span>
+      </span>
+      {tag?.part && <span className={`sleeve-part ${marker.className}`}>Pt {tag.part}</span>}
+      <span className="sleeve-bottom">
+        <span className="sleeve-vhs">{v.kind === "short" ? "VHS-C" : "VHS"}</span>
+        <span className="sleeve-series">{tag?.kind === "EP" ? "Luchi Beats & Friends" : v.kind === "short" ? "Studio Clips" : "On the Channel"}</span>
+      </span>
+      <span className="sleeve-gloss" />
+      {empty && <span className={`sleeve-sticker ${vcr.className}`}>IN THE VCR</span>}
+    </span>
+  );
+}
 
-/* ── A cassette on the shelf: grab it and drop it in the VCR (or just click it) ── */
-function Tape({ v, n, inDeck, lifted, onPick, onGrab }: { v: ChannelVideo; n: number; inDeck: boolean; lifted: boolean; onPick: (v: ChannelVideo) => void; onGrab: Grab }) {
+type Grab = (v: ChannelVideo, e: React.PointerEvent<HTMLButtonElement>) => void;
+
+/* ── A tape in its sleeve on the shelf: grab it and drop it in the VCR (or just click it) ── */
+function Tape({ v, tag, inDeck, lifted, onPick, onGrab }: { v: ChannelVideo; tag?: Tag; inDeck: boolean; lifted: boolean; onPick: (v: ChannelVideo) => void; onGrab: Grab }) {
   const clip = v.kind === "short";
   return (
     <div className={`tape-slot ${clip ? "is-clip" : ""}`}>
-      <div className="tape-ghost" aria-hidden="true" style={{ opacity: inDeck ? 1 : 0 }}>
-        <span className={vcr.className}>IN THE VCR</span>
-      </div>
-      <button type="button" onPointerDown={(e) => onGrab(v, n, e)} onClick={() => onPick(v)}
-        aria-label={`Put in the VCR: ${v.title}`} className={`vhs ${inDeck ? "is-out" : ""} ${lifted ? "is-lifted" : ""}`} disabled={inDeck}>
-        <TapeFace v={v} n={n} />
+      <button type="button" onPointerDown={(e) => onGrab(v, e)} onClick={() => onPick(v)}
+        aria-label={`Put in the VCR: ${tagText(tag)} ${v.title}`} className="tape-btn" disabled={inDeck}>
+        <span className={`vhs vhs-body ${inDeck ? "is-out" : ""} ${lifted ? "is-lifted" : ""}`}>
+          <TapeFace v={v} tag={tag} />
+        </span>
+        <Sleeve v={v} tag={tag} empty={inDeck} />
       </button>
     </div>
   );
 }
 
-function Shelf({ title, label, items, numberFrom = 1, current, lifted, onPick, onGrab }: {
-  title: string; label: string; items: ChannelVideo[]; numberFrom?: number; current: ChannelVideo | null; lifted: string | null; onPick: (v: ChannelVideo) => void; onGrab: Grab;
+function Shelf({ title, label, items, tags, current, lifted, onPick, onGrab }: {
+  title: string; label: string; items: ChannelVideo[]; tags: Map<string, Tag>; current: ChannelVideo | null; lifted: string | null; onPick: (v: ChannelVideo) => void; onGrab: Grab;
 }) {
   if (!items.length) return null;
   return (
     <section className="mb-14 md:mb-20">
-      <p className="eyebrow mb-2">{label}</p>
-      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6">{title}</h2>
+      <p className="eyebrow mb-2 text-center">{label}</p>
+      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6 text-center">{title}</h2>
       <div className="shelf">
         <div className="shelf-row">
-          {items.map((v, i) => <Tape key={v.id} v={v} n={numberFrom + i} inDeck={current?.id === v.id} lifted={lifted === v.id} onPick={onPick} onGrab={onGrab} />)}
+          {items.map((v) => <Tape key={v.id} v={v} tag={tags.get(v.id)} inDeck={current?.id === v.id} lifted={lifted === v.id} onPick={onPick} onGrab={onGrab} />)}
         </div>
         <div className="shelf-plank" aria-hidden="true" />
       </div>
@@ -161,6 +219,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   const timers = useRef<number[]>([]);
   const yt = useYouTube(frame);
   const isLive = !!live && current?.id === live.id;
+  const tags = useMemo(() => buildTags(streams, shorts, videos), [streams, shorts, videos]);
 
   const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)); };
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
@@ -218,16 +277,17 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   };
 
   /* ── Grab a tape and drop it in the VCR ── */
-  type Drag = { v: ChannelVideo; n: number; rect: DOMRect; offX: number; offY: number; x: number; y: number };
+  type Drag = { v: ChannelVideo; rect: DOMRect; offX: number; offY: number; x: number; y: number };
   const [drag, setDrag] = useState<Drag | null>(null);
   const [over, setOver] = useState(false);
   const floatRef = useRef<HTMLDivElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const dragged = useRef(false);
 
-  const grab: Grab = (v, n, e) => {
+  const grab: Grab = (v, e) => {
     if (e.button !== 0 || current?.id === v.id) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    // Only the tape comes out; the sleeve stays on the shelf
+    const rect = (e.currentTarget.querySelector(".vhs-body") ?? e.currentTarget).getBoundingClientRect();
     const sx = e.clientX, sy = e.clientY, id = e.pointerId;
     const offX = sx - rect.left, offY = sy - rect.top;
     const p = { x: sx, y: sy };
@@ -258,7 +318,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
         if (Math.hypot(p.x - sx, p.y - sy) < 8) return;
         started = true; dragged.current = true;
         document.documentElement.classList.add("is-dragging-tape");
-        setDrag({ v, n, rect, offX, offY, x: p.x, y: p.y });
+        setDrag({ v, rect, offX, offY, x: p.x, y: p.y });
         raf = requestAnimationFrame(tick);
       }
       ev.preventDefault();
@@ -319,9 +379,9 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   return (
     <>
       <ScrollReveal className="mb-16 md:mb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-8 lg:gap-12 items-center">
+        <div className="flex flex-col items-center gap-10 md:gap-12">
           {/* ── TV on top of the VCR ── */}
-          <div ref={tvRef} className="relative">
+          <div ref={tvRef} className="relative w-full max-w-[760px]">
             {current && (
               // The screen lights up the room around the set
               // eslint-disable-next-line @next/next/no-img-element
@@ -388,7 +448,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 <div ref={slotRef} className={`vcr-slot ${slot ? `is-${slot}` : ""} ${current && phase !== "empty" && !slot && !drag ? "is-loaded" : ""} ${drag ? "is-target" : ""} ${over ? "is-over" : ""}`}>
                   {current && !drag && (
                     <span className="vcr-tape" aria-hidden="true">
-                      <span className={`vcr-tape-label ${marker.className}`}>{current.kind === "short" ? "Clip" : "Tape"} · {current.title}</span>
+                      <span className={`vcr-tape-label ${marker.className}`}>{tagText(tags.get(current.id)) || "Tape"} · {current.title}</span>
                     </span>
                   )}
                   <span className="vcr-flap" aria-hidden="true" />
@@ -413,8 +473,8 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
           </div>
 
           {/* ── Now playing ── */}
-          <div>
-            <p className="eyebrow mb-3">{isLive ? "Live Now" : phase === "empty" ? "VCR Empty" : "In the VCR"}</p>
+          <div className="text-center max-w-2xl">
+            <p className="eyebrow mb-3">{isLive ? "Live Now" : phase === "empty" ? "VCR Empty" : `In the VCR${tags.get(current?.id ?? "") ? ` · ${tagText(tags.get(current?.id ?? ""))}` : ""}`}</p>
             <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight leading-[1.1]">
               {phase === "empty" || !current ? "Pick a tape off the shelf." : isLive ? "Live from the studio" : current.title}
             </h2>
@@ -423,7 +483,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}
               </p>
             )}
-            <div className="flex flex-wrap gap-3 mt-7">
+            <div className="flex flex-wrap justify-center gap-3 mt-7">
               {current && phase === "stopped" && current.embeddable && (
                 <button type="button" onClick={start} data-magnetic className="btn-gold inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
                   <Play size={16} fill="currentColor" /> Play Tape
@@ -440,15 +500,15 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
         </div>
       </ScrollReveal>
 
-      <Shelf label="Replays" title="The Tape Wall" items={streams} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
-      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
-      <Shelf label="On the Channel" title="More Tapes" items={videos} numberFrom={streams.length + 1} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+      <Shelf label="Replays" title="The Tape Wall" items={streams} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+      <Shelf label="On the Channel" title="More Tapes" items={videos} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
 
       {/* The tape in your hand */}
       {drag && createPortal(
         <div ref={floatRef} aria-hidden="true" className={`tape-float ${drag.v.kind === "short" ? "is-clip" : ""} ${over ? "is-over" : ""}`}
           style={{ width: drag.rect.width, height: drag.rect.height, transform: `translate(${drag.x - drag.offX}px, ${drag.y - drag.offY}px) rotate(-5deg) scale(1.06)` }}>
-          <div className="vhs"><TapeFace v={drag.v} n={drag.n} /></div>
+          <div className="vhs"><TapeFace v={drag.v} tag={tags.get(drag.v.id)} /></div>
         </div>,
         document.body
       )}

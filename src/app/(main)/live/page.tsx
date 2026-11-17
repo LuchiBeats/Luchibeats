@@ -30,7 +30,7 @@ export default async function LivePage() {
       {/* Studio-light glow behind the header: red when live, gold otherwise */}
       <div aria-hidden="true" className="absolute -top-20 left-1/2 -translate-x-1/2 w-[900px] max-w-[140vw] h-[420px] pointer-events-none"
         style={{ background: `radial-gradient(ellipse at center, ${data.liveNowId ? "rgba(255,40,40,0.16)" : "rgba(201,168,76,0.10)"}, transparent 65%)` }} />
-      <div className="relative mb-12 md:mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+      <div className="relative mb-12 md:mb-16 flex flex-col items-center text-center gap-8">
         <div>
           {/* Broadcast sign: lit when a stream is live */}
           <div className={`on-air ${data.liveNowId ? "lit" : ""} mb-6`} role="status">
@@ -38,16 +38,16 @@ export default async function LivePage() {
             {data.liveNowId ? "On Air" : "Off Air"}
           </div>
           <h1 className="section-title title-in">Luchi Beats Live</h1>
-          <p className="mt-4 max-w-xl md:text-lg" style={{ color: "rgba(255,255,255,0.7)" }}>
+          <p className="mt-4 max-w-xl mx-auto md:text-lg" style={{ color: "rgba(255,255,255,0.7)" }}>
             {data.liveNowId ? "We're live right now. Pull up." : "Live streams, studio sessions and clips from the Luchi Beats channel."}
           </p>
           {stats.length > 0 && (
-            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm font-mono tracking-widest uppercase" style={{ color: "var(--fire-light)" }}>
+            <p className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs md:text-sm font-mono tracking-widest uppercase" style={{ color: "var(--fire-light)" }}>
               {stats.map((t, i) => <span key={i} className="flex items-center gap-3">{i > 0 && <span style={{ color: "rgba(255,255,255,0.25)" }}>/</span>}{t}</span>)}
             </p>
           )}
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap justify-center gap-3">
           <a href={`${YT_CHANNEL_URL}?sub_confirmation=1`} target="_blank" rel="noopener noreferrer" data-magnetic
             className="btn-gold inline-flex items-center gap-2 px-6 py-3 rounded text-sm tracking-wide">
             <Bell size={16} /> Subscribe
