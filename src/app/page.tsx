@@ -9,7 +9,7 @@ import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
-import ServicesShowcase from "@/components/ServicesShowcase";
+import StudioScene from "@/components/StudioScene";
 import HomeFX from "@/components/HomeFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
@@ -155,8 +155,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Services: hover a service to swap the studio photo */}
-      <ServicesShowcase />
+      {/* The studio is the menu: hover the gear, click to go there */}
+      <StudioScene />
 
       {/* Productions */}
       <Productions videos={hp.productions} />

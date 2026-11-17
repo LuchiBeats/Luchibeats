@@ -30,7 +30,7 @@ const PANELS: Panel[] = [
   },
 ];
 
-export default function StudioScene() {
+export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }) {
   const [active, setActive] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -40,6 +40,9 @@ export default function StudioScene() {
 
   useEffect(() => {
     const t = window.setTimeout(() => setReady(true), 50);
+    // Phones: open the swipe strip on the control room (middle panel)
+    const el = sceneRef.current, mid = panelRefs.current[1]?.parentElement;
+    if (el && mid && el.scrollWidth > el.clientWidth) el.scrollLeft = mid.offsetLeft - (el.clientWidth - mid.clientWidth) / 2;
     return () => window.clearTimeout(t);
   }, []);
 
@@ -63,9 +66,9 @@ export default function StudioScene() {
   return (
     <section className="relative overflow-hidden" style={{ background: "var(--bg)" }}>
       {/* Title */}
-      <div className="relative z-20 max-w-6xl mx-auto px-4 pt-6 md:pt-10 pointer-events-none">
+      <div className="relative z-20 max-w-6xl mx-auto px-4 pt-12 md:pt-16 pointer-events-none">
         <p className="eyebrow mb-3">Step Inside</p>
-        <h1 className="section-title">The Studio</h1>
+        <Heading className="section-title">The Studio</Heading>
         <p className="mt-3 md:text-lg" style={{ color: "rgba(255,255,255,0.65)" }}>
           <span className="hidden md:inline">Hover the gear. Click to go anywhere.</span>
           <span className="md:hidden">Swipe through the room. Tap the gold lights.</span>
