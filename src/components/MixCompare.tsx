@@ -1,32 +1,24 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
+import { AUDIO } from "@/lib/audio";
 
 // "Hear the Difference": the same song before and after Luchi's mix, played in sync.
-// The slider crossfades between them. The section only appears once both files exist:
+// The slider crossfades between them. Add both files and set AUDIO.mix in src/lib/audio.ts:
 //   public/audio/mix-rough.mp3  and  public/audio/mix-final.mp3
 const ROUGH = "/audio/mix-rough.mp3";
 const FINAL = "/audio/mix-final.mp3";
 
-async function exists(url: string) {
-  try { const r = await fetch(url, { method: "HEAD" }); return r.ok && (r.headers.get("content-type") ?? "").startsWith("audio"); } catch { return false; }
-}
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 export default function MixCompare() {
-  const [ready, setReady] = useState(false);
+  const ready = AUDIO.mix;
   const [playing, setPlaying] = useState(false);
   const [mix, setMix] = useState(1); // 0 = rough, 1 = final
   const [t, setT] = useState(0);
   const [dur, setDur] = useState(0);
   const rough = useRef<HTMLAudioElement>(null);
   const fin = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    let alive = true;
-    Promise.all([exists(ROUGH), exists(FINAL)]).then(([a, b]) => { if (alive) setReady(a && b); });
-    return () => { alive = false; };
-  }, []);
 
   // Equal-power crossfade between the two versions
   useEffect(() => {

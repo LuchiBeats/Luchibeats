@@ -1,30 +1,25 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
+import { AUDIO } from "@/lib/audio";
 
-// Optional homepage soundtrack. Drop these files into public/audio/ and the button appears:
+// Optional site soundtrack. Add the files to public/audio/ and switch them on in src/lib/audio.ts:
 //   loop.mp3  – a short beat loop (required for the button to show)
 //   tag.mp3   – your producer tag, played once before the loop starts (optional)
 // Nothing ever plays until the visitor presses the button.
 const LOOP = "/audio/loop.mp3";
 const TAG = "/audio/tag.mp3";
 
-async function exists(url: string) {
-  try { const r = await fetch(url, { method: "HEAD" }); return r.ok && (r.headers.get("content-type") ?? "").startsWith("audio"); } catch { return false; }
-}
 
 export default function SoundButton() {
-  const [ready, setReady] = useState(false);
-  const [hasTag, setHasTag] = useState(false);
+  const ready = AUDIO.loop, hasTag = AUDIO.tag;
   const [on, setOn] = useState(false);
   const loop = useRef<HTMLAudioElement | null>(null);
   const tag = useRef<HTMLAudioElement | null>(null);
   const fade = useRef(0);
 
   useEffect(() => {
-    let alive = true;
-    Promise.all([exists(LOOP), exists(TAG)]).then(([l, t]) => { if (alive) { setReady(l); setHasTag(t); } });
-    return () => { alive = false; loop.current?.pause(); tag.current?.pause(); window.clearInterval(fade.current); };
+    return () => { loop.current?.pause(); tag.current?.pause(); window.clearInterval(fade.current); };
   }, []);
 
   const ramp = (a: HTMLAudioElement, to: number, ms: number, done?: () => void) => {
