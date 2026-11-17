@@ -18,6 +18,8 @@ export interface ChannelVideo {
   title: string;
   published?: string; // ISO date, when known
   views?: number;
+  description?: string; // from the feed, for the tape sleeve's back cover
+  length?: number;      // seconds, when YouTube reports it
   kind: VideoKind;
   embeddable: boolean; // false when "Allow embedding" is off for the video in YouTube Studio
 }
@@ -43,7 +45,7 @@ async function getText(url: string): Promise<string | null> {
 const decode = (s: string) =>
   s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 
-interface FeedEntry { id: string; title: string; published?: string; views?: number }
+interface FeedEntry { id: string; title: string; published?: string; views?: number; description?: string }
 
 async function getFeed(): Promise<FeedEntry[]> {
   const xml = await getText(`https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`);
@@ -57,6 +59,7 @@ async function getFeed(): Promise<FeedEntry[]> {
       title: decode(e.match(/<title>([^<]*)</)?.[1] ?? ""),
       published: e.match(/<published>([^<]+)</)?.[1],
       views: views ? Number(views) : undefined,
+      description: decode(e.match(/<media:description>([\s\S]*?)<\/media:description>/)?.[1] ?? "").trim() || undefined,
     }];
   });
 }
@@ -100,9 +103,10 @@ async function isEmbeddable(id: string): Promise<boolean> {
 
 // A video's own page says whether it was a live broadcast and whether it is only scheduled.
 // Backs up the Live tab (which can fail to load) and filters out streams that haven't started.
-async function getWatchInfo(id: string): Promise<{ wasLive: boolean; upcoming: boolean }> {
+async function getWatchInfo(id: string): Promise<{ wasLive: boolean; upcoming: boolean; length?: number }> {
   const html = await getText(`https://www.youtube.com/watch?v=${id}`);
-  return { wasLive: !!html && /"isLiveContent":true/.test(html), upcoming: !!html && /"isUpcoming":true/.test(html) };
+  const len = html?.match(/"lengthSeconds":"(\d+)"/)?.[1];
+  return { wasLive: !!html && /"isLiveContent":true/.test(html), upcoming: !!html && /"isUpcoming":true/.test(html), length: len ? Number(len) : undefined };
 }
 
 // The channel's /live URL resolves to the current broadcast when one is running.
@@ -128,13 +132,15 @@ export async function getChannelData(): Promise<ChannelData> {
   const all = (await Promise.all(
     [...byId.values()].map(async (e): Promise<ChannelVideo | null> => {
       let kind: VideoKind = streamIds.has(e.id) ? "stream" : shortIds.has(e.id) ? "short" : "video";
+      let length: number | undefined;
       if (kind !== "short") {
         const info = await getWatchInfo(e.id);
         // Skip scheduled streams that haven't started — once one goes live it shows as LIVE NOW
         if (info.upcoming && e.id !== liveNowId) return null;
         if (info.wasLive) kind = "stream";
+        length = info.length;
       }
-      return { ...e, kind, embeddable: await isEmbeddable(e.id) };
+      return { ...e, length, kind, embeddable: await isEmbeddable(e.id) };
     }),
   )).filter((v): v is ChannelVideo => v !== null);
 

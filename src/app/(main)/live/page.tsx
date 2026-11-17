@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { MonitorPlay, Bell, Radio } from "lucide-react";
+import { MonitorPlay, Bell } from "lucide-react";
+import NeonSign from "@/components/NeonSign";
 import HomeFX from "@/components/HomeFX";
 import LiveVideos from "@/components/LiveVideos";
 import { getChannelData, YT_CHANNEL_URL } from "@/lib/youtube";
@@ -32,12 +33,8 @@ export default async function LivePage() {
         style={{ background: `radial-gradient(ellipse at center, ${data.liveNowId ? "rgba(255,40,40,0.16)" : "rgba(201,168,76,0.10)"}, transparent 65%)` }} />
       <div className="relative mb-12 md:mb-16 flex flex-col items-center text-center gap-8">
         <div>
-          {/* Broadcast sign: lit when a stream is live */}
-          <div className={`on-air ${data.liveNowId ? "lit" : ""} mb-6`} role="status">
-            <Radio size={16} className={data.liveNowId ? "animate-pulse" : ""} />
-            {data.liveNowId ? "On Air" : "Off Air"}
-          </div>
-          <h1 className="section-title title-in">Luchi Beats Live</h1>
+          {/* Neon sign on the wall: the LIVE box lights up red while streaming */}
+          <NeonSign live={!!data.liveNowId} />
           <p className="mt-4 max-w-xl mx-auto md:text-lg" style={{ color: "rgba(255,255,255,0.7)" }}>
             {data.liveNowId ? "We're live right now. Pull up." : "Live streams, studio sessions and clips from the Luchi Beats channel."}
           </p>

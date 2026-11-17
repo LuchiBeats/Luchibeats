@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Permanent_Marker, VT323 } from "next/font/google";
-import { ExternalLink, Play } from "lucide-react";
+import { ExternalLink, Play, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { sfx, isMuted, setMuted } from "./vcrSound";
 import type { ChannelVideo } from "@/lib/youtube";
 import ScrollReveal from "./ScrollReveal";
 
@@ -162,19 +163,49 @@ function Sleeve({ v, tag, empty }: { v: ChannelVideo; tag?: Tag; empty: boolean 
   );
 }
 
+/* ── Back of the sleeve: the video's own description, length and date from YouTube ── */
+const runTime = (s?: number) => {
+  if (!s) return null;
+  const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60);
+  return h ? `${h} HR ${m} MIN` : `${m} MIN`;
+};
+function SleeveBack({ v, tag, open, onClose }: { v: ChannelVideo; tag?: Tag; open: boolean; onClose: () => void }) {
+  const desc = v.description?.replace(/https?:\/\/\S+/g, "").replace(/\n{2,}/g, "\n").trim();
+  return (
+    <div className="sleeve-back" aria-hidden={!open} inert={!open} onClick={onClose}>
+      <span className="sleeve-back-top">
+        <span>LUCHI BEATS LIVE</span><span className={vcr.className}>{tagText(tag)}</span>
+      </span>
+      <span className="sleeve-back-title">{v.title}</span>
+      <span className="sleeve-back-desc">{desc || "Straight from the studio. Pop it in the VCR to watch."}</span>
+      <span className="sleeve-back-meta">
+        <span className={vcr.className}>{[runTime(v.length), stampDate(v.published), v.views != null ? `${v.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}</span>
+        <span className="sleeve-barcode" aria-hidden="true" />
+      </span>
+    </div>
+  );
+}
+
 type Grab = (v: ChannelVideo, e: React.PointerEvent<HTMLButtonElement>) => void;
 
 /* ── A tape in its sleeve on the shelf: grab it and drop it in the VCR (or just click it) ── */
 function Tape({ v, tag, inDeck, lifted, onPick, onGrab }: { v: ChannelVideo; tag?: Tag; inDeck: boolean; lifted: boolean; onPick: (v: ChannelVideo) => void; onGrab: Grab }) {
   const clip = v.kind === "short";
+  const [flipped, setFlipped] = useState(false);
   return (
-    <div className={`tape-slot ${clip ? "is-clip" : ""}`}>
+    <div className={`tape-slot ${clip ? "is-clip" : ""} ${flipped ? "is-flipped" : ""}`}>
       <button type="button" onPointerDown={(e) => onGrab(v, e)} onClick={() => onPick(v)}
         aria-label={`Put in the VCR: ${tagText(tag)} ${v.title}`} className="tape-btn" disabled={inDeck}>
         <span className={`vhs vhs-body ${inDeck ? "is-out" : ""} ${lifted ? "is-lifted" : ""}`}>
           <TapeFace v={v} tag={tag} />
         </span>
         <Sleeve v={v} tag={tag} empty={inDeck} />
+      </button>
+      <SleeveBack v={v} tag={tag} open={flipped} onClose={() => { sfx.click(); setFlipped(false); }} />
+      <button type="button" className="sleeve-flip" aria-pressed={flipped}
+        aria-label={flipped ? `Show the front of ${tagText(tag)}` : `Read the back of ${tagText(tag)}`}
+        onClick={() => { sfx.click(); setFlipped((x) => !x); }}>
+        <RotateCw size={14} />
       </button>
     </div>
   );
@@ -185,14 +216,12 @@ function Shelf({ title, label, items, tags, current, lifted, onPick, onGrab }: {
 }) {
   if (!items.length) return null;
   return (
-    <section className="mb-14 md:mb-20">
-      <p className="eyebrow mb-2 text-center">{label}</p>
-      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6 text-center">{title}</h2>
+    <section className="compartment">
+      <h2 className="plate"><span className="plate-label">{label}</span>{title}</h2>
       <div className="shelf">
         <div className="shelf-row">
           {items.map((v) => <Tape key={v.id} v={v} tag={tags.get(v.id)} inDeck={current?.id === v.id} lifted={lifted === v.id} onPick={onPick} onGrab={onGrab} />)}
         </div>
-        <div className="shelf-plank" aria-hidden="true" />
       </div>
     </section>
   );
@@ -229,14 +258,26 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
 
   const say = (text: string) => { setFlash(text); later(() => setFlash(null), 1600); };
 
+  // Sound on/off (remembered in this browser); read after mount so server and browser agree
+  const [soundOn, setSoundOn] = useState(true);
+  useEffect(() => { const t = window.setTimeout(() => setSoundOn(!isMuted()), 0); return () => window.clearTimeout(t); }, []);
+  const toggleSound = () => { const on = !soundOn; setMuted(!on); setSoundOn(on); if (on) sfx.click(); };
+
+  // A moment of VHS tracking wobble whenever a tape starts playing
+  const [tracking, setTracking] = useState(false);
+  const trackIn = () => { setTracking(true); later(() => setTracking(false), 1400); };
+  const lastChirp = useRef(0);
+  const chirp = (forward: boolean) => { const now = Date.now(); if (now - lastChirp.current > 220) { lastChirp.current = now; sfx.search(forward); } };
+
   // Turn the player on (tape plays)
   const start = useCallback(() => {
     if (!current) return;
+    sfx.click();
     if (!current.embeddable) { window.open(watchUrl(current), "_blank", "noopener,noreferrer"); return; }
     yt.reset();
-    setPhase("on");
+    setPhase("on"); trackIn();
     setFlash("PLAY ▶"); later(() => setFlash(null), 2200);
-  }, [current, yt]);
+  }, [current, yt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tape from the shelf: into the VCR slot, static, then play
   const pick = useCallback((v: ChannelVideo) => {
@@ -249,30 +290,36 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
     const fast = reducedMotion();
     setCurrent(v); yt.reset();
     setPhase("loading"); setSlot("inserting");
+    sfx.insert();
+    later(() => sfx.static(650), fast ? 0 : 1050);
     later(() => setSlot(""), fast ? 0 : 1100);
     later(() => {
       if (!v.embeddable) { setPhase("stopped"); return; }
-      setPhase("on"); setFlash("PLAY ▶"); later(() => setFlash(null), 2200);
+      setPhase("on"); trackIn(); setFlash("PLAY ▶"); later(() => setFlash(null), 2200);
     }, fast ? 0 : 1700);
-  }, [yt]);
+  }, [yt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playPause = () => {
     if (phase === "stopped") return start();
     if (phase !== "on") return;
+    sfx.click();
     if (yt.state === 1 || yt.state === 3) { yt.cmd("pauseVideo"); say("❚❚ PAUSE"); }
     else { yt.cmd("playVideo"); say("PLAY ▶"); }
   };
   const seek = (d: number) => {
     if (phase !== "on" || isLive) return;
+    sfx.click(); sfx.search(d > 0);
     yt.cmd("seekTo", [Math.max(0, yt.time + d), true]);
     say(d < 0 ? "◀◀ REW" : "FF ▶▶");
   };
   const stop = () => {
     if (phase !== "on") return;
+    sfx.click();
     clearTimers(); yt.reset(); setPhase("stopped"); say("STOP ■");
   };
   const eject = () => {
     if (!current) return;
+    sfx.click(); sfx.eject();
     clearTimers(); yt.reset();
     setPhase("loading"); setSlot("ejecting"); setFlash("EJECT ⏏");
     later(() => { setSlot(""); setCurrent(null); setPhase("empty"); setFlash(null); }, reducedMotion() ? 0 : 900);
@@ -377,6 +424,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   const scrubTo = (t: number) => {
     const next = Math.min(Math.max(0, t), yt.duration);
     setFlash(next >= shownTime ? "SEARCH ▶▶" : "◀◀ SEARCH");
+    chirp(next >= shownTime);
     setScrub(next);
     yt.cmd("seekTo", [next, false]); // preview while dragging
   };
@@ -400,6 +448,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
       const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
       const t = Math.min(Math.max(0, s.time + (delta > 0 ? 5 : -5)), s.duration);
       setFlash(delta > 0 ? "SEARCH ▶▶" : "◀◀ SEARCH");
+      sfx.search(delta > 0);
       setScrub(t);
       wheelState.current.time = t;
       clearTimeout(idle);
@@ -416,11 +465,38 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   const osdLeft = flash ?? (phase === "empty" ? "NO TAPE" : isLive && phase === "on" ? "● LIVE" : phase === "loading" ? "TRACKING" : phase === "stopped" ? "STOP ■" : paused ? "❚❚ PAUSE" : "PLAY ▶");
   const showOsd = flash !== null || phase !== "on" || paused;
   const vertical = current?.kind === "short";
+  const searching = scrub !== null || (flash !== null && /REW|FF|SEARCH/.test(flash));
 
   return (
     <>
       <ScrollReveal className="mb-16 md:mb-24">
-        <div className="flex flex-col items-center gap-10 md:gap-12">
+        {/* ── The room: lamp on the wall, TV on a media console that holds the tapes ── */}
+        <div className="room">
+          <div className="room-lamp" aria-hidden="true" />
+          {/* ── Now playing ── */}
+          <div className="now-card">
+            <p className="eyebrow mb-2">{isLive ? "Live Now" : phase === "empty" ? "VCR Empty" : `In the VCR${tags.get(current?.id ?? "") ? ` · ${tagText(tags.get(current?.id ?? ""))}` : ""}`}</p>
+            <h2 className="text-xl md:text-3xl font-black text-white tracking-tight leading-[1.15]">
+              {phase === "empty" || !current ? "Pick a tape off the shelf." : isLive ? "Live from the studio" : current.title}
+            </h2>
+            {current && phase !== "empty" && (current.published || current.views != null) && (
+              <p className={`${vcr.className} mt-2 text-lg tracking-wider`} style={{ color: "var(--fire-light)" }}>
+                {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}
+              </p>
+            )}
+            <div className="flex flex-wrap justify-center gap-3 mt-5">
+              {current && phase === "stopped" && current.embeddable && (
+                <button type="button" onClick={start} data-magnetic className="btn-gold inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
+                  <Play size={16} fill="currentColor" /> Play Tape
+                </button>
+              )}
+              {current && phase !== "empty" && (
+                <a href={watchUrl(current)} target="_blank" rel="noopener noreferrer" data-magnetic className="btn-outline inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
+                  {isLive ? "Join the chat on YouTube" : "Watch on YouTube"} <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+          </div>
           {/* ── TV on top of the VCR ── */}
           <div ref={tvRef} className="relative w-full max-w-[760px]">
             {current && (
@@ -435,7 +511,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
             <div className="combo" data-tilt="">
             <div className="tv">
               <div className="tv-bezel">
-                <div className="tv-screen">
+                <div className={`tv-screen ${searching ? "is-searching" : ""} ${tracking ? "is-tracking" : ""}`}>
                   {current && phase !== "on" && phase !== "empty" && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={poster(current)} alt="" className={`absolute inset-0 w-full h-full ${vertical ? "object-contain" : "object-cover"} tv-picture`} />
@@ -466,6 +542,8 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                   {current?.published && phase !== "empty" && (
                     <div className={`${vcr.className} tv-stamp`} style={{ opacity: showOsd ? 1 : 0 }}>{stampDate(current.published)}</div>
                   )}
+                  {/* VHS tracking: a rolling noise band + jitter while searching or when a tape starts */}
+                  <div className="vhs-fx" aria-hidden="true"><span className="vhs-band" /><span className="vhs-band b2" /></div>
                   <div className="tv-glass" aria-hidden="true" />
                 </div>
               </div>
@@ -474,6 +552,10 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 <span className="tv-grille" aria-hidden="true" />
                 <span className="tv-badge">LUCHIVISION</span>
                 <span className="flex items-center gap-3">
+                  <button type="button" onClick={toggleSound} className="tv-sound" aria-pressed={soundOn}
+                    aria-label={soundOn ? "Turn VCR sound effects off" : "Turn VCR sound effects on"} title={soundOn ? "Sound effects on" : "Sound effects off"}>
+                    {soundOn ? <Volume2 size={13} /> : <VolumeX size={13} />}
+                  </button>
                   <span className={`tv-led ${phase === "on" ? "is-on" : ""}`} aria-hidden="true" />
                   <span className="tv-power" aria-hidden="true" />
                 </span>
@@ -529,37 +611,19 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
             </div>
           </div>
 
-          {/* ── Now playing ── */}
-          <div className="text-center max-w-2xl">
-            <p className="eyebrow mb-3">{isLive ? "Live Now" : phase === "empty" ? "VCR Empty" : `In the VCR${tags.get(current?.id ?? "") ? ` · ${tagText(tags.get(current?.id ?? ""))}` : ""}`}</p>
-            <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight leading-[1.1]">
-              {phase === "empty" || !current ? "Pick a tape off the shelf." : isLive ? "Live from the studio" : current.title}
-            </h2>
-            {current && phase !== "empty" && (current.published || current.views != null) && (
-              <p className={`${vcr.className} mt-3 text-xl tracking-wider`} style={{ color: "var(--fire-light)" }}>
-                {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}
-              </p>
-            )}
-            <div className="flex flex-wrap justify-center gap-3 mt-7">
-              {current && phase === "stopped" && current.embeddable && (
-                <button type="button" onClick={start} data-magnetic className="btn-gold inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
-                  <Play size={16} fill="currentColor" /> Play Tape
-                </button>
-              )}
-              {current && phase !== "empty" && (
-                <a href={watchUrl(current)} target="_blank" rel="noopener noreferrer" data-magnetic className="btn-outline inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
-                  {isLive ? "Join the chat on YouTube" : "Watch on YouTube"} <ExternalLink size={14} />
-                </a>
-              )}
+          {/* ── Media console: the tapes live in its compartments ── */}
+          <div className="console">
+            <div className="console-top" aria-hidden="true" />
+            <div className="console-body">
+              <Shelf label="Replays" title="Episodes" items={streams} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+              <Shelf label="Shorts" title="Studio Clips" items={shorts} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+              <Shelf label="On the Channel" title="More Tapes" items={videos} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
             </div>
-            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Grab a tape off the shelf and drop it in the VCR. Drag the search bar (or scroll on it) to move through the tape.</p>
+            <div className="console-feet" aria-hidden="true"><span /><span /></div>
           </div>
+          <p className="room-hint">Grab a tape and drop it in the VCR · Drag the search bar to move through the tape · Flip a cover <RotateCw size={12} className="inline -mt-0.5" /> to read the back</p>
         </div>
       </ScrollReveal>
-
-      <Shelf label="Replays" title="The Tape Wall" items={streams} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
-      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
-      <Shelf label="On the Channel" title="More Tapes" items={videos} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
 
       {/* The tape in your hand */}
       {drag && createPortal(
