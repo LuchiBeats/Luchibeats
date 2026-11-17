@@ -431,7 +431,9 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
             )}
 
             <div className={`drop-glow ${drag ? "is-on" : ""} ${over ? "is-over" : ""}`} aria-hidden="true" />
-            <div className="tv" data-tilt="">
+            {/* ── One cabinet: TV on top, VCR deck built into the base ── */}
+            <div className="combo" data-tilt="">
+            <div className="tv">
               <div className="tv-bezel">
                 <div className="tv-screen">
                   {current && phase !== "on" && phase !== "empty" && (
@@ -478,13 +480,9 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
               </div>
             </div>
 
-            {/* ── VCR ── */}
+            {/* ── VCR deck (built in) ── */}
             <div className="vcr">
               <div className="vcr-row">
-                <div className="vcr-left">
-                  <span className="vcr-brand">LUCHIVISION</span>
-                  <span className="vcr-sub">VIDEO CASSETTE RECORDER</span>
-                </div>
                 {/* Cassette slot with its spring flap */}
                 <div ref={slotRef} className={`vcr-slot ${slot ? `is-${slot}` : ""} ${current && phase !== "empty" && !slot && !drag ? "is-loaded" : ""} ${drag ? "is-target" : ""} ${over ? "is-over" : ""}`}>
                   {current && !drag && (
@@ -526,6 +524,8 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 <Key label="■" title="Stop" name="Stop" onClick={stop} disabled={phase !== "on"} />
                 <Key label="▶▶" title="Fast forward 10 seconds" name="FF" onClick={() => seek(10)} disabled={phase !== "on" || isLive} />
               </div>
+            </div>
+            <span className="combo-model" aria-hidden="true">TV · VCR COMBO</span>
             </div>
           </div>
 
