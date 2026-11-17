@@ -1030,3 +1030,11 @@ html.is-dragging-tape, html.is-dragging-tape * { cursor: grabbing !important; us
 .tv-sound { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   color: rgba(255,255,255,0.5); background: linear-gradient(#2c2b28, #191816); box-shadow: 0 2px 3px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12); transition: color 0.2s; }
 .tv-sound:hover, .tv-sound[aria-pressed="true"] { color: var(--fire-light); }
+
+/* Back cover: keep the description out of the info line, and leave room for the flip button */
+.sleeve-back-desc { min-height: 0; }
+.sleeve-back-meta { padding-right: 32px; }
+.sleeve-back-meta > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sleeve-back-meta .sleeve-barcode { display: none; }
+@media (min-width: 900px) { .sleeve-back-meta { padding-right: 0; } .tape-slot:not(.is-clip) .sleeve-back-meta .sleeve-barcode { display: block; margin-right: 32px; } }
+@media (max-width: 640px) { .sleeve-back-desc { -webkit-line-clamp: 2; } .sleeve-back { gap: 3px; } }
