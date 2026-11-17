@@ -22,9 +22,9 @@ const embedSrc = (id: string) =>
   `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 
 const shortDate = (iso?: string) =>
-  iso ? new Date(iso).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).replace(/\//g, "·") : "";
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit", timeZone: "America/New_York" }).replace(/\//g, "·") : "";
 const stampDate = (iso?: string) =>
-  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase().replace(",", "") : "";
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric", timeZone: "America/New_York" }).toUpperCase().replace(",", "") : "";
 const counter = (s: number) => {
   const t = Math.max(0, Math.floor(s));
   return `${Math.floor(t / 3600)}:${String(Math.floor((t % 3600) / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
@@ -179,7 +179,7 @@ function SleeveBack({ v, tag, open, onClose }: { v: ChannelVideo; tag?: Tag; ope
       <span className="sleeve-back-title">{v.title}</span>
       <span className="sleeve-back-desc">{desc || "Straight from the studio. Pop it in the VCR to watch."}</span>
       <span className="sleeve-back-meta">
-        <span className={vcr.className}>{[runTime(v.length), stampDate(v.published), v.views != null ? `${v.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}</span>
+        <span className={vcr.className}>{[runTime(v.length), stampDate(v.published), v.views != null ? `${v.views.toLocaleString("en-US")} VIEWS` : null].filter(Boolean).join("  ·  ")}</span>
         <span className="sleeve-barcode" aria-hidden="true" />
       </span>
     </div>
@@ -481,7 +481,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
             </h2>
             {current && phase !== "empty" && (current.published || current.views != null) && (
               <p className={`${vcr.className} mt-2 text-lg tracking-wider`} style={{ color: "var(--fire-light)" }}>
-                {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}
+                {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString("en-US")} VIEWS` : null].filter(Boolean).join("  ·  ")}
               </p>
             )}
             <div className="flex flex-wrap justify-center gap-3 mt-5">
