@@ -7,6 +7,7 @@ import ScrollStory, { type StoryBlock } from "@/components/ScrollStory";
 import StudioGallery from "@/components/StudioGallery";
 import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
+import { ScrambleWords } from "@/components/ContactFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
 // Stats come from the admin Homepage tab so About and the homepage always show the same numbers
@@ -78,7 +79,7 @@ export default async function AboutPage() {
 
     {/* Closing call to action */}
     <ScrollReveal className="max-w-3xl mx-auto px-4 pt-6 pb-4 text-center">
-      <h2 className="section-title mb-5">Let&apos;s make the record.</h2>
+      <h2 className="section-title mb-5">Let&apos;s make<br /><ScrambleWords words={["a hit.", "a record.", "history.", "noise.", "magic."]} /></h2>
       <p className="md:text-lg mb-8" style={{ color: "rgba(255,255,255,0.65)" }}>
         Custom beats, recording, mixing and mastering. Tell me what you&apos;re working on.
       </p>
