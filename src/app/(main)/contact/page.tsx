@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Send, Check, ArrowUpRight, Clock } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import HomeFX from "@/components/HomeFX";
-import { Embers, Vinyl, TypingWave, ScrambleWords, pulse } from "@/components/ContactFX";
+import { Embers, TypingWave, ScrambleWords, pulse } from "@/components/ContactFX";
 
 const HEADLINE_WORDS = ["a hit.", "a record.", "history.", "noise.", "magic."];
 
@@ -232,16 +232,6 @@ Release plans:`);
         </form>
         </ScrollReveal>
       )}
-      </div>
-
-      {/* ── Record: speeds up as you type, races when you send ── */}
-      <div className="mt-12 md:mt-14 flex flex-col items-center text-center">
-        <Vinyl className="w-40 h-40 md:w-52 md:h-52" />
-        <p className="eyebrow mt-6 mb-2">Now Spinning</p>
-        <p className="text-xl md:text-2xl font-black text-white leading-tight transition-all duration-300">
-          {sent ? "Sent. Talk soon." : topics.length ? topics.join(" + ") : "Your next record"}
-        </p>
-        <p className="text-sm mt-2" style={{ color: "var(--muted)" }}>{sent ? "Your message is in the mix." : "Start typing. Watch it spin."}</p>
       </div>
 
       {/* ── Socials ── */}
