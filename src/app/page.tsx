@@ -86,6 +86,9 @@ export default async function HomePage() {
 
       {/* Page navigation tabs */}
       <div className="relative z-10" style={{ background: "var(--bg)" }}>
+        <p className="eyebrow text-center pt-2 md:pt-0 px-2 text-[10px] sm:text-xs md:text-sm tracking-[0.2em] sm:tracking-[0.35em] whitespace-nowrap">
+          Producer <span className="opacity-50 mx-1 md:mx-2">·</span> Engineer <span className="opacity-50 mx-1 md:mx-2">·</span> Paterson, NJ
+        </p>
         <div className="grid grid-cols-3 gap-2 px-3 py-5 sm:gap-3 md:flex md:justify-center md:gap-4 md:py-6 max-w-5xl mx-auto">
           {[
             { href: "/live",       label: "Luchi Beats Live", short: "Live", icon: Radio },

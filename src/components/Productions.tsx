@@ -92,7 +92,7 @@ export default function Productions({ videos: videosProp }: { videos?: Productio
   };
 
   return (
-    <section className="relative py-16 md:py-28 overflow-hidden">
+    <section className="relative py-14 md:py-20 overflow-hidden">
       <div className="orb orb-1 w-[600px] h-[600px] top-0 left-1/2 -translate-x-1/2" style={{ background: "rgba(201,168,76,0.05)" }} />
 
       <div className="max-w-6xl mx-auto px-4">

@@ -31,11 +31,11 @@ export default function ArtistsWorkedWith() {
   const rafRef = useRef<number>(0);
   const pausedRef = useRef(false);
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 480;
-  const avatarSize = isMobile ? 90 : 120;
-  const itemWidth  = isMobile ? 104 : 132;
-  const itemGap    = isMobile ? 36 : 56;
-  const fontSize   = isMobile ? 13 : 15;
+  // Sizes scale with the screen in CSS, so the server and the phone agree (no hydration mismatch)
+  const avatarSize = "clamp(92px, 10.5vw, 150px)";
+  const itemWidth  = "clamp(106px, 11.5vw, 164px)";
+  const itemGap    = "clamp(26px, 3.4vw, 48px)";
+  const fontSize   = "clamp(13px, 1.05vw, 15px)";
 
   useEffect(() => {
     const track = trackRef.current!;
@@ -68,16 +68,16 @@ export default function ArtistsWorkedWith() {
         style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.06) 0%, transparent 70%)" }}
       />
 
-      <ScrollReveal className="text-center mb-6 px-4">
-        <p className="text-xs tracking-[0.35em] mb-2" style={{ color: "var(--fire)" }}>THE PORTFOLIO</p>
-        <h2 className="section-title">Portfolio Artists Include</h2>
+      <ScrollReveal className="text-center mb-10 md:mb-12 px-4">
+        <p className="eyebrow mb-3">The Portfolio</p>
+        <h2 className="section-title">Artists I&apos;ve Worked With</h2>
       </ScrollReveal>
 
       {/* Viewport: capped so fewer than 14 artists are ever visible at once */}
       <div
         className="relative overflow-hidden mx-auto"
         style={{
-          maxWidth: "1000px",
+          maxWidth: "1200px",
           maskImage: "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%)",
         }}
@@ -88,7 +88,7 @@ export default function ArtistsWorkedWith() {
           ref={trackRef}
           style={{
             display: "flex",
-            gap: `${itemGap}px`,
+            gap: `${itemGap}`,
             width: "max-content",
             willChange: "transform",
           }}
@@ -102,17 +102,17 @@ export default function ArtistsWorkedWith() {
                 alignItems: "center",
                 gap: "10px",
                 flexShrink: 0,
-                width: `${itemWidth}px`,
+                width: `${itemWidth}`,
               }}
             >
               <div
                 style={{
-                  width: `${avatarSize}px`,
-                  height: `${avatarSize}px`,
+                  width: `${avatarSize}`,
+                  height: `${avatarSize}`,
                   borderRadius: "50%",
                   overflow: "hidden",
-                  background: "#fff",
-                  border: "2px solid #C9A84C",
+                  background: "#111",
+                  border: "1.5px solid rgba(201,168,76,0.7)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -120,7 +120,7 @@ export default function ArtistsWorkedWith() {
                   fontWeight: 900,
                   color: "#C9A84C",
                   flexShrink: 0,
-                  boxShadow: "0 0 10px rgba(201,168,76,0.25)",
+                  boxShadow: "0 0 0 5px rgba(201,168,76,0.06), 0 10px 30px rgba(0,0,0,0.6)",
                 }}
               >
                 {artist.image ? (
@@ -135,7 +135,7 @@ export default function ArtistsWorkedWith() {
               </div>
               <p
                 style={{
-                  fontSize: `${fontSize}px`,
+                  fontSize: `${fontSize}`,
                   fontWeight: 700,
                   color: "rgba(255,255,255,0.9)",
                   whiteSpace: "nowrap",
