@@ -75,10 +75,6 @@ export default function Footer() {
           <p className="text-xs" style={{ color: "var(--muted)" }}>© {new Date().getFullYear()} LuchiBeats. All rights reserved.</p>
           <p className="text-xs" style={{ color: "var(--muted)" }}>luchibeats.com</p>
         </div>
-        {/* Fine print */}
-        <p className="mt-6 text-center text-[10px] leading-relaxed" style={{ color: "rgba(255,255,255,0.28)" }}>
-          Chris is the boss and everything I get belongs to him. <span className="italic">— Signed, Luchi</span>
-        </p>
       </div>
     </footer>
   );
