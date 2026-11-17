@@ -10,7 +10,6 @@ import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
 import ServicesShowcase from "@/components/ServicesShowcase";
-import BeatPad from "@/components/BeatPad";
 import HomeFX from "@/components/HomeFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
@@ -161,9 +160,6 @@ export default async function HomePage() {
 
       {/* Productions */}
       <Productions videos={hp.productions} />
-
-      {/* Playable drum machine */}
-      <BeatPad />
 
       {/* Testimonials */}
       <Testimonials />
