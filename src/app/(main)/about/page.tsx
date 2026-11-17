@@ -43,7 +43,7 @@ export default function AboutPage() {
         <h1 className="about-hero-name">Luchi Beats</h1>
         <p className="about-hero-role">Producer <span>·</span> Engineer</p>
         <p className="about-hero-place">Paterson, NJ</p>
-        <a href="#story" className="about-hero-cue" aria-label="Read the story"><ChevronDown size={22} /></a>
+        <a href="#story" className="about-hero-cue p-2" aria-label="Read the story"><ChevronDown size={22} /></a>
       </div>
     </section>
 

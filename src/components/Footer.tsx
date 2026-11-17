@@ -38,9 +38,9 @@ export default function Footer() {
           </div>
           <div>
             <p className="text-sm font-semibold text-white mb-3 tracking-wide">NAVIGATE</p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-0.5">
               {[["Home", "/"], ["Luchi Beats Live", "/live"], ["About", "/about"], ["Press Kit", "/press"], ["Contact", "/contact"]].map(([label, href]) => (
-                <Link key={href} href={href} className="text-sm hover:text-white transition-colors" style={{ color: "var(--muted)" }}>{label}</Link>
+                <Link key={href} href={href} className="text-sm py-1 hover:text-white transition-colors" style={{ color: "var(--muted)" }}>{label}</Link>
               ))}
             </div>
           </div>
@@ -48,17 +48,17 @@ export default function Footer() {
             <p className="text-sm font-semibold text-white mb-3 tracking-wide">CONNECT</p>
             <div className="flex gap-5 items-center">
               <a href="https://www.instagram.com/luchi_beats" target="_blank" rel="noopener noreferrer"
-                className="transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
+                className="p-2 -m-2 transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
                 aria-label="Instagram @luchi_beats">
                 <InstagramIcon />
               </a>
               <a href="https://www.youtube.com/@LuchiBeats?sub_confirmation=1" target="_blank" rel="noopener noreferrer"
-                className="transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
+                className="p-2 -m-2 transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
                 aria-label="YouTube @LuchiBeats">
                 <YouTubeIcon />
               </a>
               <a href="https://kick.com/luchibeats" target="_blank" rel="noopener noreferrer"
-                className="transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
+                className="p-2 -m-2 transition-colors hover:text-yellow-400" style={{ color: "var(--muted)" }}
                 aria-label="Kick @luchibeats">
                 <KickIcon />
               </a>

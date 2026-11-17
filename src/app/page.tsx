@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Phone, Info, ArrowRight, Radio } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
-import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
@@ -93,6 +92,7 @@ export default async function HomePage() {
 
       {/* Page navigation tabs */}
       <div className="relative z-10">
+        <h1 className="sr-only">Luchi Beats — Producer and Engineer, Paterson, New Jersey</h1>
         <p className="eyebrow text-center pt-2 md:pt-0 px-2 text-[10px] sm:text-xs md:text-sm tracking-[0.2em] sm:tracking-[0.35em] whitespace-nowrap">
           Producer <span className="opacity-50 mx-1 md:mx-2">·</span> Engineer <span className="opacity-50 mx-1 md:mx-2">·</span> Paterson, NJ
         </p>
@@ -153,9 +153,6 @@ export default async function HomePage() {
 
       {/* Before / after mix (appears once the two audio files are uploaded) */}
       <MixCompare />
-
-      {/* Testimonials */}
-      <Testimonials />
 
       {/* Email Capture */}
       <EmailCapture
