@@ -1054,7 +1054,7 @@ html.is-dragging-tape, html.is-dragging-tape * { cursor: grabbing !important; us
           mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 52%, transparent 94%), linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
           mask-composite: intersect; }
 .about-hero-text { position: relative; z-index: 2; text-align: center; padding: 0 16px 26px; }
-.about-hero-name { font-size: clamp(72px, 12vw, 160px); font-weight: 900; letter-spacing: -0.045em; line-height: 0.85; color: #fff; text-shadow: 0 8px 50px rgba(0,0,0,0.85); }
+.about-hero-name { font-size: clamp(50px, 11vw, 150px); font-weight: 900; letter-spacing: -0.045em; line-height: 0.85; color: #fff; text-shadow: 0 8px 50px rgba(0,0,0,0.85); }
 .about-hero-role { margin-top: 14px; font-size: clamp(11px, 1.3vw, 15px); font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.8); text-shadow: 0 2px 12px #000; }
 .about-hero-role span { color: var(--gold); margin: 0 0.4em; }
 .about-hero-cue { display: inline-flex; margin-top: 18px; color: var(--fire-light); animation: cueBob 2.2s ease-in-out infinite; }
