@@ -66,6 +66,20 @@ export default function HomeFX() {
       window.addEventListener("pointermove", onMove, { passive: true });
       cleanups.push(() => { window.removeEventListener("pointermove", onMove); cancelAnimationFrame(raf); });
 
+      // Tilt: elements marked data-tilt lean toward the cursor in 3D
+      document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((t) => {
+        t.style.transition = "transform 0.5s cubic-bezier(.2,.8,.2,1)";
+        const move = (e: PointerEvent) => {
+          const r = t.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
+          t.style.transform = `perspective(1200px) rotateY(${px * 6}deg) rotateX(${-py * 6}deg) scale(1.01)`;
+        };
+        const leave = () => { t.style.transform = ""; };
+        t.addEventListener("pointermove", move);
+        t.addEventListener("pointerleave", leave);
+        cleanups.push(() => { t.removeEventListener("pointermove", move); t.removeEventListener("pointerleave", leave); });
+      });
+
       // Magnetic buttons
       document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((b) => {
         b.style.transition = "transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.2s, background 0.2s, color 0.2s";

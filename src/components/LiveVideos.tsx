@@ -38,7 +38,7 @@ function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: Channe
       <div className="absolute inset-0" style={{ background: big
         ? "linear-gradient(to top, rgba(10,10,10,0.92), rgba(10,10,10,0.25) 45%, transparent 70%), linear-gradient(to right, rgba(10,10,10,0.5), transparent 55%)"
         : "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.05) 55%)" }} />
-      <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${big ? "w-20 h-20 md:w-24 md:h-24" : "w-14 h-14"}`}
+      <span className={`play-btn absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${big ? "w-20 h-20 md:w-24 md:h-24" : "w-14 h-14"}`}
         style={{ background: "linear-gradient(135deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: "0 0 30px rgba(201,168,76,0.45)" }}>
         <Play size={big ? 36 : 22} fill="#000" color="#000" className="ml-1" />
       </span>
@@ -52,10 +52,18 @@ function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: Channe
   );
   const cls = `group relative block w-full overflow-hidden rounded-lg ${vertical ? "aspect-[9/16]" : "aspect-video"}`;
   const style = { background: "#000", boxShadow: "0 20px 50px rgba(0,0,0,0.55)" };
-  return v.embeddable ? (
+  const link = v.embeddable ? (
     <button type="button" onClick={() => onPlay(v)} className={cls} style={style} aria-label={`Play ${v.title}`}>{inner}</button>
   ) : (
     <a href={watchUrl(v)} target="_blank" rel="noopener noreferrer" className={cls} style={style} aria-label={`Watch ${v.title} on YouTube`}>{inner}</a>
+  );
+  // Ambient glow: a blurred copy of the thumbnail lights up the page around the video
+  return (
+    <div className={`thumb-wrap relative ${big ? "is-big" : ""}`} data-tilt={big ? "" : undefined}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={thumbFor(v, false)} alt="" aria-hidden="true" loading="lazy" className="ambi absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none" />
+      {link}
+    </div>
   );
 }
 
