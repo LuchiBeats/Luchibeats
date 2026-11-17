@@ -911,3 +911,9 @@ html.is-dragging-tape, html.is-dragging-tape * { cursor: grabbing !important; us
 .combo-model { position: absolute; right: clamp(18px, 2.6vw, 30px); bottom: 5px; font-size: 7px; font-weight: 800; letter-spacing: 0.35em; color: rgba(255,255,255,0.28); }
 .combo::after { content: ""; position: absolute; left: 8%; right: 8%; bottom: -7px; height: 8px; pointer-events: none;
   background: radial-gradient(closest-side, #070707 70%, transparent) left / 64px 8px no-repeat, radial-gradient(closest-side, #070707 70%, transparent) right / 64px 8px no-repeat; }
+
+/* Badge dead center on the TV's lower panel: grille left, badge middle, power right */
+.tv-front { display: grid; grid-template-columns: 1fr auto 1fr; }
+.tv-front .tv-grille { width: 70%; justify-self: start; }
+.tv-front .tv-badge { justify-self: center; text-align: center; padding-left: 0.38em; }
+.tv-front > :last-child { justify-self: end; }
