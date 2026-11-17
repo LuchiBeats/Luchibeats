@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import LiveBadge from "./LiveBadge";
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/live", label: "Luchi Beats Live" },
   { href: "/about", label: "About" },
+  { href: "/press", label: "Press" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -43,6 +45,7 @@ export default function Navbar() {
                 style={active ? { background: "linear-gradient(90deg, var(--fire-red), var(--fire), var(--fire-light))", boxShadow: "0 0 18px rgba(201,168,76,0.35)" } : undefined}
               >
                 {l.label}
+                {l.href === "/live" && <LiveBadge className="ml-2" />}
               </Link>
             );
           })}
@@ -72,6 +75,7 @@ export default function Navbar() {
                 )}
                 style={active ? { background: "linear-gradient(90deg, var(--fire-red), var(--fire), var(--fire-light))" } : undefined}>
                 {l.label}
+                {l.href === "/live" && <LiveBadge className="ml-2" />}
               </Link>
             );
           })}

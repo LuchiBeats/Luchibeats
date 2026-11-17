@@ -39,7 +39,7 @@ export default function Footer() {
           <div>
             <p className="text-sm font-semibold text-white mb-3 tracking-wide">NAVIGATE</p>
             <div className="flex flex-col gap-2">
-              {[["Home", "/"], ["Luchi Beats Live", "/live"], ["About", "/about"], ["Contact", "/contact"]].map(([label, href]) => (
+              {[["Home", "/"], ["Luchi Beats Live", "/live"], ["About", "/about"], ["Press Kit", "/press"], ["Contact", "/contact"]].map(([label, href]) => (
                 <Link key={href} href={href} className="text-sm hover:text-white transition-colors" style={{ color: "var(--muted)" }}>{label}</Link>
               ))}
             </div>

@@ -10,6 +10,7 @@ import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
 import StudioScene from "@/components/StudioScene";
 import HomeFX from "@/components/HomeFX";
+import LiveBadge from "@/components/LiveBadge";
 import MixCompare from "@/components/MixCompare";
 import { getHomepageContent } from "@/lib/beats-store";
 
@@ -109,6 +110,7 @@ export default async function HomePage() {
             >
               <Icon size={18} />
               {short ? (<><span className="sm:hidden">{short}</span><span className="hidden sm:inline">{label}</span></>) : label}
+              {href === "/live" && <LiveBadge />}
             </Link>
           ))}
         </div>

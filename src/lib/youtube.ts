@@ -110,7 +110,7 @@ async function getWatchInfo(id: string): Promise<{ wasLive: boolean; upcoming: b
 }
 
 // The channel's /live URL resolves to the current broadcast when one is running.
-async function getLiveNowId(): Promise<string | null> {
+export async function getLiveNowId(): Promise<string | null> {
   const html = await getText(`${YT_CHANNEL_URL}/live`);
   if (!html || !/"isLiveNow":true/.test(html)) return null;
   return html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/)?.[1] ?? null;
