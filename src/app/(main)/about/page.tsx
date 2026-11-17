@@ -5,7 +5,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
 import ScrollStory, { type StoryBlock } from "@/components/ScrollStory";
 import StudioGallery from "@/components/StudioGallery";
-import ArtistRoll from "@/components/ArtistRoll";
+import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
@@ -20,11 +20,6 @@ const STORY: StoryBlock[] = [
   [{ text: "What separates him isn't pedigree — it's presence. Every session gets the same focus, the same intensity, whether it's an independent artist finding their voice or an established name chasing something they haven't caught yet. Calm King Causey, one of New Jersey's most respected voices, put it this way:" }],
   { quote: "Luchi is one of the best engineers I have ever worked with. His production is very diverse and efficient — a master of sound, and the producer/engineer you need in your corner.", by: "Calm King Causey" },
   { punch: "That's not praise. That's a track record." },
-];
-
-const SERVICES = [
-  { title: "Beat Production", text: "Trap, R&B, Hip-Hop, Afrobeats, and more. Custom production built around your sound, from the first idea to the final mix." },
-  { title: "Recording, Mixing & Mastering", text: "Vocal recording, mixing and mastering from someone who knows the record from the inside out — radio-ready and true to your sound." },
 ];
 
 export default async function AboutPage() {
@@ -66,32 +61,15 @@ export default async function AboutPage() {
         <StudioGallery />
       </div>
 
-      {/* ── Every artist: hover a name to see them ── */}
-      <section className="mb-20 md:mb-28 text-center">
+      {/* ── Every artist, photo and name ── */}
+      <section className="mb-12 md:mb-16 text-center">
         <ScrollReveal>
-          <p className="eyebrow mb-3">Worked With</p>
-          <h2 className="section-title mb-8 md:mb-12">In the Room With</h2>
+          <p className="eyebrow mb-3">The Portfolio</p>
+          <h2 className="section-title mb-8 md:mb-12">Worked in the Room With</h2>
         </ScrollReveal>
-        <ArtistRoll />
+        <ArtistGrid />
       </section>
 
-      {/* ── What I Offer ── */}
-      <section className="mb-10 md:mb-14">
-        <ScrollReveal className="text-center">
-          <p className="eyebrow mb-3">Services</p>
-          <h2 className="section-title mb-10 md:mb-14">What I Offer</h2>
-        </ScrollReveal>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-0 max-w-4xl mx-auto">
-          {SERVICES.map(({ title, text }, i) => (
-            <ScrollReveal key={title} delay={i * 0.12} className={`offer ${i === 1 ? "md:border-l" : ""}`}>
-              <p className="text-6xl md:text-7xl font-black gold-gradient leading-none mb-4 tabular-nums">0{i + 1}</p>
-              <div className="h-px w-16 mx-auto mb-5" style={{ background: "linear-gradient(90deg, transparent, var(--gold), transparent)" }} />
-              <h3 className="text-xl md:text-2xl font-bold text-white mb-3">{title}</h3>
-              <p className="leading-relaxed max-w-sm mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>{text}</p>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
     </div>
 
     {/* Same numbers as the homepage */}
