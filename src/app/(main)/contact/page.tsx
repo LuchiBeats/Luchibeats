@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import Image from "next/image";
 import { Send, Check, ArrowUpRight, Clock } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import HomeFX from "@/components/HomeFX";
+import { Embers, Vinyl, TypingWave, ScrambleWords, pulse } from "@/components/ContactFX";
+
+const HEADLINE_WORDS = ["a hit.", "a record.", "history.", "noise.", "magic."];
 
 const SOCIALS = [
   { label: "Instagram", handle: "@luchi_beats", href: "https://www.instagram.com/luchi_beats" },
@@ -86,7 +88,7 @@ Artist name / links:
 Release plans:`);
   }, []);
 
-  const toggleTopic = (t: string) => setTopics((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  const toggleTopic = (t: string) => { pulse(3); setTopics((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t])); };
   const hint = TOPICS.find((t) => t.label === topics[topics.length - 1])?.hint ?? "Tell me about your project, timeline, budget...";
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const steps = [topics.length > 0, name.trim().length > 0, emailOk, message.trim().length > 9];
@@ -97,6 +99,7 @@ Release plans:`);
     if (!topics.length) { setError("Pick what we're working on first."); return; }
     setLoading(true);
     setError("");
+    pulse(4);
     try {
       const res = await fetch("/api/contact", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -115,6 +118,7 @@ Release plans:`);
     }
     setLoading(false);
     setSent(true);
+    pulse(8);
   }
 
   function reset() {
@@ -126,15 +130,12 @@ Release plans:`);
   return (
     <>
     <HomeFX />
+    <Embers />
     <div className="max-w-6xl mx-auto px-4 py-10 md:py-16 grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-12 md:gap-20">
       <div className="relative">
-        {/* Faint studio photo behind the intro */}
-        <div data-parallax="0.06" aria-hidden="true" className="photo-backdrop absolute -top-10 -left-4 -right-4 h-[420px] md:-left-24 md:right-0 md:h-[560px] pointer-events-none opacity-40 will-change-transform">
-          <Image src="/luchi/studio-window.webp" alt="" fill sizes="(max-width: 768px) 100vw, 520px" className="object-cover object-[center_40%]" />
-        </div>
-        <div className="relative over-photo">
-          <p className="eyebrow mb-3">Let&apos;s Talk</p>
-          <h1 className="section-title mb-5">Get in Touch</h1>
+        <div className="relative">
+          <p className="eyebrow mb-3">Get in Touch</p>
+          <h1 className="section-title mb-6">Let&apos;s make<br /><ScrambleWords words={HEADLINE_WORDS} /></h1>
           <p className="md:text-lg leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
             {offerBeat
               ? <>Making an offer on <span className="text-white font-semibold">{offerBeat}</span>. Every beat is sold exclusively to one artist.</>
@@ -157,6 +158,18 @@ Release plans:`);
               </li>
             ))}
           </ul>
+        </div>
+
+        {/* Record: speeds up as you type, races when you send */}
+        <div className="relative mt-12 flex items-center gap-5 md:gap-7">
+          <Vinyl className="w-32 h-32 md:w-52 md:h-52 shrink-0" />
+          <div className="min-w-0">
+            <p className="eyebrow mb-2">Now Spinning</p>
+            <p className="text-lg md:text-2xl font-black text-white leading-tight transition-all duration-300">
+              {sent ? "Sent. Talk soon." : topics.length ? topics.join(" + ") : "Your next record"}
+            </p>
+            <p className="text-sm mt-2" style={{ color: "var(--muted)" }}>{sent ? "Your message is in the mix." : "Start typing. Watch it spin."}</p>
+          </div>
         </div>
       </div>
 
@@ -199,7 +212,7 @@ Release plans:`);
                 const on = topics.includes(label);
                 return (
                   <button key={label} type="button" onClick={() => toggleTopic(label)} aria-pressed={on}
-                    className="topic-chip inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300"
+                    className="topic-chip relative overflow-hidden inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300"
                     style={on
                       ? { background: "linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B)", color: "#000", boxShadow: "0 6px 24px rgba(201,168,76,0.35)" }
                       : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.85)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.12)" }}>
@@ -207,6 +220,7 @@ Release plans:`);
                       <span className="overflow-hidden"><Check size={14} strokeWidth={3} /></span>
                     </span>
                     {label}
+                    <span aria-hidden="true" className="chip-shine" />
                   </button>
                 );
               })}
@@ -217,12 +231,12 @@ Release plans:`);
             <div className="field-wrap">
               <label htmlFor="c-name" className="block eyebrow">Name</label>
               <input id="c-name" required name="name" type="text" placeholder="Your name" autoComplete="name"
-                value={name} onChange={(e) => setName(e.target.value)} className="field" />
+                value={name} onChange={(e) => setName(e.target.value)} className="field" onKeyDown={() => pulse()} />
             </div>
             <div className="field-wrap">
               <label htmlFor="c-email" className="block eyebrow">Email</label>
               <input id="c-email" required name="email" type="email" placeholder="your@email.com" autoComplete="email"
-                value={email} onChange={(e) => setEmail(e.target.value)} className="field" />
+                value={email} onChange={(e) => setEmail(e.target.value)} className="field" onKeyDown={() => pulse()} />
             </div>
           </div>
           <div className="field-wrap">
@@ -231,13 +245,14 @@ Release plans:`);
               <span className="text-xs tabular-nums" style={{ color: message.length > MAX * 0.9 ? "#f87171" : "var(--muted)" }}>{message.length}/{MAX}</span>
             </div>
             <textarea id="c-message" required name="message" rows={6} maxLength={MAX} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={hint}
-              className="field resize-none" />
+              className="field resize-none" onKeyDown={() => pulse()} />
           </div>
           {error && (
             <p className="text-sm rounded px-4 py-3" role="alert" style={{ background: "rgba(239,68,68,0.08)", color: "#f87171" }}>
               ⚠ {error}
             </p>
           )}
+          <div className="-mt-4"><TypingWave /></div>
           <button type="submit" disabled={loading} data-magnetic
             className="send-btn btn-gold w-full md:w-auto md:px-12 py-4 rounded text-sm tracking-wide flex items-center justify-center gap-2 disabled:opacity-60">
             {loading ? "Sending..." : <><Send size={16} className="send-icon" /> Send Message</>}

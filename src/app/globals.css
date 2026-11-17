@@ -533,3 +533,24 @@ body.tab-hidden * {
   .draw-circle, .draw-check { stroke-dashoffset: 0; animation: none; }
   .spark { display: none; }
 }
+
+/* ── Contact effects ── */
+.vinyl {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,255,255,0.10), transparent 40%),
+    repeating-radial-gradient(circle, #0c0c0c 0px, #0c0c0c 2px, #171717 3px, #0c0c0c 4px),
+    #0b0b0b;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 0 0 2px rgba(255,255,255,0.04), 0 0 60px rgba(201,168,76,0.12);
+}
+.vinyl::after { /* light catching the grooves; stays put while the disc turns */
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 20deg, transparent 0 10%, rgba(229,199,107,0.16) 14%, transparent 20% 60%, rgba(255,255,255,0.08) 64%, transparent 70%);
+}
+.chip-shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.topic-chip:hover .chip-shine { transition: transform 0.7s ease; transform: translateX(120%); }
+.topic-chip[aria-pressed="true"] { animation: chipPop 0.35s cubic-bezier(.2,1.6,.4,1); }
+@keyframes chipPop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
