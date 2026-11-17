@@ -3,16 +3,27 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import StatsCounter from "@/components/StatsCounter";
+import ScrollStory, { type StoryRun } from "@/components/ScrollStory";
+import StudioGallery from "@/components/StudioGallery";
+import ArtistRoll from "@/components/ArtistRoll";
+import HomeFX from "@/components/HomeFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
 // Stats come from the admin Homepage tab so About and the homepage always show the same numbers
 export const dynamic = "force-dynamic";
 
-const GALLERY = [
-  { src: "/luchi/session-laptop.webp", alt: "Luchi working on a beat in the studio" },
-  { src: "/luchi/studio-window.webp", alt: "Luchi behind the board, seen through the studio glass" },
-  { src: "/luchi/session-cigar.webp", alt: "Luchi mid-session at the laptop" },
-  { src: "/luchi/portrait-half.webp", alt: "Portrait of Luchi" },
+
+const STORY: StoryRun[][] = [
+  [{ text: "Paterson, New Jersey doesn't produce artists — it produces survivors. And the ones who survive long enough to find their gift come out forged, not just formed. Luchi is one of those. Raised in the cultural weight of a city that demands authenticity, he didn't choose music so much as music chose him — through years of obsession, refinement, and an unwavering commitment to a craft that most walk away from long before it pays off." }],
+  [
+    { text: "His portfolio carries a level of credibility that speaks before he does. From street anthems to soulful, layered productions, his fingerprints are on records tied to some of the most respected names the culture has to offer — artists who move crowds, command respect, and don't settle for average. Luchi has operated in those rooms not as a guest, but as a cornerstone. Mach City said it plainly: " },
+    { text: "“Luchi is a one-stop shop for everything music related. He produces, can lay down vocals, and much more. When it's time to work, he's ready for the moment — I have never been disappointed on anything we've created.”", italic: true },
+  ],
+  [
+    { text: "What separates him isn't pedigree — it's presence. Every session gets the same focus, the same intensity, whether it's an independent artist finding their voice or an established name chasing something they haven't caught yet. Calm King Causey, one of New Jersey's most respected voices, put it this way: " },
+    { text: "“Luchi is one of the best engineers I have ever worked with. His production is very diverse and efficient — a master of sound, and the producer/engineer you need in your corner.”", italic: true },
+    { text: " That's not praise. That's a track record." },
+  ],
 ];
 
 const SERVICES = [
@@ -25,6 +36,7 @@ export default async function AboutPage() {
   try { stats = (await getHomepageContent()).stats; } catch {}
   return (
     <>
+    <HomeFX />
     <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
       <div className="mb-10 md:mb-16">
         <p className="eyebrow mb-3">The Producer</p>
@@ -34,7 +46,7 @@ export default async function AboutPage() {
       {/* Bio Section */}
       {/* Portrait sits behind the story and fades out under the text */}
       <div className="relative mb-14 md:mb-20 md:min-h-[680px]">
-        <div className="photo-backdrop from-right absolute top-0 -left-4 -right-4 h-[560px] md:left-auto md:right-[-1rem] md:w-[62%] md:h-full pointer-events-none" aria-hidden="true">
+        <div data-parallax="0.08" className="photo-backdrop from-right absolute top-0 -left-4 -right-4 h-[560px] md:left-auto md:right-[-1rem] md:w-[62%] md:h-full pointer-events-none will-change-transform" aria-hidden="true">
           <Image
             src="/luchi/portrait-studio.webp"
             alt=""
@@ -47,17 +59,7 @@ export default async function AboutPage() {
         <div className="over-photo relative z-10 pt-[400px] md:pt-16 md:pr-[46%]">
 
           <h2 className="text-2xl md:text-3xl font-black text-white mb-5 md:mb-6">My Story</h2>
-          <div className="space-y-5 md:text-[17px] leading-relaxed" style={{ color: "rgba(255,255,255,0.88)" }}>
-            <p>
-              Paterson, New Jersey doesn&apos;t produce artists — it produces survivors. And the ones who survive long enough to find their gift come out forged, not just formed. Luchi is one of those. Raised in the cultural weight of a city that demands authenticity, he didn&apos;t choose music so much as music chose him — through years of obsession, refinement, and an unwavering commitment to a craft that most walk away from long before it pays off.
-            </p>
-            <p>
-              His portfolio carries a level of credibility that speaks before he does. From street anthems to soulful, layered productions, his fingerprints are on records tied to some of the most respected names the culture has to offer — artists who move crowds, command respect, and don&apos;t settle for average. Luchi has operated in those rooms not as a guest, but as a cornerstone. Mach City said it plainly: <em>&ldquo;Luchi is a one-stop shop for everything music related. He produces, can lay down vocals, and much more. When it&apos;s time to work, he&apos;s ready for the moment — I have never been disappointed on anything we&apos;ve created.&rdquo;</em>
-            </p>
-            <p>
-              What separates him isn&apos;t pedigree — it&apos;s presence. Every session gets the same focus, the same intensity, whether it&apos;s an independent artist finding their voice or an established name chasing something they haven&apos;t caught yet. Calm King Causey, one of New Jersey&apos;s most respected voices, put it this way: <em>&ldquo;Luchi is one of the best engineers I have ever worked with. His production is very diverse and efficient — a master of sound, and the producer/engineer you need in your corner.&rdquo;</em> That&apos;s not praise. That&apos;s a track record.
-            </p>
-          </div>
+          <ScrollStory paragraphs={STORY} />
         </div>
       </div>
 
@@ -68,22 +70,17 @@ export default async function AboutPage() {
           <p className="eyebrow mb-3">Behind the Board</p>
           <h2 className="section-title">In the Studio</h2>
         </div>
-        {/* Phone: 2 per row. Desktop: 4 across. Neighbours overlap by exactly their fade width so they cross-fade. */}
-        <div className="flex flex-wrap md:flex-nowrap -mt-10 md:-mt-20 -mx-4 md:mx-0">
-          {GALLERY.map(({ src, alt }) => (
-            <div key={src}
-              className="photo-tile relative aspect-[2/3] w-[57.15%] md:w-[30.77%] overflow-hidden group even:-ml-[14.3%] [&:nth-child(n+3)]:-mt-[26%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[7.69%]">
-              <Image
-                src={src}
-                alt={alt}
-                fill
-                sizes="(max-width: 768px) 50vw, 240px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            </div>
-          ))}
-        </div>
+        <StudioGallery />
       </div>
+
+      {/* Every artist, hover a name to see them */}
+      <section className="mb-16 md:mb-24">
+        <ScrollReveal>
+          <p className="eyebrow mb-3">Worked With</p>
+          <h2 className="section-title mb-8 md:mb-12">In the Room With</h2>
+        </ScrollReveal>
+        <ArtistRoll />
+      </section>
 
       {/* What I Offer: open columns, no box */}
       <section className="mb-6 md:mb-10">
@@ -113,7 +110,7 @@ export default async function AboutPage() {
       <p className="md:text-lg mb-8" style={{ color: "rgba(255,255,255,0.65)" }}>
         Custom beats, recording, mixing and mastering. Tell me what you&apos;re working on.
       </p>
-      <Link href="/contact" className="btn-gold inline-flex items-center gap-2 px-10 py-4 rounded text-sm tracking-wide">
+      <Link href="/contact" data-magnetic className="btn-gold inline-flex items-center gap-2 px-10 py-4 rounded text-sm tracking-wide">
         Work With Me <ArrowRight size={16} />
       </Link>
     </ScrollReveal>

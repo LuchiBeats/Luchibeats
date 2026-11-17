@@ -505,3 +505,7 @@ body.tab-hidden * {
   .reveal, .reveal .section-title { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
   .marquee-track, .marquee-track-reverse, .lightning-1, .lightning-2, .lightning-3, .lightning-4 { animation: none !important; }
 }
+
+/* About: story words light up as you scroll */
+.scroll-story.is-ready .sw { opacity: 0.22; transition: opacity 0.35s ease; }
+.scroll-story.is-ready .sw.lit { opacity: 1; }

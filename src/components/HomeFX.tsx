@@ -30,6 +30,24 @@ export default function HomeFX() {
       cleanups.push(() => window.removeEventListener("scroll", onScroll));
     }
 
+    // Parallax: elements marked data-parallax="0.15" drift as they pass through the screen
+    const parallax = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+    if (parallax.length) {
+      let ticking = false;
+      const update = () => {
+        ticking = false;
+        parallax.forEach((el) => {
+          const r = el.getBoundingClientRect();
+          const offset = (r.top + r.height / 2 - innerHeight / 2);
+          el.style.transform = `translate3d(0, ${offset * -Number(el.dataset.parallax || 0.1)}px, 0)`;
+        });
+      };
+      const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      update();
+      cleanups.push(() => window.removeEventListener("scroll", onScroll));
+    }
+
     const finePointer = window.matchMedia("(pointer: fine)").matches;
     if (finePointer) {
       // Spotlight

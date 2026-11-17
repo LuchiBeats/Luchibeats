@@ -1,26 +1,8 @@
 "use client";
 import { useRef, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
+import { collaborators } from "@/lib/collaborators";
 
-const collaborators: { name: string; image?: string; pos?: string }[] = [
-  { name: "A Boogie",            image: "/artists/a-boogie.webp",    pos: "center 40%" },
-  { name: "Albeal",              image: "/artists/albeal.jpg",        pos: "center center" },
-  { name: "Arlene Mc",           image: "/artists/arlene-mc.jpg" },
-  { name: "Coi Leray",           image: "/artists/coi-leray.webp",   pos: "center 20%" },
-  { name: "Conway The Machine",  image: "/artists/conway.jpeg" },
-  { name: "Dave East",           image: "/artists/dave-east.webp" },
-  { name: "Fabolous",            image: "/artists/fabolous.webp" },
-  { name: "Fetty Wap",           image: "/artists/fetty-wap.jpg",    pos: "75% center" },
-  { name: "Harrd Luck",          image: "/artists/harrd-luck.jpg" },
-  { name: "Joe Budden",          image: "/artists/joe-budden.webp",  pos: "center 50%" },
-  { name: "Mariah Lynn",         image: "/artists/mariah-lynn.jpg" },
-  { name: "Max Santos",          image: "/artists/max-santos.jpg" },
-  { name: "Mysonne",             image: "/artists/mysonne.jpg" },
-  { name: "Nyah Lee",            image: "/artists/nyah-lee.jpg" },
-  { name: "Oskama Esteban",      image: "/artists/oskama.jpg" },
-  { name: "Raekwon",             image: "/artists/raekwon.avif" },
-  { name: "Tempo",               image: "/artists/tempo.avif",       pos: "75% center" },
-];
 
 // Three copies so the reset is always hidden off-screen
 const items = [...collaborators, ...collaborators, ...collaborators];
