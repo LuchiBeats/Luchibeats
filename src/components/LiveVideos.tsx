@@ -37,14 +37,16 @@ type Phase = "empty" | "loading" | "stopped" | "on";
 function useYouTube(frame: React.RefObject<HTMLIFrameElement | null>) {
   const [time, setTime] = useState(0);
   const [state, setState] = useState(-1); // 1 playing, 2 paused, 0 ended, 3 buffering
+  const [duration, setDuration] = useState(0);
   useEffect(() => {
     const on = (e: MessageEvent) => {
       if (!/^https:\/\/www\.youtube(-nocookie)?\.com$/.test(e.origin) || e.source !== frame.current?.contentWindow) return;
-      let d: { event?: string; info?: { currentTime?: number; playerState?: number } | number } | null = null;
+      let d: { event?: string; info?: { currentTime?: number; playerState?: number; duration?: number } | number } | null = null;
       try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch { return; }
       if (!d) return;
       if (d.event === "infoDelivery" && d.info && typeof d.info === "object") {
         if (typeof d.info.currentTime === "number") setTime(d.info.currentTime);
+        if (typeof d.info.duration === "number" && d.info.duration > 0) setDuration(d.info.duration);
         if (typeof d.info.playerState === "number") setState(d.info.playerState);
       }
       if (d.event === "onStateChange" && typeof d.info === "number") setState(d.info);
@@ -55,8 +57,8 @@ function useYouTube(frame: React.RefObject<HTMLIFrameElement | null>) {
   const post = useCallback((msg: object) => frame.current?.contentWindow?.postMessage(JSON.stringify({ id: 1, channel: "widget", ...msg }), "*"), [frame]);
   const cmd = useCallback((func: string, args: unknown[] = []) => post({ event: "command", func, args }), [post]);
   const listen = useCallback(() => post({ event: "listening" }), [post]);
-  const reset = useCallback(() => { setTime(0); setState(-1); }, []);
-  return { time, state, cmd, listen, reset };
+  const reset = useCallback(() => { setTime(0); setState(-1); setDuration(0); }, []);
+  return { time, state, duration, cmd, listen, reset };
 }
 
 /* ── TV static ── */
@@ -368,9 +370,48 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   // Ask the player to report its time and state once it has loaded
   const onFrameLoad = () => { [0, 400, 1200, 2500].forEach((ms) => later(() => yt.listen(), ms)); };
 
+  /* ── Search: drag along the tape to any point (or scroll the wheel over the bar) ── */
+  const [scrub, setScrub] = useState<number | null>(null);
+  const canSearch = phase === "on" && !isLive && yt.duration > 0;
+  const shownTime = scrub ?? yt.time;
+  const scrubTo = (t: number) => {
+    const next = Math.min(Math.max(0, t), yt.duration);
+    setFlash(next >= shownTime ? "SEARCH ▶▶" : "◀◀ SEARCH");
+    setScrub(next);
+    yt.cmd("seekTo", [next, false]); // preview while dragging
+  };
+  const commitScrub = () => {
+    if (scrub === null) return;
+    yt.cmd("seekTo", [scrub, true]);
+    later(() => { setScrub(null); setFlash(null); }, 700);
+  };
+  // Mouse wheel over the search bar skips 5 s per notch
+  const searchRef = useRef<HTMLDivElement>(null);
+  const wheelState = useRef({ canSearch, time: shownTime, duration: yt.duration });
+  useEffect(() => { wheelState.current = { canSearch, time: shownTime, duration: yt.duration }; }, [canSearch, shownTime, yt.duration]);
+  useEffect(() => {
+    const el = searchRef.current;
+    if (!el) return;
+    let idle = 0;
+    const onWheel = (e: WheelEvent) => {
+      const s = wheelState.current;
+      if (!s.canSearch) return;
+      e.preventDefault();
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      const t = Math.min(Math.max(0, s.time + (delta > 0 ? 5 : -5)), s.duration);
+      setFlash(delta > 0 ? "SEARCH ▶▶" : "◀◀ SEARCH");
+      setScrub(t);
+      wheelState.current.time = t;
+      clearTimeout(idle);
+      idle = window.setTimeout(() => { frame.current?.contentWindow?.postMessage(JSON.stringify({ id: 1, channel: "widget", event: "command", func: "seekTo", args: [t, true] }), "*"); window.setTimeout(() => { setScrub(null); setFlash(null); }, 700); }, 250);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => { el.removeEventListener("wheel", onWheel); clearTimeout(idle); };
+  }, []);
+
   const playing = phase === "on" && (yt.state === 1 || yt.state === 3 || yt.state === -1);
   const paused = phase === "on" && yt.state === 2;
-  const mode = drag ? (over ? "DROP IT" : "INSERT") : phase === "empty" ? "NO TAPE" : slot === "inserting" ? "LOAD" : slot === "ejecting" ? "EJECT" : phase === "loading" ? "TRACK"
+  const mode = scrub !== null ? "SEARCH" : drag ? (over ? "DROP IT" : "INSERT") : phase === "empty" ? "NO TAPE" : slot === "inserting" ? "LOAD" : slot === "ejecting" ? "EJECT" : phase === "loading" ? "TRACK"
     : phase === "stopped" ? "STOP" : isLive ? "LIVE" : paused ? "PAUSE" : yt.state === 0 ? "END" : "PLAY";
   const osdLeft = flash ?? (phase === "empty" ? "NO TAPE" : isLive && phase === "on" ? "● LIVE" : phase === "loading" ? "TRACKING" : phase === "stopped" ? "STOP ■" : paused ? "❚❚ PAUSE" : "PLAY ▶");
   const showOsd = flash !== null || phase !== "on" || paused;
@@ -457,9 +498,25 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 <div className={`vcr-display ${vcr.className}`} aria-live="polite">
                   <span className="vcr-ghost" aria-hidden="true">8:88:88</span>
                   <span className="vcr-mode">{mode}</span>
-                  <span className="vcr-count">{phase === "on" && !isLive ? counter(yt.time) : isLive && phase === "on" ? "LIVE" : "0:00:00"}</span>
+                  <span className="vcr-count">{phase === "on" && !isLive ? counter(shownTime) : isLive && phase === "on" ? "LIVE" : "0:00:00"}</span>
                   <span className="vcr-tags"><span className={phase !== "empty" ? "on" : ""}>SP</span><span className={phase === "on" ? "on" : ""}>HI-FI</span></span>
                 </div>
+              </div>
+              {/* Tape search: the whole tape, start to end */}
+              <div ref={searchRef} className={`vcr-search ${canSearch ? "" : "is-off"} ${scrub !== null ? "is-scrubbing" : ""}`}
+                style={{ ["--p" as string]: `${yt.duration ? (shownTime / yt.duration) * 100 : 0}%` }}>
+                <span className={`${vcr.className} vcr-search-time`}>{counter(canSearch ? shownTime : 0)}</span>
+                <div className="vcr-search-track">
+                  <span className="vcr-search-ticks" aria-hidden="true" />
+                  <span className="vcr-search-fill" aria-hidden="true" />
+                  <span className="vcr-search-knob" aria-hidden="true" />
+                  <input type="range" min={0} max={Math.max(1, Math.floor(yt.duration))} step={1} value={Math.floor(shownTime)}
+                    disabled={!canSearch} aria-label="Search through the tape"
+                    aria-valuetext={`${counter(shownTime)} of ${counter(yt.duration)}`}
+                    onChange={(e) => scrubTo(Number(e.target.value))}
+                    onPointerUp={commitScrub} onKeyUp={commitScrub} onBlur={commitScrub} />
+                </div>
+                <span className={`${vcr.className} vcr-search-time is-total`}>{isLive && phase === "on" ? "LIVE" : counter(canSearch ? yt.duration : 0)}</span>
               </div>
               <div className="vcr-keys">
                 <Key label="⏏" title="Eject" name="Eject" onClick={eject} disabled={!current} />
@@ -495,7 +552,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 </a>
               )}
             </div>
-            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Grab a tape off the shelf and drop it in the VCR. Use the buttons to pause, rewind or skip ahead.</p>
+            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Grab a tape off the shelf and drop it in the VCR. Drag the search bar (or scroll on it) to move through the tape.</p>
           </div>
         </div>
       </ScrollReveal>

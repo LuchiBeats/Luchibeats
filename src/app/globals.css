@@ -860,3 +860,29 @@ html.is-dragging-tape, html.is-dragging-tape * { cursor: grabbing !important; us
 .sleeve .sleeve-top { text-shadow: 0 1px 3px #000; }
 .sleeve::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 35%, transparent 60%); }
+
+/* ── Live page: VCR tape search bar ── */
+.vcr-search { display: flex; align-items: center; gap: 12px; margin-top: clamp(10px, 1.2vw, 12px); padding: 8px 12px; border-radius: 5px;
+  background: linear-gradient(#0a0a0b, #121213); box-shadow: inset 0 2px 5px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.08); }
+.vcr-search-time { min-width: 4.4em; font-size: clamp(15px, 1.5vw, 19px); line-height: 1; color: #79fbe9; text-shadow: 0 0 4px #3ff1d9, 0 0 10px rgba(63,241,217,0.5); }
+.vcr-search-time.is-total { text-align: right; color: rgba(121,251,233,0.55); text-shadow: none; }
+.vcr-search-track { position: relative; flex: 1; height: 26px; }
+/* Groove with tick marks */
+.vcr-search-track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); border-radius: 3px;
+  background: #050505; box-shadow: inset 0 1px 3px rgba(0,0,0,1), 0 1px 0 rgba(255,255,255,0.07); }
+.vcr-search-ticks { position: absolute; left: 0; right: 0; top: 2px; height: 4px; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 1px, transparent 1px 10%); }
+.vcr-search-fill { position: absolute; left: 0; top: 50%; height: 6px; width: var(--p); transform: translateY(-50%); border-radius: 3px; pointer-events: none;
+  background: linear-gradient(90deg, #a8892e, #e5c76b); box-shadow: 0 0 10px rgba(229,199,107,0.5); transition: width 0.25s linear; }
+.vcr-search-knob { position: absolute; top: 50%; left: var(--p); width: 16px; height: 24px; transform: translate(-50%, -50%); border-radius: 4px; pointer-events: none;
+  background: linear-gradient(90deg, #8d8d90, #f3f3f3 45%, #bdbdbf 55%, #6f6f72); box-shadow: 0 3px 6px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(0,0,0,0.35);
+  transition: left 0.25s linear, transform 0.15s; }
+.vcr-search-knob::after { content: ""; position: absolute; left: 50%; top: 5px; bottom: 5px; width: 2px; transform: translateX(-50%); background: rgba(0,0,0,0.35); }
+.vcr-search.is-scrubbing .vcr-search-fill, .vcr-search.is-scrubbing .vcr-search-knob { transition: none; }
+.vcr-search.is-scrubbing .vcr-search-knob { transform: translate(-50%, -50%) scale(1.12); }
+/* The real (invisible) slider on top does the work: mouse, touch and keyboard */
+.vcr-search-track input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none; }
+.vcr-search-track input:disabled { cursor: default; }
+.vcr-search-track:has(input:focus-visible) .vcr-search-knob { box-shadow: 0 0 0 2px #e5c76b, 0 3px 6px rgba(0,0,0,0.7); }
+.vcr-search.is-off .vcr-search-fill, .vcr-search.is-off .vcr-search-knob { opacity: 0.35; }
+@media (max-width: 480px) { .vcr-search { gap: 8px; padding: 7px 9px; } .vcr-search-time { min-width: 3.9em; font-size: 14px; } }
