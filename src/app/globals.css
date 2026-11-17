@@ -453,10 +453,10 @@ body.tab-hidden * {
    text reads as if it's in front of the photo. Phones fade downward (text below),
    desktop fades to the right (text beside). */
 .photo-backdrop {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 92%),
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 40%, transparent 92%),
                       linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
   -webkit-mask-composite: source-in;
-          mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 92%),
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 40%, transparent 92%),
                       linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
           mask-composite: intersect;
   filter: saturate(0.85) brightness(0.8) contrast(1.05) sepia(0.12);
@@ -480,3 +480,28 @@ body.tab-hidden * {
 }
 /* Text that sits on top of a backdrop photo */
 .over-photo { text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 24px rgba(0,0,0,0.75); }
+
+/* ── LB-16 drum pads ── */
+.pad {
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)), var(--tint), #121212;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -3px 0 rgba(0,0,0,0.5), 0 6px 14px rgba(0,0,0,0.5);
+  transition: transform 0.08s, box-shadow 0.25s, background 0.25s;
+}
+.pad:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -3px 0 rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.35), 0 6px 14px rgba(0,0,0,0.5); }
+.pad:active { transform: scale(0.95); }
+@keyframes padHit {
+  0%   { background: radial-gradient(circle at 50% 60%, #FFF3C4, #E5C76B 45%, #A8892E); box-shadow: 0 0 40px rgba(229,199,107,0.75), 0 0 0 1px rgba(255,236,170,0.8); transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+.pad.pad-hit { animation: padHit 0.32s ease-out; }
+@keyframes padText { 0%, 45% { color: #000; } }
+.pad.pad-hit span { animation: padText 0.32s ease-out; }
+
+/* Section titles slide up out of a mask as they scroll in */
+.reveal .section-title { clip-path: inset(0 0 100% 0); transform: translateY(40%); transition: clip-path 0.9s cubic-bezier(.2,.8,.2,1) 0.1s, transform 0.9s cubic-bezier(.2,.8,.2,1) 0.1s; }
+.reveal.visible .section-title { clip-path: inset(-10% -5% -25% -5%); transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal .section-title { opacity: 1 !important; transform: none !important; clip-path: none !important; transition: none !important; }
+  .marquee-track, .marquee-track-reverse, .lightning-1, .lightning-2, .lightning-3, .lightning-4 { animation: none !important; }
+}

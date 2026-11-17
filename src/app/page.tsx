@@ -9,6 +9,9 @@ import Testimonials from "@/components/Testimonials";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
+import ServicesShowcase from "@/components/ServicesShowcase";
+import BeatPad from "@/components/BeatPad";
+import HomeFX from "@/components/HomeFX";
 import { getHomepageContent } from "@/lib/beats-store";
 
 // Homepage content is admin-editable and blob-backed — render per-request so
@@ -45,8 +48,11 @@ export default async function HomePage() {
 
   return (
     <div>
+      <HomeFX />
       {/* Hero — video with lightning. Kept shorter than the screen so the next section peeks in and invites scrolling */}
-      <section className="relative overflow-hidden aspect-video md:aspect-auto md:h-[70dvh] md:min-h-[460px]">
+      <section data-hero className="relative overflow-hidden aspect-video md:aspect-auto md:h-[70dvh] md:min-h-[460px]">
+        {/* Video + lightning move together: HomeFX zooms and fades this layer on scroll */}
+        <div data-hero-media className="absolute inset-0 will-change-transform">
         <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover hero-video">
           <source src="/hero-mobile.mp4" media="(max-width: 768px)" type="video/mp4" />
           <source src="/hero-desktop.mp4" type="video/mp4" />
@@ -56,6 +62,7 @@ export default async function HomePage() {
         <div className="lightning-2 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 80% 10%, rgba(180,210,255,0.4) 0%, transparent 45%)", mixBlendMode: "screen" }} />
         <div className="lightning-3 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(220,230,255,0.3) 0%, transparent 55%)", mixBlendMode: "screen" }} />
         <div className="lightning-4 absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 75% 60%, rgba(255,220,180,0.25) 0%, transparent 50%)", mixBlendMode: "screen" }} />
+        </div>
 
         {/* Fade the bottom of the video into the page so there's no hard edge */}
         <div className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, var(--bg))" }} />
@@ -98,6 +105,7 @@ export default async function HomePage() {
             <Link
               key={href}
               href={href}
+              data-magnetic
               className="home-tab flex items-center justify-center gap-1.5 sm:gap-2.5 px-2 sm:px-6 py-3.5 md:px-8 rounded-full text-[13px] sm:text-[15px] md:text-base font-bold uppercase tracking-wider whitespace-nowrap border transition-all"
             >
               <Icon size={18} />
@@ -139,17 +147,23 @@ export default async function HomePage() {
               they&apos;ve been chasing.
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              <Link href="/about" className="btn-gold px-8 py-3 rounded text-sm tracking-wide inline-flex items-center gap-2">
+              <Link href="/about" data-magnetic className="btn-gold px-8 py-3 rounded text-sm tracking-wide inline-flex items-center gap-2">
                 My Story <ArrowRight size={16} />
               </Link>
-              <Link href="/contact" className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
+              <Link href="/contact" data-magnetic className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
             </div>
           </ScrollReveal>
         </div>
       </section>
 
+      {/* Services: hover a service to swap the studio photo */}
+      <ServicesShowcase />
+
       {/* Productions */}
       <Productions videos={hp.productions} />
+
+      {/* Playable drum machine */}
+      <BeatPad />
 
       {/* Testimonials */}
       <Testimonials />
