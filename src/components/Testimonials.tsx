@@ -30,7 +30,7 @@ export default async function Testimonials() {
   }
 
   return (
-    <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 overflow-hidden">
+    <section data-light="ember" className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 overflow-hidden">
       <div className="absolute w-96 h-96 rounded-full pointer-events-none" style={{ background: "rgba(201,168,76,0.05)", filter: "blur(80px)", top: "0", left: "50%", transform: "translateX(-50%)" }} />
       <ScrollReveal className="text-center mb-10 md:mb-16">
         <p className="eyebrow mb-3">What Artists Say</p>

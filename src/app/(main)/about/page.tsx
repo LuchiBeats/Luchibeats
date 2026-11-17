@@ -42,14 +42,14 @@ export default function AboutPage() {
 
     <div className="max-w-5xl mx-auto px-4">
       {/* ── The story, centered, lighting up as you read ── */}
-      <section id="story" className="scroll-mt-24 max-w-[680px] mx-auto pt-6 md:pt-10 mb-20 md:mb-28">
+      <section id="story" data-light="ember" className="scroll-mt-24 max-w-[680px] mx-auto pt-6 md:pt-10 mb-20 md:mb-28">
         <p className="eyebrow mb-3 text-center">The Producer</p>
         <h2 className="section-title text-center mb-10 md:mb-14">My Story</h2>
         <ScrollStory paragraphs={STORY} />
       </section>
 
       {/* ── In the Studio ── */}
-      <div className="mb-20 md:mb-28">
+      <div data-light="blue" className="mb-20 md:mb-28">
         <div className="over-photo relative z-10 text-center">
           <p className="eyebrow mb-3">Behind the Board</p>
           <h2 className="section-title">In the Studio</h2>

@@ -145,7 +145,7 @@ Release plans:`);
       </header>
 
       {/* ── The form ── */}
-      <div className="contact-form mt-12 md:mt-16">
+      <div data-light="ember" className="contact-form mt-12 md:mt-16">
       {sent ? (
         <div className="relative py-16 text-center" role="status" style={{ animation: "fadeSlide 0.5s ease-out" }}>
           <div className="relative w-24 h-24 mx-auto mb-6">

@@ -43,7 +43,6 @@ export default function ArtistsWorkedWith() {
   return (
     <section
       className="relative py-12 md:py-16 overflow-hidden"
-      style={{ background: "var(--bg)" }}
     >
       <div
         className="absolute inset-0 pointer-events-none"

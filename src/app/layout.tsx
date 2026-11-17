@@ -6,6 +6,7 @@ import CustomCursor from "@/components/CustomCursor";
 import PWARegister from "@/components/PWARegister";
 import PageTracker from "@/components/PageTracker";
 import VisibilityPause from "@/components/VisibilityPause";
+import SiteBackdrop from "@/components/SiteBackdrop";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,7 @@ export default function RootLayout({
         <PageTracker />
         <VisibilityPause />
         <CustomCursor />
+        <SiteBackdrop />
         <main className="relative z-10 flex-1">{children}</main>
         {/* Logo sign-off at the bottom of every page, with the heat-shimmer flame effect.
             It used to be pinned behind the content, where photos and text ran into it. */}

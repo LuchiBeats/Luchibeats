@@ -72,7 +72,7 @@ export function Embers() {
     raf = requestAnimationFrame(tick);
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); window.removeEventListener(EVENT, onBurst); };
   }, [heat]);
-  return <canvas ref={ref} aria-hidden="true" className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }} />;
+  return <canvas ref={ref} aria-hidden="true" className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }} />;
 }
 
 /* ── Spinning record with the LuchiBeats logo as the label ── */

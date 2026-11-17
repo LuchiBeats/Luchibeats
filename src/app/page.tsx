@@ -91,7 +91,7 @@ export default async function HomePage() {
       </section>
 
       {/* Page navigation tabs */}
-      <div className="relative z-10" style={{ background: "var(--bg)" }}>
+      <div className="relative z-10">
         <p className="eyebrow text-center pt-2 md:pt-0 px-2 text-[10px] sm:text-xs md:text-sm tracking-[0.2em] sm:tracking-[0.35em] whitespace-nowrap">
           Producer <span className="opacity-50 mx-1 md:mx-2">·</span> Engineer <span className="opacity-50 mx-1 md:mx-2">·</span> Paterson, NJ
         </p>
@@ -124,7 +124,7 @@ export default async function HomePage() {
       <ArtistsWorkedWith />
 
       {/* Meet Luchi: portrait centered, fading down into the intro */}
-      <section className="relative max-w-3xl mx-auto px-4 pt-12 md:pt-20 pb-6 md:pb-10 text-center">
+      <section data-light="ember" className="relative max-w-3xl mx-auto px-4 pt-12 md:pt-20 pb-6 md:pb-10 text-center">
         <ScrollReveal className="meet-photo relative mx-auto w-[min(420px,86vw)] aspect-[4/5] pointer-events-none">
           <Image src="/luchi/portrait-closeup.webp" alt="Luchi in the studio" fill
             sizes="(max-width: 768px) 86vw, 420px" className="object-cover object-[center_30%]" />

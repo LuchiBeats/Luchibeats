@@ -612,7 +612,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
           </div>
 
           {/* ── Media console: the tapes live in its compartments ── */}
-          <div className="console">
+          <div className="console" data-light="blue">
             <div className="console-top" aria-hidden="true" />
             <div className="console-body">
               <Shelf label="Replays" title="Episodes" items={streams} tags={tags} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
