@@ -7,6 +7,9 @@ import ScrollReveal from "./ScrollReveal";
 const watchUrl = (v: ChannelVideo) =>
   v.kind === "short" ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`;
 const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+// Shorts have a full-size vertical thumbnail; the standard one is letterboxed and blurry
+const thumbFor = (v: ChannelVideo, big: boolean) =>
+  v.kind === "short" ? `https://i.ytimg.com/vi/${v.id}/oardefault.jpg` : big ? `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg` : thumb(v.id);
 const embedSrc = (id: string, autoplay: boolean) =>
   `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${autoplay ? "&autoplay=1" : ""}`;
 
@@ -28,14 +31,16 @@ function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: Channe
   const inner = (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={big ? `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg` : thumb(v.id)} alt="" loading={big ? "eager" : "lazy"}
+      <img src={thumbFor(v, big)} alt="" loading={big ? "eager" : "lazy"}
         // Not every video has a full-HD thumbnail — fall back to the standard one
         onError={(e) => { const img = e.currentTarget; if (!img.src.endsWith("/hqdefault.jpg")) img.src = thumb(v.id); }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.05) 55%)" }} />
-      <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${big ? "w-20 h-20" : "w-14 h-14"}`}
+      <div className="absolute inset-0" style={{ background: big
+        ? "linear-gradient(to top, rgba(10,10,10,0.92), rgba(10,10,10,0.25) 45%, transparent 70%), linear-gradient(to right, rgba(10,10,10,0.5), transparent 55%)"
+        : "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.05) 55%)" }} />
+      <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${big ? "w-20 h-20 md:w-24 md:h-24" : "w-14 h-14"}`}
         style={{ background: "linear-gradient(135deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: "0 0 30px rgba(201,168,76,0.45)" }}>
-        <Play size={big ? 32 : 22} fill="#000" color="#000" className="ml-1" />
+        <Play size={big ? 36 : 22} fill="#000" color="#000" className="ml-1" />
       </span>
       {!v.embeddable && (
         <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase"
@@ -54,14 +59,14 @@ function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: Channe
   );
 }
 
-function Section({ label, title, items, onPlay }: { label: string; title: string; items: ChannelVideo[]; onPlay: (v: ChannelVideo) => void }) {
+function Section({ label, title, items, onPlay, cols }: { label: string; title: string; items: ChannelVideo[]; onPlay: (v: ChannelVideo) => void; cols: string }) {
   if (!items.length) return null;
   const vertical = items[0].kind === "short";
   return (
-    <section className="mb-14 md:mb-20">
-      <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{label}</p>
-      <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">{title}</h2>
-      <div className={vertical ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4" : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5"}>
+    <section className="mb-14 md:mb-20 min-w-0">
+      <p className="eyebrow mb-2">{label}</p>
+      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6 md:mb-8">{title}</h2>
+      <div className={`grid gap-x-4 gap-y-8 md:gap-x-5 ${cols}`}>
         {items.map((v, i) => (
           <ScrollReveal key={v.id} delay={(i % 4) * 0.1}>
             <Thumb v={v} onPlay={onPlay} />
@@ -113,19 +118,25 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
       )}
 
       {featured && featured.id !== liveNowId && (
-        <section className="mb-14 md:mb-20">
-          <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>{streams.length ? "LATEST STREAM" : "LATEST VIDEO"}</p>
-          <h2 className="text-xl md:text-3xl font-black text-white mb-5">{featured.title}</h2>
-          <ScrollReveal>
-            <Thumb v={featured} onPlay={setPlaying} big />
-            <Meta v={featured} />
-          </ScrollReveal>
-        </section>
+        <ScrollReveal className="relative mb-16 md:mb-24">
+          <Thumb v={featured} onPlay={setPlaying} big />
+          {/* Title block: under the video on phones, over its lower-left corner on desktop */}
+          <div className="md:absolute md:left-0 md:bottom-0 md:max-w-[60%] pt-5 md:p-10 pointer-events-none">
+            <p className="eyebrow mb-2">{streams.length ? "Latest Stream" : "Latest Video"}</p>
+            <h2 className="over-photo text-2xl md:text-5xl font-black text-white tracking-tight leading-[1.05]">{featured.title}</h2>
+            <div className="over-photo"><Meta v={featured} /></div>
+          </div>
+        </ScrollReveal>
       )}
 
-      <Section label="REPLAYS" title="Past Streams" items={pastStreams} onPlay={setPlaying} />
-      <Section label="SHORTS" title="Studio Clips" items={shorts} onPlay={setPlaying} />
-      <Section label="ON THE CHANNEL" title="More Videos" items={otherVideos} onPlay={setPlaying} />
+      <div className={pastStreams.length && shorts.length ? "lg:grid lg:grid-cols-[1.7fr_1fr] lg:gap-14" : ""}>
+        <Section label="Replays" title="Past Streams" items={pastStreams} onPlay={setPlaying}
+          cols={shorts.length ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"} />
+        <Section label="Shorts" title="Studio Clips" items={shorts} onPlay={setPlaying}
+          cols={pastStreams.length ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"} />
+      </div>
+      <Section label="On the Channel" title="More Videos" items={otherVideos} onPlay={setPlaying}
+        cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
 
       {playing && (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.96)" }}
