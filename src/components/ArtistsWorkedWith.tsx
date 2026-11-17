@@ -14,8 +14,8 @@ export default function ArtistsWorkedWith() {
   const pausedRef = useRef(false);
 
   // Sizes scale with the screen in CSS, so the server and the phone agree (no hydration mismatch)
-  const avatarSize = "clamp(92px, 10.5vw, 150px)";
-  const itemWidth  = "clamp(106px, 11.5vw, 164px)";
+  const avatarSize = "clamp(112px, 12vw, 170px)";
+  const itemWidth  = "clamp(112px, 12vw, 170px)";
   const itemGap    = "clamp(26px, 3.4vw, 48px)";
   const fontSize   = "clamp(13px, 1.05vw, 15px)";
 
@@ -52,7 +52,7 @@ export default function ArtistsWorkedWith() {
 
       <ScrollReveal className="text-center mb-10 md:mb-12 px-4">
         <p className="eyebrow mb-3">The Portfolio</p>
-        <h2 className="section-title">Artists I&apos;ve Worked With</h2>
+        <h2 className="section-title">Worked With Artists Such As</h2>
       </ScrollReveal>
 
       {/* Viewport: capped so fewer than 14 artists are ever visible at once */}
@@ -90,11 +90,12 @@ export default function ArtistsWorkedWith() {
               <div
                 style={{
                   width: `${avatarSize}`,
-                  height: `${avatarSize}`,
-                  borderRadius: "50%",
+                  height: `calc(${avatarSize} * 1.3)`,
+                  borderRadius: "14px",
                   overflow: "hidden",
                   background: "#111",
-                  border: "1.5px solid rgba(201,168,76,0.7)",
+                  WebkitMaskImage: "linear-gradient(to bottom, #000 62%, transparent 100%)",
+                  maskImage: "linear-gradient(to bottom, #000 62%, transparent 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -102,7 +103,7 @@ export default function ArtistsWorkedWith() {
                   fontWeight: 900,
                   color: "#C9A84C",
                   flexShrink: 0,
-                  boxShadow: "0 0 0 5px rgba(201,168,76,0.06), 0 10px 30px rgba(0,0,0,0.6)",
+                  filter: "grayscale(0.35) brightness(0.88)",
                 }}
               >
                 {artist.image ? (
@@ -118,8 +119,11 @@ export default function ArtistsWorkedWith() {
               <p
                 style={{
                   fontSize: `${fontSize}`,
-                  fontWeight: 700,
-                  color: "rgba(255,255,255,0.9)",
+                  fontWeight: 800,
+                  color: "#fff",
+                  marginTop: "-1.4em",
+                  position: "relative",
+                  textShadow: "0 2px 10px #000, 0 0 2px #000",
                   whiteSpace: "nowrap",
                   letterSpacing: "0.04em",
                   textAlign: "center",

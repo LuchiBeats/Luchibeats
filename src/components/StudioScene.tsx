@@ -50,7 +50,7 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
 
   return (
     <section className="relative overflow-hidden" style={{ background: "var(--bg)" }}>
-      <div className="relative z-20 max-w-6xl mx-auto px-4 pt-12 md:pt-16 pointer-events-none">
+      <div className="relative z-20 max-w-6xl mx-auto px-4 pt-12 md:pt-16 pointer-events-none text-center">
         <p className="eyebrow mb-3">Step Inside</p>
         <Heading className="section-title">The Studio</Heading>
       </div>

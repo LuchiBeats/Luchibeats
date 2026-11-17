@@ -123,36 +123,27 @@ export default async function HomePage() {
       {/* Portfolio Artists */}
       <ArtistsWorkedWith />
 
-      {/* Meet Luchi */}
-      <section className="relative max-w-5xl mx-auto px-4 py-12 md:py-20 overflow-hidden">
-        <div className="orb orb-1 w-96 h-96 -top-20 -left-20" style={{ background: "rgba(201,168,76,0.12)" }} />
-        {/* Portrait sits behind the text and fades out under it */}
-        <div className="relative md:min-h-[600px] md:flex md:items-center">
-          <ScrollReveal className="photo-backdrop absolute top-0 -left-4 -right-4 h-[520px] md:left-0 md:right-auto md:w-[55%] md:h-full pointer-events-none">
-            <Image
-              src="/luchi/portrait-closeup.webp"
-              alt="Luchi in the studio"
-              fill
-              sizes="(max-width: 768px) 100vw, 560px"
-              className="object-cover object-[center_30%]"
-            />
-          </ScrollReveal>
-          <ScrollReveal className="over-photo relative z-10 text-center md:text-left pt-[380px] md:pt-0 md:pl-[48%]" delay={0.1}>
-            <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>THE PRODUCER</p>
-            <h2 className="section-title mb-6">Meet Luchi</h2>
-            <p className="md:text-lg leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.82)" }}>
-              Producer and engineer out of Paterson, New Jersey. Years in the room with some of the most
-              respected names in the culture — producing, engineering, and helping artists find the sound
-              they&apos;ve been chasing.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-              <Link href="/about" data-magnetic className="btn-gold px-8 py-3 rounded text-sm tracking-wide inline-flex items-center gap-2">
-                My Story <ArrowRight size={16} />
-              </Link>
-              <Link href="/contact" data-magnetic className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
-            </div>
-          </ScrollReveal>
-        </div>
+      {/* Meet Luchi: portrait centered, fading down into the intro */}
+      <section className="relative max-w-3xl mx-auto px-4 pt-12 md:pt-20 pb-6 md:pb-10 text-center">
+        <ScrollReveal className="meet-photo relative mx-auto w-[min(420px,86vw)] aspect-[4/5] pointer-events-none">
+          <Image src="/luchi/portrait-closeup.webp" alt="Luchi in the studio" fill
+            sizes="(max-width: 768px) 86vw, 420px" className="object-cover object-[center_30%]" />
+        </ScrollReveal>
+        <ScrollReveal className="over-photo relative z-10 -mt-24 md:-mt-28" delay={0.1}>
+          <p className="eyebrow mb-3">The Producer</p>
+          <h2 className="section-title mb-6">Meet Luchi</h2>
+          <p className="md:text-lg leading-relaxed mb-8 max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.82)" }}>
+            Producer and engineer out of Paterson, New Jersey. Years in the room with some of the most
+            respected names in the culture — producing, engineering, and helping artists find the sound
+            they&apos;ve been chasing.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Link href="/about" data-magnetic className="btn-gold px-8 py-3 rounded text-sm tracking-wide inline-flex items-center gap-2">
+              My Story <ArrowRight size={16} />
+            </Link>
+            <Link href="/contact" data-magnetic className="btn-outline px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* The studio is the menu: hover the gear, click to go there */}

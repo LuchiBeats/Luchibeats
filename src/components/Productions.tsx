@@ -96,14 +96,12 @@ export default function Productions({ videos: videosProp }: { videos?: Productio
       <div className="orb orb-1 w-[600px] h-[600px] top-0 left-1/2 -translate-x-1/2" style={{ background: "rgba(201,168,76,0.05)" }} />
 
       <div className="max-w-6xl mx-auto px-4">
-        <ScrollReveal className="flex items-end justify-between mb-12 md:mb-16">
-          <div>
-            <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>STRAIGHT FROM THE STUDIO</p>
-            <h2 className="section-title">Productions</h2>
-          </div>
-          <span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>
-            {frontIdx + 1} <span style={{ color: "rgba(201,168,76,0.3)" }}>/</span> {videos.length}
-          </span>
+        <ScrollReveal className="text-center mb-12 md:mb-16">
+          <p className="eyebrow mb-3">Straight From the Studio</p>
+          <h2 className="section-title">Productions</h2>
+          <p className="mt-3 text-sm tabular-nums" style={{ color: "var(--muted)" }}>
+            {frontIdx + 1} <span style={{ color: "rgba(201,168,76,0.4)" }}>/</span> {videos.length}
+          </p>
         </ScrollReveal>
       </div>
 

@@ -1101,3 +1101,10 @@ html.is-dragging-tape, html.is-dragging-tape * { cursor: grabbing !important; us
 .social-tile-arrow { position: absolute; top: 10px; right: 10px; z-index: 1; color: var(--gold); transition: transform 0.3s, color 0.3s; }
 .social-tile:hover .social-tile-arrow { color: #000; transform: rotate(45deg); }
 .about-hero-place { margin-top: 6px; font-size: clamp(10px, 1vw, 12px); font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(255,255,255,0.55); text-shadow: 0 2px 12px #000; }
+
+/* Homepage: Meet Luchi portrait fades out at the edges and into the text below */
+.meet-photo {
+  filter: saturate(0.9) brightness(0.9) contrast(1.05) sepia(0.08);
+  -webkit-mask-image: radial-gradient(ellipse 70% 62% at 50% 40%, #000 45%, transparent 100%);
+          mask-image: radial-gradient(ellipse 70% 62% at 50% 40%, #000 45%, transparent 100%);
+}
