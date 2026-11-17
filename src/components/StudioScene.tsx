@@ -38,12 +38,20 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
   // On touch screens the first tap shows the label, the second one follows the link
   const shownOnPress = useRef<string | null>(null);
 
+  // The room assembles itself the first time it scrolls into view
   useEffect(() => {
-    const t = window.setTimeout(() => setReady(true), 50);
+    const el = sceneRef.current;
+    if (!el) return;
     // Phones: open the swipe strip on the control room (middle panel)
-    const el = sceneRef.current, mid = panelRefs.current[1]?.parentElement;
-    if (el && mid && el.scrollWidth > el.clientWidth) el.scrollLeft = mid.offsetLeft - (el.clientWidth - mid.clientWidth) / 2;
-    return () => window.clearTimeout(t);
+    const mid = panelRefs.current[1]?.parentElement;
+    if (mid && el.scrollWidth > el.clientWidth) el.scrollLeft = mid.offsetLeft - (el.clientWidth - mid.clientWidth) / 2;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const t = window.setTimeout(() => setReady(true), 0);
+      return () => window.clearTimeout(t);
+    }
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setReady(true); obs.disconnect(); } }, { threshold: 0.25 });
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   // Mouse parallax: closer panels move more
@@ -87,13 +95,20 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
               style={{
                 left: `${pi * 31.88}%`,
                 zIndex: activePanel === pi ? 5 : pi === 1 ? 3 : 2,
-                opacity: ready ? 1 : 0,
-                transition: `opacity 1.2s ${0.15 + pi * 0.25}s ease, filter 0.5s ease`,
+                transition: "filter 0.5s ease",
                 filter: dim ? "brightness(0.35) saturate(0.6)" : activePanel === pi ? "brightness(1.12)" : "brightness(0.85)",
               }}>
               <div ref={(el) => { panelRefs.current[pi] = el; }} className="absolute inset-0 will-change-transform">
-                <div className="studio-photo absolute inset-0">
+                {/* Entrance: the middle photo comes into focus first, then the sides slide in like doors opening */}
+                <div className="studio-photo absolute inset-0" style={{
+                  opacity: ready ? 1 : 0,
+                  transform: ready ? "none" : `translateX(${(pi - 1) * 90}px) scale(${pi === 1 ? 1.22 : 1.1})`,
+                  filter: ready ? "blur(0) brightness(1)" : "blur(18px) brightness(1.9)",
+                  transition: `opacity 1s ${pi === 1 ? 0 : 0.4}s ease, transform 1.8s ${pi === 1 ? 0 : 0.4}s cubic-bezier(.16,1,.3,1), filter 1.5s ${pi === 1 ? 0 : 0.4}s ease`,
+                }}>
                   <Image src={p.src} alt={p.alt} fill priority={pi === 1} sizes="(max-width: 768px) 86vw, 36vw" className="object-cover" />
+                  {/* Gold light streak; each panel's starts later so it reads as one sweep across the room */}
+                  <span aria-hidden="true" className={`photo-sweep ${ready ? "is-on" : ""}`} style={{ animationDelay: `${1.3 + pi * 0.42}s` }} />
                 </div>
 
                 {p.spots.map((s, si) => {
@@ -109,10 +124,10 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
                         onClick={(e) => {
                           if (window.matchMedia("(pointer: coarse)").matches && shownOnPress.current !== id) { e.preventDefault(); setActive(id); }
                         }}
-                        className="hotspot group absolute -translate-x-1/2 -translate-y-1/2 block"
-                        style={{ opacity: ready ? 1 : 0, transition: `opacity 0.6s ${1.2 + (pi * 3 + si) * 0.12}s` }}>
+                        className="hotspot group absolute block"
+                        style={{ opacity: ready ? 1 : 0, transform: `translate(-50%, -50%) scale(${ready ? 1 : 0.2})`, transition: `opacity 0.5s ${1.9 + (pi * 3 + si) * 0.14}s, transform 0.6s ${1.9 + (pi * 3 + si) * 0.14}s cubic-bezier(.2,1.6,.4,1)` }}>
                         <span className="hotspot-ring" />
-                        <span className="hotspot-dot" style={on ? { transform: "scale(1.35)" } : undefined} />
+                        <span className="hotspot-core" style={on ? { transform: "scale(1.4)", background: "rgba(229,199,107,0.25)" } : undefined} />
                       </Link>
 
                       {/* Label: line out from the dot, then the card */}

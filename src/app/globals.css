@@ -570,11 +570,11 @@ body.tab-hidden * {
           mask-composite: intersect;
 }
 .hotspot { width: 44px; height: 44px; }
-.hotspot-dot {
-  position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
-  background: radial-gradient(circle, #FFF3C4, #E5C76B 55%, #A8892E);
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.35), 0 0 18px rgba(229,199,107,0.9);
-  transition: transform 0.25s;
+.hotspot-core {
+  position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%;
+  border: 2px solid #E5C76B;
+  box-shadow: 0 0 12px rgba(229,199,107,0.85), inset 0 0 6px rgba(229,199,107,0.5);
+  transition: transform 0.25s, background 0.25s;
 }
 .hotspot-ring {
   position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
@@ -583,3 +583,13 @@ body.tab-hidden * {
 }
 @keyframes hotspotPulse { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(3.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .hotspot-ring { animation: none; opacity: 0.6; transform: scale(2); } }
+
+/* Gold light streak across each studio photo once the room has assembled */
+.photo-sweep {
+  position: absolute; top: -10%; bottom: -10%; width: 45%; left: -60%; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(100deg, transparent, rgba(229,199,107,0.1) 30%, rgba(255,236,170,0.4) 50%, rgba(229,199,107,0.1) 70%, transparent);
+  filter: blur(8px); transform: skewX(-12deg); opacity: 0;
+}
+.photo-sweep.is-on { animation: photoSweep 0.75s cubic-bezier(.4,0,.6,1) forwards; }
+@keyframes photoSweep { 0% { left: -60%; opacity: 1; } 100% { left: 115%; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .photo-sweep { display: none; } }
