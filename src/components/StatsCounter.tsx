@@ -43,13 +43,13 @@ export default function StatsCounter({ stats }: { stats?: StatItem[] }) {
   return (
     <section className="relative py-10 md:py-20 overflow-hidden" style={{ background: "var(--bg)" }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.04) 0%, transparent 70%)" }} />
-      <div className="max-w-5xl mx-auto px-4 grid grid-cols-3 gap-8 text-center">
+      <div className="max-w-5xl mx-auto px-4 grid grid-cols-3 gap-3 md:gap-8 text-center">
         {items.map(({ value, suffix, label }, i) => (
           <ScrollReveal key={label} delay={i * 0.12} className="group">
             <p className="text-4xl md:text-6xl font-black mb-2 gold-gradient tabular-nums">
               <Counter value={value} suffix={suffix} />
             </p>
-            <p className="text-xs tracking-[0.25em] uppercase" style={{ color: "var(--muted)" }}>{label}</p>
+            <p className="text-[10px] md:text-xs tracking-[0.12em] md:tracking-[0.25em] uppercase" style={{ color: "var(--muted)" }}>{label}</p>
           </ScrollReveal>
         ))}
       </div>

@@ -64,7 +64,7 @@ export default function RootLayout({
         <main className="relative z-10 flex-1">{children}</main>
         {/* Logo sign-off at the bottom of every page, with the heat-shimmer flame effect.
             It used to be pinned behind the content, where photos and text ran into it. */}
-        <div aria-hidden="true" className="relative z-10 pointer-events-none flex justify-center pt-16 -mb-12">
+        <div aria-hidden="true" className="relative z-10 pointer-events-none flex justify-center pt-20 overflow-hidden">
           <svg style={{ position: "absolute", width: 0, height: 0 }}>
             <defs>
               <filter id="fireWarp" x="-5%" y="-30%" width="110%" height="150%" colorInterpolationFilters="sRGB">
@@ -75,13 +75,16 @@ export default function RootLayout({
               </filter>
             </defs>
           </svg>
-          <div className="relative w-[70vw] max-w-lg">
+          {/* logo.png is square with empty space above and below the artwork; trim it */}
+          <div className="w-[70vw] max-w-md">
+          <div className="relative" style={{ marginTop: "-17%", marginBottom: "-22%" }}>
             <img src="/logo.png" alt="" className="w-full select-none" style={{ opacity: 0.25 }} />
             <img
               src="/logo.png" alt=""
               className="w-full select-none absolute inset-0 hidden md:block"
               style={{ opacity: 0.4, filter: "url(#fireWarp) brightness(1.4)" }}
             />
+          </div>
           </div>
         </div>
         <Footer />

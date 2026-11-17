@@ -99,7 +99,7 @@ export default function Productions({ videos: videosProp }: { videos?: Productio
         <ScrollReveal className="flex items-end justify-between mb-12 md:mb-16">
           <div>
             <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>STRAIGHT FROM THE STUDIO</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white">Productions</h2>
+            <h2 className="section-title">Productions</h2>
           </div>
           <span className="text-sm tabular-nums" style={{ color: "var(--muted)" }}>
             {frontIdx + 1} <span style={{ color: "rgba(201,168,76,0.3)" }}>/</span> {videos.length}

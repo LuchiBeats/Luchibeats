@@ -32,42 +32,31 @@ export default async function Testimonials() {
   return (
     <section className="relative max-w-7xl mx-auto px-4 py-12 md:py-24 overflow-hidden">
       <div className="absolute w-96 h-96 rounded-full pointer-events-none" style={{ background: "rgba(201,168,76,0.05)", filter: "blur(80px)", top: "0", left: "50%", transform: "translateX(-50%)" }} />
-      <ScrollReveal className="text-center mb-8 md:mb-14">
-        <p className="text-xs tracking-[0.35em] mb-3" style={{ color: "var(--fire)" }}>WHAT ARTISTS SAY</p>
-        <h2 className="text-3xl md:text-4xl font-black text-white">Trusted by Artists</h2>
+      <ScrollReveal className="text-center mb-10 md:mb-16">
+        <p className="eyebrow mb-3">What Artists Say</p>
+        <h2 className="section-title">Trusted by Artists</h2>
       </ScrollReveal>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Open layout, no cards: the artist's photo melts into the page and the quote sits under it */}
+      <div className={`grid grid-cols-1 gap-14 md:gap-12 mx-auto ${testimonials.length === 2 ? "md:grid-cols-2 max-w-5xl" : "md:grid-cols-3"}`}>
         {testimonials.map((t, i) => (
-          <ScrollReveal key={t.id} delay={i * 0.12}>
-            <div className="card-surface relative rounded-xl overflow-hidden h-full flex flex-col group transition-all duration-300">
-              {/* Large photo */}
-              {t.image && (
-                <div className="w-full overflow-hidden" style={{ height: "280px", WebkitMaskImage: "linear-gradient(to bottom, #000 55%, transparent)", maskImage: "linear-gradient(to bottom, #000 55%, transparent)" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={t.image}
-                    alt={t.name}
-                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: t.objectPosition ?? "top" }}
-                  />
-                </div>
-              )}
-              {/* Card body */}
-              <div className="relative p-6 flex flex-col flex-1 justify-between">
-                <span className="absolute top-3 right-5 text-5xl font-black leading-none select-none" style={{ color: "rgba(201,168,76,0.12)" }}>"</span>
-                <p className="text-sm leading-relaxed mb-5 relative z-10" style={{ color: "var(--muted)" }}>"{t.quote}"</p>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-white">{t.name}</p>
-                    <p className="text-xs" style={{ color: "var(--muted)" }}>{t.title}</p>
-                  </div>
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, j) => (
-                      <span key={j} className="text-xs" style={{ color: "var(--fire)" }}>★</span>
-                    ))}
-                  </div>
-                </div>
+          <ScrollReveal key={t.id} delay={i * 0.12} className="flex flex-col items-center text-center">
+            {t.image && (
+              <div className="photo-tile relative w-56 h-56 md:w-64 md:h-64 -mb-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={t.image}
+                  alt={t.name}
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: t.objectPosition ?? "top", filter: "saturate(0.9) brightness(0.9)" }}
+                />
               </div>
-            </div>
+            )}
+            <span aria-hidden="true" className="relative z-10 text-7xl font-black leading-none h-10 select-none gold-gradient">&ldquo;</span>
+            <blockquote className="relative z-10 md:text-lg leading-relaxed max-w-md mb-6" style={{ color: "rgba(255,255,255,0.85)" }}>
+              {t.quote}
+            </blockquote>
+            <p className="text-sm font-bold tracking-[0.2em] uppercase" style={{ color: "var(--gold)" }}>{t.name}</p>
+            {t.title && <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{t.title}</p>}
           </ScrollReveal>
         ))}
       </div>

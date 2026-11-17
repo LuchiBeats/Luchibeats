@@ -129,8 +129,8 @@ export default async function HomePage() {
           </ScrollReveal>
           <ScrollReveal className="over-photo relative z-10 text-center md:text-left pt-[380px] md:pt-0 md:pl-[48%]" delay={0.1}>
             <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--fire)" }}>THE PRODUCER</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-5">Meet Luchi</h2>
-            <p className="leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.8)" }}>
+            <h2 className="section-title mb-6">Meet Luchi</h2>
+            <p className="md:text-lg leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.82)" }}>
               Producer and engineer out of Paterson, New Jersey. Years in the room with some of the most
               respected names in the culture — producing, engineering, and helping artists find the sound
               they&apos;ve been chasing.

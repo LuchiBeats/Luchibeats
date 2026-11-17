@@ -104,15 +104,28 @@ body {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
-.btn-gold {
-  background: linear-gradient(90deg, #CC2200, #FF5500, #FFAA00, #FF5500, #CC2200);
-  background-size: 200% auto;
-  animation: shimmer 3s linear infinite;
+.btn-gold, .btn-outline { transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s; }
+.btn-gold:hover { box-shadow: 0 6px 28px rgba(201,168,76,0.35); }
+
+/* Section titles: one size across the site */
+.section-title { font-size: clamp(2rem, 4.5vw, 3.5rem); line-height: 1.05; font-weight: 900; letter-spacing: -0.02em; color: #fff; }
+.eyebrow { font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+
+/* Form fields with no box: a single line that turns gold on focus */
+.field {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
+  padding: 0.75rem 0;
+  font-size: 1rem;
   color: #fff;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.2s;
 }
-.btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
+.field::placeholder { color: rgba(255,255,255,0.3); }
+.field:focus { border-bottom-color: var(--gold); }
+select.field option { background: var(--surface2); color: #fff; }
 
 /* ── Glow pulse on fire elements ── */
 @keyframes firePulse {

@@ -70,7 +70,7 @@ export default function ArtistsWorkedWith() {
 
       <ScrollReveal className="text-center mb-6 px-4">
         <p className="text-xs tracking-[0.35em] mb-2" style={{ color: "var(--fire)" }}>THE PORTFOLIO</p>
-        <h2 className="text-2xl md:text-3xl font-black text-white">Portfolio Artists Include</h2>
+        <h2 className="section-title">Portfolio Artists Include</h2>
       </ScrollReveal>
 
       {/* Viewport: capped so fewer than 14 artists are ever visible at once */}

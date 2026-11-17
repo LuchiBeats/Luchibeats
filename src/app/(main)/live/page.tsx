@@ -20,7 +20,7 @@ export default async function LivePage() {
       <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
         <div>
           <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>ON YOUTUBE</p>
-          <h1 className="text-3xl md:text-5xl font-black text-white">Luchi Beats Live</h1>
+          <h1 className="section-title">Luchi Beats Live</h1>
           <p className="mt-3 max-w-xl" style={{ color: "var(--muted)" }}>
             Live streams, studio sessions and clips from the Luchi Beats channel.
           </p>

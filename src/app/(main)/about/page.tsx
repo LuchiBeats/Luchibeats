@@ -1,6 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import StatsCounter from "@/components/StatsCounter";
+import { getHomepageContent } from "@/lib/beats-store";
+
+// Stats come from the admin Homepage tab so About and the homepage always show the same numbers
+export const dynamic = "force-dynamic";
 
 const GALLERY = [
   { src: "/luchi/session-laptop.webp", alt: "Luchi working on a beat in the studio" },
@@ -9,12 +15,20 @@ const GALLERY = [
   { src: "/luchi/portrait-half.webp", alt: "Portrait of Luchi" },
 ];
 
-export default function AboutPage() {
+const SERVICES = [
+  { title: "Beat Production", text: "Trap, R&B, Hip-Hop, Afrobeats, and more. Custom production built around your sound, from the first idea to the final mix." },
+  { title: "Recording, Mixing & Mastering", text: "Vocal recording, mixing and mastering from someone who knows the record from the inside out — radio-ready and true to your sound." },
+];
+
+export default async function AboutPage() {
+  let stats;
+  try { stats = (await getHomepageContent()).stats; } catch {}
   return (
+    <>
     <div className="max-w-5xl mx-auto px-4 py-10 md:py-12">
       <div className="mb-10 md:mb-16">
-        <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>THE PRODUCER</p>
-        <h1 className="text-3xl md:text-4xl font-black text-white">About LuchiBeats</h1>
+        <p className="eyebrow mb-3">The Producer</p>
+        <h1 className="section-title">About LuchiBeats</h1>
       </div>
 
       {/* Bio Section */}
@@ -32,8 +46,8 @@ export default function AboutPage() {
         </div>
         <div className="over-photo relative z-10 pt-[400px] md:pt-16 md:pr-[46%]">
 
-          <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">My Story</h2>
-          <div className="space-y-5 leading-relaxed" style={{ color: "#ffffff" }}>
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-5 md:mb-6">My Story</h2>
+          <div className="space-y-5 md:text-[17px] leading-relaxed" style={{ color: "rgba(255,255,255,0.88)" }}>
             <p>
               Paterson, New Jersey doesn&apos;t produce artists — it produces survivors. And the ones who survive long enough to find their gift come out forged, not just formed. Luchi is one of those. Raised in the cultural weight of a city that demands authenticity, he didn&apos;t choose music so much as music chose him — through years of obsession, refinement, and an unwavering commitment to a craft that most walk away from long before it pays off.
             </p>
@@ -51,8 +65,8 @@ export default function AboutPage() {
       <div className="mb-14 md:mb-20">
         {/* Heading sits in front; the photos rise up behind it */}
         <div className="over-photo relative z-10">
-          <p className="text-xs tracking-[0.3em] mb-2" style={{ color: "var(--gold)" }}>BEHIND THE BOARD</p>
-          <h2 className="text-2xl md:text-4xl font-black text-white">In the Studio</h2>
+          <p className="eyebrow mb-3">Behind the Board</p>
+          <h2 className="section-title">In the Studio</h2>
         </div>
         {/* Phone: 2 per row. Desktop: 4 across. Neighbours overlap by exactly their fade width so they cross-fade. */}
         <div className="flex flex-wrap md:flex-nowrap -mt-10 md:-mt-20 -mx-4 md:mx-0">
@@ -71,38 +85,38 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Services Summary */}
-      <ScrollReveal className="card-surface rounded-lg p-5 md:p-8 mb-10 md:mb-12">
-        <h2 className="text-xl md:text-2xl font-black text-white mb-5 md:mb-6">What I Offer</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Beat Production</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Trap, R&B, Hip-Hop, Afrobeats, and more. Custom production built around your sound, from the first idea to the final mix.</p>
-          </div>
-          <div>
-            <h3 className="font-bold mb-2" style={{ color: "var(--gold)" }}>Recording, Mixing & Mastering</h3>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Vocal recording, mixing and mastering from someone who knows the record from the inside out — radio-ready and true to your sound.</p>
-          </div>
+      {/* What I Offer: open columns, no box */}
+      <section className="mb-6 md:mb-10">
+        <ScrollReveal>
+          <p className="eyebrow mb-3">Services</p>
+          <h2 className="section-title mb-10 md:mb-14">What I Offer</h2>
+        </ScrollReveal>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+          {SERVICES.map(({ title, text }, i) => (
+            <ScrollReveal key={title} delay={i * 0.12}>
+              <p className="text-5xl md:text-6xl font-black gold-gradient leading-none mb-4 tabular-nums">0{i + 1}</p>
+              <div className="h-px w-16 mb-5" style={{ background: "linear-gradient(90deg, var(--gold), transparent)" }} />
+              <h3 className="text-xl md:text-2xl font-bold text-white mb-3">{title}</h3>
+              <p className="leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>{text}</p>
+            </ScrollReveal>
+          ))}
         </div>
-      </ScrollReveal>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-14 md:mb-20">
-        {[
-          { number: "100+", label: "Artists Worked With" },
-          { number: "100%", label: "Client Satisfaction" },
-          { number: "10+", label: "Years of Experience" },
-        ].map(({ number, label }, i) => (
-          <ScrollReveal key={label} delay={i * 0.12} className="card-surface rounded-lg p-4 md:p-6 text-center">
-            <p className="text-2xl md:text-3xl font-black mb-1 gold-gradient">{number}</p>
-            <p className="text-xs md:text-sm" style={{ color: "var(--muted)" }}>{label}</p>
-          </ScrollReveal>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <Link href="/contact" className="btn-gold px-8 py-3 rounded text-sm tracking-wide">Work With Me</Link>
-      </div>
+      </section>
     </div>
+
+    {/* Same numbers as the homepage */}
+    <StatsCounter stats={stats} />
+
+    {/* Closing call to action */}
+    <ScrollReveal className="max-w-3xl mx-auto px-4 pt-6 pb-4 text-center">
+      <h2 className="section-title mb-5">Let&apos;s make the record.</h2>
+      <p className="md:text-lg mb-8" style={{ color: "rgba(255,255,255,0.65)" }}>
+        Custom beats, recording, mixing and mastering. Tell me what you&apos;re working on.
+      </p>
+      <Link href="/contact" className="btn-gold inline-flex items-center gap-2 px-10 py-4 rounded text-sm tracking-wide">
+        Work With Me <ArrowRight size={16} />
+      </Link>
+    </ScrollReveal>
+    </>
   );
 }

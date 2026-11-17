@@ -22,7 +22,7 @@ export default function Navbar() {
     <nav className="w-full" style={{ background: "linear-gradient(to bottom, #000, var(--bg))" }}>
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-20">
         <Link href="/">
-          <Image src="/logo.png" alt="LuchiBeats" width={120} height={60} className="object-contain h-12 w-auto" />
+          <Image src="/logo.png" alt="LuchiBeats" width={240} height={240} priority className="object-cover object-[50%_46%] h-14 w-28" />
         </Link>
 
         {/* Desktop links */}
