@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Permanent_Marker, VT323 } from "next/font/google";
 import { ExternalLink, Play } from "lucide-react";
 import type { ChannelVideo } from "@/lib/youtube";
@@ -80,15 +81,11 @@ function Static({ on }: { on: boolean }) {
   return <canvas ref={ref} width={160} height={120} aria-hidden="true" className="absolute inset-0 w-full h-full transition-opacity duration-200" style={{ opacity: on ? 1 : 0, imageRendering: "pixelated" }} />;
 }
 
-/* ── A cassette on the shelf ── */
-function Tape({ v, n, inDeck, onPick }: { v: ChannelVideo; n: number; inDeck: boolean; onPick: (v: ChannelVideo) => void }) {
+/* ── A cassette ── */
+function TapeFace({ v, n }: { v: ChannelVideo; n: number }) {
   const clip = v.kind === "short";
   return (
-    <div className={`tape-slot ${clip ? "is-clip" : ""}`}>
-      <div className="tape-ghost" aria-hidden="true" style={{ opacity: inDeck ? 1 : 0 }}>
-        <span className={vcr.className}>IN THE VCR</span>
-      </div>
-      <button type="button" onClick={() => onPick(v)} aria-label={`Put in the VCR: ${v.title}`} className={`vhs ${inDeck ? "is-out" : ""}`} disabled={inDeck}>
+    <>
         <span className="vhs-label">
           <span className="vhs-stripe" />
           <span className={`vhs-title ${marker.className}`}>{v.title}</span>
@@ -101,13 +98,30 @@ function Tape({ v, n, inDeck, onPick }: { v: ChannelVideo; n: number; inDeck: bo
           <span className="reel" /><span className="vhs-tape" /><span className="reel" />
         </span>
         <span className="vhs-brand" aria-hidden="true">{clip ? "VHS-C" : "VHS"}</span>
+    </>
+  );
+}
+
+type Grab = (v: ChannelVideo, n: number, e: React.PointerEvent<HTMLButtonElement>) => void;
+
+/* ── A cassette on the shelf: grab it and drop it in the VCR (or just click it) ── */
+function Tape({ v, n, inDeck, lifted, onPick, onGrab }: { v: ChannelVideo; n: number; inDeck: boolean; lifted: boolean; onPick: (v: ChannelVideo) => void; onGrab: Grab }) {
+  const clip = v.kind === "short";
+  return (
+    <div className={`tape-slot ${clip ? "is-clip" : ""}`}>
+      <div className="tape-ghost" aria-hidden="true" style={{ opacity: inDeck ? 1 : 0 }}>
+        <span className={vcr.className}>IN THE VCR</span>
+      </div>
+      <button type="button" onPointerDown={(e) => onGrab(v, n, e)} onClick={() => onPick(v)}
+        aria-label={`Put in the VCR: ${v.title}`} className={`vhs ${inDeck ? "is-out" : ""} ${lifted ? "is-lifted" : ""}`} disabled={inDeck}>
+        <TapeFace v={v} n={n} />
       </button>
     </div>
   );
 }
 
-function Shelf({ title, label, items, numberFrom = 1, current, onPick }: {
-  title: string; label: string; items: ChannelVideo[]; numberFrom?: number; current: ChannelVideo | null; onPick: (v: ChannelVideo) => void;
+function Shelf({ title, label, items, numberFrom = 1, current, lifted, onPick, onGrab }: {
+  title: string; label: string; items: ChannelVideo[]; numberFrom?: number; current: ChannelVideo | null; lifted: string | null; onPick: (v: ChannelVideo) => void; onGrab: Grab;
 }) {
   if (!items.length) return null;
   return (
@@ -116,7 +130,7 @@ function Shelf({ title, label, items, numberFrom = 1, current, onPick }: {
       <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6">{title}</h2>
       <div className="shelf">
         <div className="shelf-row">
-          {items.map((v, i) => <Tape key={v.id} v={v} n={numberFrom + i} inDeck={current?.id === v.id} onPick={onPick} />)}
+          {items.map((v, i) => <Tape key={v.id} v={v} n={numberFrom + i} inDeck={current?.id === v.id} lifted={lifted === v.id} onPick={onPick} onGrab={onGrab} />)}
         </div>
         <div className="shelf-plank" aria-hidden="true" />
       </div>
@@ -203,12 +217,100 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
     later(() => { setSlot(""); setCurrent(null); setPhase("empty"); setFlash(null); }, reducedMotion() ? 0 : 900);
   };
 
+  /* ── Grab a tape and drop it in the VCR ── */
+  type Drag = { v: ChannelVideo; n: number; rect: DOMRect; offX: number; offY: number; x: number; y: number };
+  const [drag, setDrag] = useState<Drag | null>(null);
+  const [over, setOver] = useState(false);
+  const floatRef = useRef<HTMLDivElement>(null);
+  const slotRef = useRef<HTMLDivElement>(null);
+  const dragged = useRef(false);
+
+  const grab: Grab = (v, n, e) => {
+    if (e.button !== 0 || current?.id === v.id) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY, id = e.pointerId;
+    const offX = sx - rect.left, offY = sy - rect.top;
+    const p = { x: sx, y: sy };
+    let started = false, inside = false, raf = 0;
+    dragged.current = false;
+
+    const place = (lift = 1) => {
+      const el = floatRef.current;
+      if (el) el.style.transform = `translate(${p.x - offX}px, ${p.y - offY}px) rotate(${-5 * lift}deg) scale(${1 + 0.06 * lift})`;
+    };
+    const check = () => {
+      const r = tvRef.current?.getBoundingClientRect();
+      const now = !!r && p.x > r.left - 30 && p.x < r.right + 30 && p.y > r.top - 30 && p.y < r.bottom + 40;
+      if (now !== inside) { inside = now; setOver(now); }
+    };
+    // Scroll the page while the tape is held near the top or bottom edge, so the VCR can be reached
+    const tick = () => {
+      const edge = 90;
+      if (p.y < edge) window.scrollBy(0, -Math.ceil((edge - p.y) / 5));
+      else if (p.y > innerHeight - edge) window.scrollBy(0, Math.ceil((p.y - (innerHeight - edge)) / 5));
+      check();
+      raf = requestAnimationFrame(tick);
+    };
+    const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== id) return;
+      p.x = ev.clientX; p.y = ev.clientY;
+      if (!started) {
+        if (Math.hypot(p.x - sx, p.y - sy) < 8) return;
+        started = true; dragged.current = true;
+        document.documentElement.classList.add("is-dragging-tape");
+        setDrag({ v, n, rect, offX, offY, x: p.x, y: p.y });
+        raf = requestAnimationFrame(tick);
+      }
+      ev.preventDefault();
+      place();
+      check();
+    };
+    const finish = (ev: PointerEvent) => {
+      if (ev.pointerId !== id) return;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+      cancelAnimationFrame(raf);
+      document.documentElement.classList.remove("is-dragging-tape");
+      if (!started) return;
+      const dropIn = inside && ev.type === "pointerup";
+      const el = floatRef.current;
+      const fast = reducedMotion();
+      if (el) {
+        el.style.transition = fast ? "none" : "transform 0.32s cubic-bezier(.4,0,.2,1), opacity 0.32s";
+        if (dropIn && slotRef.current) {
+          // Fly into the slot
+          const t = slotRef.current.getBoundingClientRect();
+          const sc = Math.min(0.6, t.width / rect.width);
+          el.style.transform = `translate(${t.left + t.width / 2 - (rect.width * sc) / 2}px, ${t.top + t.height / 2 - (rect.height * sc) / 2}px) scale(${sc})`;
+          el.style.transformOrigin = "0 0";
+          el.style.opacity = "0";
+        } else {
+          // Back to its spot on the shelf
+          el.style.transform = `translate(${rect.left}px, ${rect.top}px) rotate(0deg) scale(1)`;
+        }
+      }
+      later(() => {
+        setDrag(null); setOver(false);
+        if (dropIn) pick(v);
+      }, fast ? 0 : 320);
+    };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
+  };
+  // A click right after a drag is not a click
+  const clickPick = useCallback((v: ChannelVideo) => {
+    if (dragged.current) { dragged.current = false; return; }
+    pick(v);
+  }, [pick]);
+
   // Ask the player to report its time and state once it has loaded
   const onFrameLoad = () => { [0, 400, 1200, 2500].forEach((ms) => later(() => yt.listen(), ms)); };
 
   const playing = phase === "on" && (yt.state === 1 || yt.state === 3 || yt.state === -1);
   const paused = phase === "on" && yt.state === 2;
-  const mode = phase === "empty" ? "NO TAPE" : slot === "inserting" ? "LOAD" : slot === "ejecting" ? "EJECT" : phase === "loading" ? "TRACK"
+  const mode = drag ? (over ? "DROP IT" : "INSERT") : phase === "empty" ? "NO TAPE" : slot === "inserting" ? "LOAD" : slot === "ejecting" ? "EJECT" : phase === "loading" ? "TRACK"
     : phase === "stopped" ? "STOP" : isLive ? "LIVE" : paused ? "PAUSE" : yt.state === 0 ? "END" : "PLAY";
   const osdLeft = flash ?? (phase === "empty" ? "NO TAPE" : isLive && phase === "on" ? "● LIVE" : phase === "loading" ? "TRACKING" : phase === "stopped" ? "STOP ■" : paused ? "❚❚ PAUSE" : "PLAY ▶");
   const showOsd = flash !== null || phase !== "on" || paused;
@@ -227,6 +329,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 style={{ filter: "blur(70px) saturate(1.8)", opacity: phase === "empty" ? 0 : 0.5 }} />
             )}
 
+            <div className={`drop-glow ${drag ? "is-on" : ""} ${over ? "is-over" : ""}`} aria-hidden="true" />
             <div className="tv" data-tilt="">
               <div className="tv-bezel">
                 <div className="tv-screen">
@@ -282,8 +385,8 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                   <span className="vcr-sub">VIDEO CASSETTE RECORDER</span>
                 </div>
                 {/* Cassette slot with its spring flap */}
-                <div className={`vcr-slot ${slot ? `is-${slot}` : ""} ${current && phase !== "empty" && !slot ? "is-loaded" : ""}`}>
-                  {current && (
+                <div ref={slotRef} className={`vcr-slot ${slot ? `is-${slot}` : ""} ${current && phase !== "empty" && !slot && !drag ? "is-loaded" : ""} ${drag ? "is-target" : ""} ${over ? "is-over" : ""}`}>
+                  {current && !drag && (
                     <span className="vcr-tape" aria-hidden="true">
                       <span className={`vcr-tape-label ${marker.className}`}>{current.kind === "short" ? "Clip" : "Tape"} · {current.title}</span>
                     </span>
@@ -332,14 +435,23 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 </a>
               )}
             </div>
-            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Use the VCR buttons to pause, rewind or skip ahead.</p>
+            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Grab a tape off the shelf and drop it in the VCR. Use the buttons to pause, rewind or skip ahead.</p>
           </div>
         </div>
       </ScrollReveal>
 
-      <Shelf label="Replays" title="The Tape Wall" items={streams} current={current} onPick={pick} />
-      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} current={current} onPick={pick} />
-      <Shelf label="On the Channel" title="More Tapes" items={videos} numberFrom={streams.length + 1} current={current} onPick={pick} />
+      <Shelf label="Replays" title="The Tape Wall" items={streams} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+      <Shelf label="On the Channel" title="More Tapes" items={videos} numberFrom={streams.length + 1} current={current} lifted={drag?.v.id ?? null} onPick={clickPick} onGrab={grab} />
+
+      {/* The tape in your hand */}
+      {drag && createPortal(
+        <div ref={floatRef} aria-hidden="true" className={`tape-float ${drag.v.kind === "short" ? "is-clip" : ""} ${over ? "is-over" : ""}`}
+          style={{ width: drag.rect.width, height: drag.rect.height, transform: `translate(${drag.x - drag.offX}px, ${drag.y - drag.offY}px) rotate(-5deg) scale(1.06)` }}>
+          <div className="vhs"><TapeFace v={drag.v} n={drag.n} /></div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }
