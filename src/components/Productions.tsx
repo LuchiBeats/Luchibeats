@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Play, X } from "lucide-react";
 import ScrollReveal from "./ScrollReveal";
 import type { ProductionVideo } from "@/lib/beats-store";
 
@@ -16,265 +16,126 @@ const DEFAULT_VIDEOS: ProductionVideo[] = [
   { id: "zGzpIqC5zvQ", artist: "A Boogie Wit Da Hoodie",       title: "Timeless",            credits: "Initial Vocal Recording" },
 ];
 
-export default function Productions({ videos: videosProp }: { videos?: ProductionVideo[] }) {
-  const videos = videosProp?.length ? videosProp : DEFAULT_VIDEOS;
-  const STEP = 360 / videos.length;
-  const [angle, setAngle]           = useState(-STEP);
-  const [paused, setPaused]         = useState(false);
-  const [modalVideo, setModalVideo] = useState<(typeof videos)[number] | null>(null);
-  const [dims, setDims]             = useState({ radius: 520, cardW: 260, stageH: 380 });
-  const touchStartX = useRef(0);
-  const swipedRef   = useRef(false);
-  const modalRef    = useRef<HTMLDivElement>(null);
+// Roles come from the credits text the admin types ("Beat · Vocal Recording · Mix")
+const FILTERS = [
+  { key: "all",   label: "All",      test: () => true },
+  { key: "beat",  label: "Produced", test: (c: string) => /beat|produc/i.test(c) },
+  { key: "rec",   label: "Recorded", test: (c: string) => /record|vocal/i.test(c) },
+  { key: "mix",   label: "Mixed",    test: (c: string) => /mix|master/i.test(c) },
+] as const;
+type FilterKey = (typeof FILTERS)[number]["key"];
 
-  useEffect(() => {
-    function update() {
-      const w = window.innerWidth;
-      if (w < 480)      setDims({ radius: 270, cardW: 125, stageH: 280 });
-      else if (w < 768) setDims({ radius: 370, cardW: 190, stageH: 340 });
-      else              setDims({ radius: 520, cardW: 260, stageH: 380 });
-    }
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+const roles = (credits: string) => credits.split(/\s*[·•|,]\s*/).map((r) => r.trim()).filter(Boolean);
+const still = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+// YouTube keeps three small frames from inside every video: flipping through them
+// on hover gives a quick silent preview without loading a player.
+const frames = (id: string) => [1, 2, 3].map((n) => `https://i.ytimg.com/vi/${id}/hq${n}.jpg`);
 
-  // When modal opens: pause carousel, lock scroll, go fullscreen
-  useEffect(() => {
-    if (!modalVideo) {
-      document.body.style.overflow = "";
-      return;
-    }
-
-    setPaused(true);
-    document.body.style.overflow = "hidden";
-
-    // Request native fullscreen on the modal container
-    const el = modalRef.current;
-    if (el) {
-      const req =
-        (el as any).requestFullscreen ||
-        (el as any).webkitRequestFullscreen ||
-        (el as any).mozRequestFullScreen;
-      req?.call(el)?.catch(() => {});
-    }
-
-    return () => { document.body.style.overflow = ""; };
-  }, [modalVideo]);
-
-  useEffect(() => {
-    if (paused) return;
-    const id = setInterval(() => setAngle((a) => a - STEP), 5000);
-    return () => clearInterval(id);
-  }, [paused]);
-
-  const prev = () => setAngle((a) => a + STEP);
-  const next = () => setAngle((a) => a - STEP);
-
-  const frontIdx = ((Math.round(-angle / STEP) % videos.length) + videos.length) % videos.length;
-
-  const closeModal = () => {
-    setModalVideo(null);
-    setTimeout(() => setPaused(false), 300);
-    // Exit native fullscreen if active
-    try {
-      const exit =
-        (document as any).exitFullscreen ||
-        (document as any).webkitExitFullscreen ||
-        (document as any).mozCancelFullScreen;
-      if (
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement
-      ) {
-        exit?.call(document);
-      }
-    } catch {}
+function Card({ v, n, onOpen }: { v: ProductionVideo; n: number; onOpen: (v: ProductionVideo) => void }) {
+  const [frame, setFrame] = useState(-1);
+  const timer = useRef(0);
+  const start = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let i = 0; setFrame(0);
+    window.clearInterval(timer.current);
+    timer.current = window.setInterval(() => { i = (i + 1) % 3; setFrame(i); }, 650);
   };
+  const stop = () => { window.clearInterval(timer.current); setFrame(-1); };
+  useEffect(() => () => window.clearInterval(timer.current), []);
 
   return (
-    <section id="productions" className="relative py-14 md:py-20 overflow-hidden scroll-mt-20">
-      <div className="orb orb-1 w-[600px] h-[600px] top-0 left-1/2 -translate-x-1/2" style={{ background: "rgba(201,168,76,0.05)" }} />
+    <button type="button" onClick={() => onOpen(v)} onMouseEnter={start} onMouseLeave={stop} onFocus={start} onBlur={stop}
+      className="credit-card group" aria-label={`Play ${v.artist} — ${v.title}`}>
+      <span className="credit-thumb">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={still(v.id)} alt="" loading="lazy" className="credit-img" />
+        {frames(v.id).map((src, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={src} src={frame >= 0 ? src : undefined} alt="" aria-hidden="true" className="credit-img credit-frame" style={{ opacity: frame === i ? 1 : 0 }} />
+        ))}
+        <span className="credit-shade" />
+        <span className="credit-num">{String(n).padStart(2, "0")}</span>
+        <span className="credit-play"><Play size={20} fill="currentColor" className="ml-0.5" /></span>
+        {frame >= 0 && <span className="credit-preview">PREVIEW</span>}
+      </span>
+      <span className="credit-text">
+        <span className="credit-artist">{v.artist}</span>
+        <span className="credit-title">{v.title}</span>
+        <span className="credit-roles">
+          {roles(v.credits).map((r) => <span key={r} className="credit-role">{r}</span>)}
+        </span>
+      </span>
+    </button>
+  );
+}
 
+export default function Productions({ videos: videosProp }: { videos?: ProductionVideo[] }) {
+  const videos = videosProp?.length ? videosProp : DEFAULT_VIDEOS;
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [open, setOpen] = useState<ProductionVideo | null>(null);
+
+  const counts = useMemo(() => Object.fromEntries(FILTERS.map((f) => [f.key, videos.filter((v) => f.test(v.credits)).length])), [videos]);
+  const shown = useMemo(() => {
+    const f = FILTERS.find((x) => x.key === filter)!;
+    return videos.map((v, i) => ({ v, n: i + 1 })).filter(({ v }) => f.test(v.credits));
+  }, [videos, filter]);
+
+  const close = useCallback(() => setOpen(null), []);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [open, close]);
+
+  return (
+    <section id="productions" data-light="gold" className="relative py-14 md:py-20 scroll-mt-20">
       <div className="max-w-6xl mx-auto px-4">
-        <ScrollReveal className="text-center mb-12 md:mb-16">
+        <ScrollReveal className="text-center mb-8 md:mb-10">
           <p className="eyebrow mb-3">Straight From the Studio</p>
           <h2 className="section-title">Productions</h2>
-          <p className="mt-3 text-sm tabular-nums" style={{ color: "var(--muted)" }}>
-            {frontIdx + 1} <span style={{ color: "rgba(201,168,76,0.4)" }}>/</span> {videos.length}
+          <p className="mt-4 md:text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.65)" }}>
+            Records I produced, recorded and mixed. Pick a role to filter, and click any video to watch.
           </p>
         </ScrollReveal>
-      </div>
 
-      {/* 3D Stage — thumbnails only, no inline iframes */}
-      <div
-        className="relative mx-auto"
-        style={{ height: `${dims.stageH}px`, perspective: "1500px" }}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onTouchStart={(e) => {
-          setPaused(true);
-          touchStartX.current = e.touches[0].clientX;
-          swipedRef.current = false;
-        }}
-        onTouchMove={(e) => {
-          if (Math.abs(e.touches[0].clientX - touchStartX.current) > 10) {
-            swipedRef.current = true;
-          }
-        }}
-        onTouchEnd={(e) => {
-          if (swipedRef.current) {
-            const diff = e.changedTouches[0].clientX - touchStartX.current;
-            if (diff < 0) next(); else prev();
-          }
-          setTimeout(() => setPaused(false), 400);
-        }}
-      >
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{
-            transformStyle: "preserve-3d",
-            transform: `rotateY(${angle}deg)`,
-            transition: "transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-          }}
-        >
-          {videos.map((video, i) => {
-            const isFront = i === frontIdx;
-
-            return (
-              <div
-                key={video.id}
-                onClick={() => {
-                  if (swipedRef.current) return;
-                  if (isFront) {
-                    setModalVideo(video);
-                  } else {
-                    setAngle(-(i * STEP));
-                  }
-                }}
-                style={{
-                  position: "absolute",
-                  width: `${dims.cardW}px`,
-                  transform: `rotateY(${i * STEP}deg) translateZ(${dims.radius}px)`,
-                  transition: "transform 0.9s cubic-bezier(0.25,0.46,0.45,0.94)",
-                  cursor: "pointer",
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                <div
-                  className="rounded-xl overflow-hidden shadow-2xl"
-                  style={{
-                    border: isFront ? "1px solid rgba(201,168,76,0.6)" : "1px solid rgba(201,168,76,0.15)",
-                    transform: isFront ? "scale(1.08)" : "scale(1)",
-                    transition: "transform 0.6s ease, border 0.6s ease, box-shadow 0.6s ease",
-                    boxShadow: isFront ? "0 0 40px rgba(201,168,76,0.2)" : "none",
-                  }}
-                >
-                  {/* Thumbnail */}
-                  <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                    <div className="absolute inset-0 group" style={{ background: "#111" }}>
-                      <img
-                        src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
-                        alt={video.title}
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
-                      />
-                      {/* Play overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div
-                          className="w-12 h-12 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform"
-                          style={{ background: "rgba(255,0,0,0.9)", boxShadow: "0 0 20px rgba(255,0,0,0.4)" }}
-                        >
-                          <svg viewBox="0 0 24 24" fill="white" style={{ width: "20px", height: "20px", marginLeft: "3px" }}>
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Label */}
-                  <div className="px-4 py-3" style={{ background: "var(--surface)" }}>
-                    <p className="text-[10px] tracking-widest uppercase mb-0.5" style={{ color: "var(--fire)" }}>{video.artist}</p>
-                    <p className="text-sm font-bold text-white truncate">{video.title}</p>
-                    <p className="text-[10px] mt-1 truncate" style={{ color: "rgba(201,168,76,0.55)" }}>{video.credits}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-6 mt-8 md:mt-16">
-        <button onClick={prev} aria-label="Previous"
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-          style={{ background: "rgba(10,10,10,0.9)", border: "1px solid rgba(201,168,76,0.45)", color: "var(--fire)" }}>
-          <ChevronLeft size={18} />
-        </button>
-
-        <div className="flex gap-2">
-          {videos.map((_, i) => (
-            <button key={i} onClick={() => setAngle(-(i * STEP))} aria-label={`Go to video ${i + 1}`}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: i === frontIdx ? "24px" : "8px",
-                height: "8px",
-                background: i === frontIdx ? "var(--fire)" : "rgba(201,168,76,0.25)",
-              }}
-            />
+        {/* Filter by role */}
+        <div className="flex flex-wrap justify-center gap-2.5 mb-10 md:mb-12" role="group" aria-label="Filter productions by role">
+          {FILTERS.filter((f) => counts[f.key] > 0).map((f) => (
+            <button key={f.key} type="button" onClick={() => setFilter(f.key)} aria-pressed={filter === f.key}
+              className={`credit-filter ${filter === f.key ? "is-on" : ""}`}>
+              {f.label} <span className="credit-filter-count">{counts[f.key]}</span>
+            </button>
           ))}
         </div>
 
-        <button onClick={next} aria-label="Next"
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-          style={{ background: "rgba(10,10,10,0.9)", border: "1px solid rgba(201,168,76,0.45)", color: "var(--fire)" }}>
-          <ChevronRight size={18} />
-        </button>
+        <ul key={filter} className="credit-grid">
+          {shown.map(({ v, n }, i) => (
+            <li key={v.id} className="credit-item" style={{ animationDelay: `${Math.min(i, 8) * 0.05}s` }}>
+              <Card v={v} n={n} onOpen={setOpen} />
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* ── Fullscreen video modal ── */}
-      {modalVideo && (
-        <div
-          ref={modalRef}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4"
-          style={{ background: "#000" }}
-          onClick={closeModal}
-        >
-          {/* Close button */}
-          <button
-            onClick={closeModal}
-            className="absolute top-4 right-4 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 z-10"
-            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff" }}
-            aria-label="Close video"
-          >
-            <X size={20} />
-          </button>
-
-          {/* Video frame — stops click from closing */}
-          <div
-            className="w-full"
-            style={{ maxWidth: "900px", position: "relative", paddingBottom: "56.25%" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube-nocookie.com/embed/${modalVideo.id}?autoplay=1&rel=0&modestbranding=1&playsinline=0&fs=1`}
-              title={`${modalVideo.artist} — ${modalVideo.title}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
+      {/* Full-screen player */}
+      {open && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4" style={{ background: "rgba(5,4,3,0.96)", animation: "fadeSlide 0.3s ease-out" }}
+          onClick={close} role="dialog" aria-modal="true" aria-label={`${open.artist} — ${open.title}`}>
+          <button type="button" onClick={close} aria-label="Close video" autoFocus
+            className="absolute top-4 right-4 w-11 h-11 rounded-full flex items-center justify-center z-10"
+            style={{ background: "rgba(255,255,255,0.08)", color: "#fff" }}><X size={20} /></button>
+          <div className="relative w-full max-w-[1000px] aspect-video" onClick={(e) => e.stopPropagation()}>
+            <iframe className="absolute inset-0 w-full h-full rounded-lg"
+              src={`https://www.youtube-nocookie.com/embed/${open.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`} title={`${open.artist} — ${open.title}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
           </div>
-
-          {/* Video info below */}
           <div className="mt-5 text-center" onClick={(e) => e.stopPropagation()}>
-            <p className="text-xs tracking-[0.3em] uppercase mb-1" style={{ color: "var(--fire)" }}>{modalVideo.artist}</p>
-            <p className="text-xl font-black text-white">{modalVideo.title}</p>
-            <p className="text-xs mt-1" style={{ color: "rgba(201,168,76,0.55)" }}>{modalVideo.credits}</p>
+            <p className="eyebrow mb-1">{open.artist}</p>
+            <p className="text-xl md:text-2xl font-black text-white">{open.title}</p>
+            <p className="mt-2 text-sm" style={{ color: "var(--muted)" }}>{open.credits}</p>
           </div>
-
-          <p className="absolute bottom-6 text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
-            Tap outside to close
-          </p>
         </div>
       )}
     </section>
