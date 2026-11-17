@@ -1,87 +1,94 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Play, X, ExternalLink, Radio } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Permanent_Marker, VT323 } from "next/font/google";
+import { ExternalLink, Play } from "lucide-react";
 import type { ChannelVideo } from "@/lib/youtube";
 import ScrollReveal from "./ScrollReveal";
 
+// The Live page as a tape wall: every stream is a VHS tape on a shelf, every clip a
+// camcorder tape. Click one and it goes into the TV (static, then "PLAY ▶").
+
+const marker = Permanent_Marker({ weight: "400", subsets: ["latin"], display: "swap" });
+const vcr = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
+
 const watchUrl = (v: ChannelVideo) =>
   v.kind === "short" ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`;
-const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-// Shorts have a full-size vertical thumbnail; the standard one is letterboxed and blurry
-const thumbFor = (v: ChannelVideo, big: boolean) =>
-  v.kind === "short" ? `https://i.ytimg.com/vi/${v.id}/oardefault.jpg` : big ? `https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg` : thumb(v.id);
+const poster = (v: ChannelVideo) =>
+  v.kind === "short" ? `https://i.ytimg.com/vi/${v.id}/oardefault.jpg` : `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
 const embedSrc = (id: string, autoplay: boolean) =>
   `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${autoplay ? "&autoplay=1" : ""}`;
 
-function formatDate(iso?: string) {
-  if (!iso) return null;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const shortDate = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" }).replace(/\//g, "·") : "";
+const stampDate = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase().replace(",", "") : "";
+const reducedMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+type Phase = "ready" | "static" | "playing" | "empty";
+
+/* ── TV static ── */
+function Static({ on }: { on: boolean }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (!on) return;
+    const c = ref.current!.getContext("2d")!;
+    const w = 160, h = 120, img = c.createImageData(w, h);
+    let raf = 0;
+    const draw = () => {
+      for (let i = 0; i < img.data.length; i += 4) {
+        const v = Math.random() * 255;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255;
+      }
+      c.putImageData(img, 0, 0);
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, [on]);
+  return <canvas ref={ref} width={160} height={120} aria-hidden="true" className="absolute inset-0 w-full h-full transition-opacity duration-200" style={{ opacity: on ? 1 : 0, imageRendering: "pixelated" }} />;
 }
 
-function Meta({ v }: { v: ChannelVideo }) {
-  const parts = [formatDate(v.published), v.views != null ? `${v.views.toLocaleString()} views` : null].filter(Boolean);
-  if (!parts.length) return null;
-  return <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{parts.join(" · ")}</p>;
-}
-
-// Thumbnail with a play button. Embeddable videos open in the on-page player;
-// the rest open on YouTube (embedding is switched off for them in YouTube Studio).
-function Thumb({ v, onPlay, big = false }: { v: ChannelVideo; onPlay: (v: ChannelVideo) => void; big?: boolean }) {
-  const vertical = v.kind === "short";
-  const inner = (
-    <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={thumbFor(v, big)} alt="" loading={big ? "eager" : "lazy"}
-        // Not every video has a full-HD thumbnail — fall back to the standard one
-        onError={(e) => { const img = e.currentTarget; if (!img.src.endsWith("/hqdefault.jpg")) img.src = thumb(v.id); }}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      <div className="absolute inset-0" style={{ background: big
-        ? "linear-gradient(to top, rgba(10,10,10,0.92), rgba(10,10,10,0.25) 45%, transparent 70%), linear-gradient(to right, rgba(10,10,10,0.5), transparent 55%)"
-        : "linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.05) 55%)" }} />
-      <span className={`play-btn absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${big ? "w-20 h-20 md:w-24 md:h-24" : "w-14 h-14"}`}
-        style={{ background: "linear-gradient(135deg,#A8892E,#C9A84C,#E5C76B)", boxShadow: "0 0 30px rgba(201,168,76,0.45)" }}>
-        <Play size={big ? 36 : 22} fill="#000" color="#000" className="ml-1" />
-      </span>
-      {!v.embeddable && (
-        <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase"
-          style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
-          YouTube <ExternalLink size={10} />
-        </span>
-      )}
-    </>
-  );
-  const cls = `group relative block w-full overflow-hidden rounded-lg ${vertical ? "aspect-[9/16]" : "aspect-video"}`;
-  const style = { background: "#000", boxShadow: "0 20px 50px rgba(0,0,0,0.55)" };
-  const link = v.embeddable ? (
-    <button type="button" onClick={() => onPlay(v)} className={cls} style={style} aria-label={`Play ${v.title}`}>{inner}</button>
-  ) : (
-    <a href={watchUrl(v)} target="_blank" rel="noopener noreferrer" className={cls} style={style} aria-label={`Watch ${v.title} on YouTube`}>{inner}</a>
-  );
-  // Ambient glow: a blurred copy of the thumbnail lights up the page around the video
+/* ── A cassette on the shelf ── */
+function Tape({ v, n, inDeck, onPick }: { v: ChannelVideo; n: number; inDeck: boolean; onPick: (v: ChannelVideo, el: HTMLElement) => void }) {
+  const clip = v.kind === "short";
   return (
-    <div className={`thumb-wrap relative ${big ? "is-big" : ""}`} data-tilt={big ? "" : undefined}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={thumbFor(v, false)} alt="" aria-hidden="true" loading="lazy" className="ambi absolute inset-0 w-full h-full object-cover rounded-lg pointer-events-none" />
-      {link}
+    <div className={`tape-slot ${clip ? "is-clip" : ""}`}>
+      {/* Empty slot outline stays behind while the tape is in the TV */}
+      <div className="tape-ghost" aria-hidden="true" style={{ opacity: inDeck ? 1 : 0 }}>
+        <span className={vcr.className}>IN THE DECK</span>
+      </div>
+      <button type="button" onClick={(e) => onPick(v, e.currentTarget)} aria-label={`Play tape: ${v.title}`}
+        className={`vhs ${inDeck ? "is-out" : ""}`} disabled={inDeck}>
+        <span className="vhs-label">
+          <span className="vhs-stripe" />
+          <span className={`vhs-title ${marker.className}`}>{v.title}</span>
+          <span className={`vhs-meta ${vcr.className}`}>
+            <span>{clip ? "CLIP" : "TAPE"} {String(n).padStart(2, "0")}</span>
+            <span>{shortDate(v.published)}</span>
+          </span>
+        </span>
+        <span className="vhs-window" aria-hidden="true">
+          <span className="reel" /><span className="vhs-tape" /><span className="reel" />
+        </span>
+        <span className="vhs-brand" aria-hidden="true">{clip ? "VHS-C" : "VHS"}</span>
+      </button>
     </div>
   );
 }
 
-function Section({ label, title, items, onPlay, cols }: { label: string; title: string; items: ChannelVideo[]; onPlay: (v: ChannelVideo) => void; cols: string }) {
+function Shelf({ title, label, items, numberFrom = 1, current, onPick }: {
+  title: string; label: string; items: ChannelVideo[]; numberFrom?: number; current: ChannelVideo | null; onPick: (v: ChannelVideo, el: HTMLElement) => void;
+}) {
   if (!items.length) return null;
-  const vertical = items[0].kind === "short";
   return (
-    <section className="mb-14 md:mb-20 min-w-0">
+    <section className="mb-14 md:mb-20">
       <p className="eyebrow mb-2">{label}</p>
-      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6 md:mb-8">{title}</h2>
-      <div className={`grid gap-x-4 gap-y-8 md:gap-x-5 ${cols}`}>
-        {items.map((v, i) => (
-          <ScrollReveal key={v.id} delay={(i % 4) * 0.1}>
-            <Thumb v={v} onPlay={onPlay} />
-            <p className={`font-bold text-white mt-3 leading-snug ${vertical ? "text-xs md:text-sm" : "text-sm md:text-base"}`}>{v.title}</p>
-            {!vertical && <Meta v={v} />}
-          </ScrollReveal>
-        ))}
+      <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight mb-6">{title}</h2>
+      <div className="shelf">
+        <div className="shelf-row">
+          {items.map((v, i) => <Tape key={v.id} v={v} n={numberFrom + i} inDeck={current?.id === v.id} onPick={onPick} />)}
+        </div>
+        <div className="shelf-plank" aria-hidden="true" />
       </div>
     </section>
   );
@@ -90,78 +97,143 @@ function Section({ label, title, items, onPlay, cols }: { label: string; title: 
 export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
   liveNowId: string | null; streams: ChannelVideo[]; shorts: ChannelVideo[]; videos: ChannelVideo[];
 }) {
-  const [playing, setPlaying] = useState<ChannelVideo | null>(null);
+  const live: ChannelVideo | null = liveNowId ? { id: liveNowId, title: "Live now", kind: "stream", embeddable: true } : null;
+  const [current, setCurrent] = useState<ChannelVideo | null>(live ?? streams[0] ?? videos[0] ?? shorts[0] ?? null);
+  const [phase, setPhase] = useState<Phase>(current ? "ready" : "empty");
+  const [osd, setOsd] = useState(true);
+  const tvRef = useRef<HTMLDivElement>(null);
+  const timers = useRef<number[]>([]);
+  const isLive = !!live && current?.id === live.id;
 
-  useEffect(() => {
-    if (!playing) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPlaying(null); };
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
-  }, [playing]);
+  const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)); };
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  // The newest stream is featured at the top; if nothing is streamed yet, the newest video is
-  const featured = streams[0] ?? videos[0];
-  const pastStreams = streams.slice(1);
-  const otherVideos = streams.length ? videos : videos.slice(1);
+  const play = useCallback(() => {
+    setPhase("playing"); setOsd(true);
+    later(() => setOsd(false), 2600);
+  }, []);
+
+  const pick = useCallback((v: ChannelVideo) => {
+    timers.current.forEach(clearTimeout); timers.current = [];
+    setCurrent(v);
+    const tv = tvRef.current;
+    if (tv) {
+      const r = tv.getBoundingClientRect();
+      if (r.top < 60 || r.bottom > innerHeight) tv.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "center" });
+    }
+    if (!v.embeddable) { setPhase("ready"); setOsd(true); return; }
+    setPhase("static");
+    later(() => play(), reducedMotion() ? 0 : 700);
+  }, [play]);
+
+  const eject = () => {
+    timers.current.forEach(clearTimeout); timers.current = [];
+    setPhase("static");
+    later(() => { setCurrent(null); setPhase("empty"); }, reducedMotion() ? 0 : 450);
+  };
+
+  const osdLeft = phase === "empty" ? "NO TAPE" : isLive ? "● LIVE" : phase === "playing" ? "PLAY ▶" : phase === "static" ? "TRACKING" : "STOP ■";
+  const vertical = current?.kind === "short";
 
   return (
     <>
-      {liveNowId && (
-        <section className="mb-12">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-widest" style={{ background: "#dc2626", color: "#fff" }}>
-              <Radio size={14} className="animate-pulse" /> LIVE NOW
-            </span>
-          </div>
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden" style={{ boxShadow: "0 0 60px rgba(220,38,38,0.25)" }}>
-            <iframe className="absolute inset-0 w-full h-full" src={embedSrc(liveNowId, true) + "&mute=1"} title="Luchi Beats live now"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
-          </div>
-          <a href={`https://www.youtube.com/watch?v=${liveNowId}`} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-3 text-sm underline" style={{ color: "var(--muted)" }}>
-            Join the chat on YouTube <ExternalLink size={13} />
-          </a>
-        </section>
-      )}
+      {/* ── TV + now playing ── */}
+      <ScrollReveal className="mb-16 md:mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.55fr_1fr] gap-8 lg:gap-12 items-center">
+          <div ref={tvRef} className="relative">
+            {/* The screen lights up the room around the TV */}
+            {current && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={poster(current)} alt="" aria-hidden="true" className="absolute inset-[6%] w-[88%] h-[80%] object-cover pointer-events-none transition-opacity duration-700"
+                style={{ filter: "blur(70px) saturate(1.8)", opacity: phase === "empty" ? 0 : 0.55 }} />
+            )}
+            <div className="crt relative" data-tilt="">
+              <div className="crt-screen">
+                {/* Picture */}
+                {current && phase !== "playing" && phase !== "empty" && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={poster(current)} alt="" className={`absolute inset-0 w-full h-full ${vertical ? "object-contain" : "object-cover"} crt-picture`} />
+                )}
+                {current && phase === "playing" && (
+                  <iframe key={current.id} className="absolute inset-0 w-full h-full" src={embedSrc(current.id, true)} title={current.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+                )}
+                <Static on={phase === "static" || phase === "empty"} />
 
-      {featured && featured.id !== liveNowId && (
-        <ScrollReveal className="relative mb-16 md:mb-24">
-          <Thumb v={featured} onPlay={setPlaying} big />
-          {/* Title block: under the video on phones, over its lower-left corner on desktop */}
-          <div className="md:absolute md:left-0 md:bottom-0 md:max-w-[60%] pt-5 md:p-10 pointer-events-none">
-            <p className="eyebrow mb-2">{streams.length ? "Latest Stream" : "Latest Video"}</p>
-            <h2 className="over-photo text-2xl md:text-5xl font-black text-white tracking-tight leading-[1.05]">{featured.title}</h2>
-            <div className="over-photo"><Meta v={featured} /></div>
-          </div>
-        </ScrollReveal>
-      )}
+                {/* Big play / YouTube prompt over the stopped picture */}
+                {current && phase === "ready" && (
+                  current.embeddable ? (
+                    <button type="button" onClick={play} aria-label={`Play ${current.title}`} className="absolute inset-0 flex items-center justify-center group z-[3]">
+                      <span className={`${vcr.className} crt-osd-big`}><Play size={34} fill="currentColor" /> PRESS PLAY</span>
+                    </button>
+                  ) : (
+                    <a href={watchUrl(current)} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center z-[3]">
+                      <span className={`${vcr.className} crt-osd-big`}>PLAYS ON YOUTUBE <ExternalLink size={22} /></span>
+                    </a>
+                  )
+                )}
+                {phase === "empty" && (
+                  <span className={`${vcr.className} absolute inset-0 flex items-center justify-center crt-osd-big z-[3] pointer-events-none`}>INSERT TAPE</span>
+                )}
 
-      <div className={pastStreams.length && shorts.length ? "lg:grid lg:grid-cols-[1.7fr_1fr] lg:gap-14" : ""}>
-        <Section label="Replays" title="Past Streams" items={pastStreams} onPlay={setPlaying}
-          cols={shorts.length ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"} />
-        <Section label="Shorts" title="Studio Clips" items={shorts} onPlay={setPlaying}
-          cols={pastStreams.length ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"} />
-      </div>
-      <Section label="On the Channel" title="More Videos" items={otherVideos} onPlay={setPlaying}
-        cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3" />
+                {/* On-screen display, like a VCR */}
+                <div className={`${vcr.className} crt-osd`} style={{ opacity: osd || phase !== "playing" ? 1 : 0 }}>
+                  <span className={isLive ? "text-[#ff5050]" : ""}>{osdLeft}</span>
+                  <span>SP</span>
+                </div>
+                {current?.published && phase !== "empty" && (
+                  <div className={`${vcr.className} crt-stamp`} style={{ opacity: osd || phase !== "playing" ? 1 : 0 }}>{stampDate(current.published)}</div>
+                )}
+                <div className="crt-glass" aria-hidden="true" />
+              </div>
 
-      {playing && (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.96)" }}
-          onClick={() => setPlaying(null)} role="dialog" aria-modal="true" aria-label={playing.title}>
-          <button onClick={() => setPlaying(null)} aria-label="Close video"
-            className="absolute top-4 right-4 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 z-10"
-            style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff" }}>
-            <X size={20} />
-          </button>
-          <div onClick={(e) => e.stopPropagation()}
-            className={playing.kind === "short" ? "relative h-[80vh] max-h-[800px] aspect-[9/16] max-w-full" : "relative w-full max-w-[960px] aspect-video"}>
-            <iframe className="absolute inset-0 w-full h-full rounded-lg" src={embedSrc(playing.id, true)} title={playing.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+              {/* Front panel */}
+              <div className="crt-panel">
+                <span className="crt-brand">LUCHIVISION</span>
+                <span className="flex items-center gap-3 md:gap-4">
+                  <span className="crt-knob" aria-hidden="true" />
+                  <span className="crt-knob" aria-hidden="true" />
+                  {current && (
+                    <button type="button" onClick={eject} className={`${vcr.className} crt-eject`} aria-label="Eject tape">⏏ EJECT</button>
+                  )}
+                  <span className={`crt-led ${phase === "playing" ? "is-on" : ""}`} aria-hidden="true" />
+                </span>
+              </div>
+            </div>
           </div>
-          <p className="mt-5 text-lg md:text-xl font-black text-white text-center" onClick={(e) => e.stopPropagation()}>{playing.title}</p>
+
+          {/* Now playing */}
+          <div>
+            <p className="eyebrow mb-3">{isLive ? "Live Now" : phase === "empty" ? "Deck Empty" : "In the Deck"}</p>
+            <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight leading-[1.1]">
+              {phase === "empty" || !current ? "Pick a tape off the shelf." : isLive ? "Live from the studio" : current.title}
+            </h2>
+            {current && phase !== "empty" && (current.published || current.views != null) && (
+              <p className={`${vcr.className} mt-3 text-xl tracking-wider`} style={{ color: "var(--fire-light)" }}>
+                {[stampDate(current.published), current.views != null ? `${current.views.toLocaleString()} VIEWS` : null].filter(Boolean).join("  ·  ")}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-3 mt-7">
+              {current && phase === "ready" && current.embeddable && (
+                <button type="button" onClick={play} data-magnetic className="btn-gold inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
+                  <Play size={16} fill="currentColor" /> Play Tape
+                </button>
+              )}
+              {current && phase !== "empty" && (
+                <a href={watchUrl(current)} target="_blank" rel="noopener noreferrer" data-magnetic className="btn-outline inline-flex items-center gap-2 px-7 py-3 rounded text-sm tracking-wide">
+                  {isLive ? "Join the chat on YouTube" : "Watch on YouTube"} <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+            <p className="mt-6 text-sm" style={{ color: "var(--muted)" }}>Every tape on the shelf plays right here.</p>
+          </div>
         </div>
-      )}
+      </ScrollReveal>
+
+      {/* ── The shelves ── */}
+      <Shelf label="Replays" title="The Tape Wall" items={streams} current={current} onPick={pick} />
+      <Shelf label="Shorts" title="Camcorder Clips" items={shorts} current={current} onPick={pick} />
+      <Shelf label="On the Channel" title="More Tapes" items={videos} numberFrom={streams.length + 1} current={current} onPick={pick} />
     </>
   );
 }
