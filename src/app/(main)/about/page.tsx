@@ -39,7 +39,8 @@ export default async function AboutPage() {
       <div className="about-hero-text">
         <p className="eyebrow mb-3">About</p>
         <h1 className="about-hero-name">Luchi Beats</h1>
-        <p className="about-hero-role">Producer <span>·</span> Engineer <span>·</span> Paterson, New Jersey</p>
+        <p className="about-hero-role">Producer <span>·</span> Engineer</p>
+        <p className="about-hero-place">Paterson, NJ</p>
         <a href="#story" className="about-hero-cue" aria-label="Read the story"><ChevronDown size={22} /></a>
       </div>
     </section>
