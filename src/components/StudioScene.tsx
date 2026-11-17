@@ -1,32 +1,30 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
 // "The studio is the menu": three studio photos blended into one room.
-// Each piece of gear is a hotspot that leads to a part of the site.
+// Each piece of gear is a hotspot: hover (or tap) to light it up and see what it is.
 
-type Spot = { x: number; y: number; label: string; text: string; href: string; side?: "left" | "right" };
+type Spot = { x: number; y: number; label: string; text: string; side?: "left" | "right" };
 type Panel = { src: string; alt: string; depth: number; spots: Spot[] };
 
 const PANELS: Panel[] = [
   {
     src: "/luchi/studio-window.webp", alt: "The vocal booth seen through the control room glass", depth: 10,
-    spots: [{ x: 60, y: 52, label: "The Booth", text: "Vocal recording sessions", href: "/contact", side: "left" }],
+    spots: [{ x: 60, y: 52, label: "The Booth", text: "Vocal recording sessions", side: "left" }],
   },
   {
     src: "/luchi/portrait-studio.webp", alt: "Luchi at the console in the control room", depth: 18,
     spots: [
-      { x: 20, y: 40, label: "On Screen", text: "Live streams & studio sessions", href: "/live", side: "right" },
-      { x: 22, y: 56, label: "The Console", text: "Mixing & mastering", href: "/contact", side: "right" },
-      { x: 52, y: 49, label: "Monitors", text: "Hear the productions", href: "/#productions", side: "right" },
-      { x: 88, y: 47, label: "Meet Luchi", text: "The story so far", href: "/about", side: "left" },
+      { x: 20, y: 40, label: "On Screen", text: "Live streams & studio sessions", side: "right" },
+      { x: 22, y: 56, label: "The Console", text: "Mixing & mastering", side: "right" },
+      { x: 52, y: 49, label: "Monitors", text: "Where every mix gets checked", side: "right" },
+      { x: 88, y: 47, label: "Luchi", text: "Producer · Engineer · Paterson, NJ", side: "left" },
     ],
   },
   {
     src: "/luchi/session-laptop.webp", alt: "Luchi building a beat on the keys", depth: 12,
-    spots: [{ x: 30, y: 83, label: "The Keys", text: "Custom beat production", href: "/contact", side: "right" }],
+    spots: [{ x: 30, y: 83, label: "The Keys", text: "Custom beat production", side: "right" }],
   },
 ];
 
@@ -35,8 +33,6 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
   const [ready, setReady] = useState(false);
   const sceneRef = useRef<HTMLDivElement>(null);
   const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
-  // On touch screens the first tap shows the label, the second one follows the link
-  const shownOnPress = useRef<string | null>(null);
 
   // The room assembles itself the first time it scrolls into view
   useEffect(() => {
@@ -78,7 +74,7 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
         <p className="eyebrow mb-3">Step Inside</p>
         <Heading className="section-title">The Studio</Heading>
         <p className="mt-3 md:text-lg" style={{ color: "rgba(255,255,255,0.65)" }}>
-          <span className="hidden md:inline">Hover the gear. Click to go anywhere.</span>
+          <span className="hidden md:inline">Hover the gear to look around.</span>
           <span className="md:hidden">Swipe through the room. Tap the gold lights.</span>
         </p>
       </div>
@@ -116,29 +112,26 @@ export default function StudioScene({ as: Heading = "h2" }: { as?: "h1" | "h2" }
                   const on = active === id;
                   return (
                     <div key={id} className="absolute z-10" style={{ left: `${s.x}%`, top: `${s.y}%` }}>
-                      <Link href={s.href} aria-label={`${s.label}: ${s.text}`}
+                      <button type="button" aria-label={`${s.label}: ${s.text}`} aria-pressed={on}
                         onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(id); }}
                         onPointerLeave={(e) => { if (e.pointerType === "mouse") setActive(null); }}
                         onFocus={() => setActive(id)} onBlur={() => setActive(null)}
-                        onPointerDown={(e) => { if (e.pointerType !== "mouse") shownOnPress.current = active === id ? id : null; }}
-                        onClick={(e) => {
-                          if (window.matchMedia("(pointer: coarse)").matches && shownOnPress.current !== id) { e.preventDefault(); setActive(id); }
-                        }}
-                        className="hotspot group absolute block"
+                        onClick={(e) => { if (e.detail === 0 || window.matchMedia("(pointer: coarse)").matches) setActive(on ? null : id); }}
+                        className="hotspot group absolute block cursor-default"
                         style={{ opacity: ready ? 1 : 0, transform: `translate(-50%, -50%) scale(${ready ? 1 : 0.2})`, transition: `opacity 0.5s ${1.9 + (pi * 3 + si) * 0.14}s, transform 0.6s ${1.9 + (pi * 3 + si) * 0.14}s cubic-bezier(.2,1.6,.4,1)` }}>
                         <span className="hotspot-ring" />
                         <span className="hotspot-core" style={on ? { transform: "scale(1.4)", background: "rgba(229,199,107,0.25)" } : undefined} />
-                      </Link>
+                      </button>
 
                       {/* Label: line out from the dot, then the card */}
                       <div className={`absolute top-0 pointer-events-none ${s.side === "left" ? "right-4 flex-row-reverse" : "left-4"} flex items-center -translate-y-1/2`}
                         style={{ opacity: on ? 1 : 0, transition: "opacity 0.3s" }}>
                         <span className="block h-px transition-all duration-500" style={{ width: on ? 44 : 0, background: "linear-gradient(90deg, #E5C76B, rgba(229,199,107,0.2))" }} />
-                        <Link href={s.href} className="pointer-events-auto whitespace-nowrap px-4 py-3 rounded-lg"
+                        <div className="whitespace-nowrap px-4 py-3 rounded-lg"
                           style={{ background: "rgba(8,8,8,0.78)", backdropFilter: "blur(8px)", boxShadow: "0 0 0 1px rgba(201,168,76,0.4), 0 12px 30px rgba(0,0,0,0.6)", transform: on ? "translateX(0)" : `translateX(${s.side === "left" ? 8 : -8}px)`, transition: "transform 0.35s" }}>
                           <span className="block text-[10px] tracking-[0.3em] uppercase" style={{ color: "var(--gold)" }}>{s.label}</span>
-                          <span className="flex items-center gap-2 text-white font-bold text-sm md:text-base">{s.text} <ArrowRight size={14} /></span>
-                        </Link>
+                          <span className="block text-white font-bold text-sm md:text-base">{s.text}</span>
+                        </div>
                       </div>
                     </div>
                   );
