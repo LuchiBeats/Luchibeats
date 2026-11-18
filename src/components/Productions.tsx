@@ -5,7 +5,7 @@ import ScrollReveal from "./ScrollReveal";
 import type { ProductionVideo } from "@/lib/beats-store";
 
 const DEFAULT_VIDEOS: ProductionVideo[] = [
-  { id: "Oma1SZ8utmw", artist: "G Wreck ft Coi Leray",         title: "Froze",               credits: "Beat · Vocal Recording · Mix" },
+  { id: "zGzpIqC5zvQ", artist: "A Boogie Wit Da Hoodie",       title: "Timeless",            credits: "Recording" },
   { id: "DMjz34ubhg4", artist: "Mach City",                    title: "Machi 99",            credits: "Beat · Vocal Recording · Mix" },
   { id: "6a94jphQcaY", artist: "Mach City",                    title: "Make Em Trip",        credits: "Beat · Vocal Recording · Mix" },
   { id: "gPyvvEYe3Ng", artist: "Trey Budden x Oskama Esteban", title: "Cage Bird Sings",     credits: "Beat · Vocal Recording · Mix" },
@@ -13,7 +13,7 @@ const DEFAULT_VIDEOS: ProductionVideo[] = [
   { id: "dft7z1yWCDg", artist: "Trey Budden",                  title: "PUBLIK!",             credits: "Beat · Vocal Recording · Mix" },
   { id: "PPnuRGkrRuY", artist: "Swizzyy Marleyy",              title: "Super Gango",         credits: "Vocal Recording · Mix" },
   { id: "IwreOeCvK1M", artist: "Mysonne",                      title: "That's How We On It", credits: "Vocal Recording · Mix" },
-  { id: "zGzpIqC5zvQ", artist: "A Boogie Wit Da Hoodie",       title: "Timeless",            credits: "Initial Vocal Recording" },
+  { id: "Oma1SZ8utmw", artist: "G Wreck ft Coi Leray",         title: "Froze",               credits: "Beat · Vocal Recording · Mix" },
 ];
 
 // Roles come from the credits text the admin types ("Beat · Vocal Recording · Mix")
