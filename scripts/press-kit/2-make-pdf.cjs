@@ -53,7 +53,7 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
     <div class="facts">
       <div><b>DOES</b>Production · Recording · Mixing &amp; Mastering</div>
       <div><b>GENRES</b>Hip-Hop · Latin Hip-Hop · Reggaeton · Trap · R&amp;B · Afrobeats</div>
-      <div><b>LIVE</b>Luchi Beats &amp; Friends on YouTube</div>
+      <div><b>LIVE</b>Luchi Beats Live on YouTube</div>
     </div>
   </div>
   <div>
