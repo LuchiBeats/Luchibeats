@@ -22,7 +22,7 @@ export default function StudioGallery() {
         {GALLERY.map(({ src, alt }, i) => (
           <button key={src} type="button" onClick={() => setOpen(i)} aria-label={`Open photo: ${alt}`}
             className="photo-tile relative aspect-[2/3] w-[57.15%] md:w-[30.77%] overflow-hidden group even:-ml-[14.3%] [&:nth-child(n+3)]:-mt-[26%] md:[&:nth-child(n+3)]:mt-0 md:[&:not(:first-child)]:-ml-[7.69%] hover:z-10 focus-visible:z-10">
-            <Image src={src} alt={alt} fill sizes="(max-width: 768px) 50vw, 240px"
+            <Image src={src} alt={alt} fill sizes="(max-width: 768px) 60vw, 340px"
               className="object-cover transition-all duration-700 group-hover:scale-110 brightness-[0.85] group-hover:brightness-110" />
             <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{ background: "rgba(0,0,0,0.55)", color: "var(--fire-light)", boxShadow: "0 0 0 1px rgba(201,168,76,0.5)" }}>

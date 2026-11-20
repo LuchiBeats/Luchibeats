@@ -11,8 +11,8 @@ export default function ArtistGrid() {
       {artists.map((a, i) => (
         <li key={a.name}>
           <ScrollReveal delay={(i % 6) * 0.06} className="artist-card">
-            <div className="artist-photo">
-              <Image src={a.image!} alt={a.name} fill sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 180px"
+            <div className="artist-photo" data-tilt="">
+              <Image src={a.image!} alt={a.name} fill sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 380px"
                 className="object-cover" style={{ objectPosition: a.pos ?? "center top" }} />
             </div>
             <p className="artist-name">{a.name}</p>

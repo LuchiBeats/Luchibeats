@@ -171,7 +171,7 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
   return (
     <div className="flex items-center justify-between mb-5">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-xs font-black tracking-[0.3em] uppercase flex-shrink-0" style={{ color: GOLD }}>//</span>
+        <span className="text-xs font-black tracking-[0.3em] uppercase flex-shrink-0" style={{ color: GOLD }}>{"//"}</span>
         <h2 className="text-sm font-black text-white tracking-wide truncate">{title}</h2>
       </div>
       {action}
@@ -212,7 +212,7 @@ function FormSection({ title, children }: { title?: string; children: React.Reac
       {title && (
         <div className="px-6 pt-5 pb-4 flex items-center gap-3" style={{ borderBottom: `1px solid ${BORDER_MID}`, background: `linear-gradient(90deg,rgba(201,168,76,0.06),transparent)` }}>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black tracking-[0.3em]" style={{ color: GOLD }}>//</span>
+            <span className="text-xs font-black tracking-[0.3em]" style={{ color: GOLD }}>{"//"}</span>
             <h2 className="text-sm font-black tracking-widest uppercase" style={{ color: GOLD }}>{title}</h2>
           </div>
         </div>
@@ -382,6 +382,7 @@ export default function AdminPage() {
 
     const token = new URLSearchParams(window.location.search).get("resetToken");
     if (token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of the reset link on page load
       setResetToken(token);
       setAuthMode("reset");
     } else {
@@ -744,7 +745,7 @@ export default function AdminPage() {
                   ) : (
                     <div>
                       <p className="text-sm text-center mb-6" style={{ color: TEXT_MUTED }}>
-                        We'll email a reset link to your registered admin address.
+                        We&apos;ll email a reset link to your registered admin address.
                       </p>
                       {gateErr}
                       <button type="button" disabled={authBusy} onClick={sendRecoveryEmail}
@@ -1037,7 +1038,7 @@ export default function AdminPage() {
                 {/* ── Command Center header ── */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <p style={{ fontFamily:"monospace",fontSize:9,letterSpacing:"0.3em",color:GOLD,marginBottom:8 }}>// LUCHIBEATS · COMMAND CENTER</p>
+                    <p style={{ fontFamily:"monospace",fontSize:9,letterSpacing:"0.3em",color:GOLD,marginBottom:8 }}>{"// LUCHIBEATS · COMMAND CENTER"}</p>
                     <h1 className="text-2xl font-black text-white mb-2" style={{ letterSpacing:"-0.02em" }}>System Overview</h1>
                     <div className="flex items-center gap-2">
                       <span className="adm-live-dot" style={{ display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#4ade80",flexShrink:0 }} />
@@ -1106,7 +1107,7 @@ export default function AdminPage() {
 
                   {/* Live Activity Feed */}
                   <div className="rounded-xl p-5" style={{ background:"rgba(201,168,76,0.02)",border:"1px solid rgba(201,168,76,0.09)" }}>
-                    <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:18 }}>// LIVE ACTIVITY FEED</p>
+                    <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:18 }}>{"// LIVE ACTIVITY FEED"}</p>
                     {(() => {
                       type FeedItem = {id:string;type:"MSG"|"ORDER";label:string;sub:string;time:string;color:string};
                       const feed: FeedItem[] = [
@@ -1155,7 +1156,7 @@ export default function AdminPage() {
                       {/* Header */}
                       <div className="px-5 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
                         <div>
-                          <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:4 }}>// SITE TRAFFIC — ANALYTICS</p>
+                          <p style={{ fontFamily:"monospace",fontSize:8,letterSpacing:"0.28em",color:TEXT_MUTED,marginBottom:4 }}>{"// SITE TRAFFIC — ANALYTICS"}</p>
                           <p className="text-sm font-black text-white">Traffic Overview</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1763,6 +1764,7 @@ export default function AdminPage() {
                 {/* ── GIVEAWAY BLAST view ── */}
                 {subView==="giveaway" && (() => {
                   // Compute live recipient count
+                  // eslint-disable-next-line react-hooks/purity -- recipient count only needs to be roughly current
                   const now = Date.now();
                   const cutoff30 = now - 30*24*60*60*1000;
                   const audienceCount = giveawayForm.audience==="all"
@@ -1988,7 +1990,7 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold text-white mb-1">Currently showing: Coming Soon</p>
-                      <p className="text-xs mb-3" style={{ color:TEXT_MUTED }}>The public merch page at <code style={{ color:GOLD }}>/merch</code> displays a styled "Coming Soon" page. Once your Shopify store is connected and products are live, you can upgrade this page to show real inventory.</p>
+                      <p className="text-xs mb-3" style={{ color:TEXT_MUTED }}>The public merch page at <code style={{ color:GOLD }}>/merch</code> displays a styled &quot;Coming Soon&quot; page. Once your Shopify store is connected and products are live, you can upgrade this page to show real inventory.</p>
                       <div className="rounded-xl px-4 py-3 text-xs space-y-1" style={{ background:BG_DEEP,border:`1px solid ${BORDER_SUBTLE}` }}>
                         <p style={{ color:TEXT_MUTED }}>When you&apos;re ready to go live with products:</p>
                         <p style={{ color:TEXT_DIM }}>1. Connect Shopify above · 2. Add products in Shopify · 3. Ask Claude to wire up the Storefront API to render product cards on /merch</p>

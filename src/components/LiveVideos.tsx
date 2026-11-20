@@ -7,6 +7,7 @@ import { sfx, isMuted, setMuted } from "./vcrSound";
 import type { ChannelVideo } from "@/lib/youtube";
 import ScrollReveal from "./ScrollReveal";
 import { announceSound } from "@/lib/mediaSound";
+import { ytHD, ytFallback, ytRef } from "@/lib/ytThumb";
 
 // The Live page as a living-room setup: every stream is a VHS tape on a shelf, every clip a
 // camcorder tape. Click one and it goes into the VCR under the TV; the VCR buttons
@@ -18,7 +19,7 @@ const vcr = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
 const watchUrl = (v: ChannelVideo) =>
   v.kind === "short" ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`;
 const poster = (v: ChannelVideo) =>
-  v.kind === "short" ? `https://i.ytimg.com/vi/${v.id}/oardefault.jpg` : `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
+  v.kind === "short" ? `https://i.ytimg.com/vi/${v.id}/oardefault.jpg` : ytHD(v.id);
 const embedSrc = (id: string) =>
   `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
 
@@ -145,7 +146,7 @@ function Sleeve({ v, tag, empty }: { v: ChannelVideo; tag?: Tag; empty: boolean 
   return (
     <span className="sleeve" aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={poster(v)} alt="" loading="lazy" className="sleeve-art" />
+      <img src={poster(v)} ref={ytRef} onLoad={ytFallback} onError={ytFallback} alt="" loading="lazy" className="sleeve-art" />
       <span className="sleeve-mouth" />
       <span className="sleeve-spine" />
       <span className="sleeve-top">
@@ -506,7 +507,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
             {current && (
               // The screen lights up the room around the set
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={poster(current)} alt="" aria-hidden="true" className="absolute inset-x-[6%] top-[4%] w-[88%] h-[62%] object-cover pointer-events-none transition-opacity duration-700"
+              <img src={poster(current)} ref={ytRef} onLoad={ytFallback} onError={ytFallback} alt="" aria-hidden="true" className="absolute inset-x-[6%] top-[4%] w-[88%] h-[62%] object-cover pointer-events-none transition-opacity duration-700"
                 style={{ filter: "blur(70px) saturate(1.8)", opacity: phase === "empty" ? 0 : 0.5 }} />
             )}
 
@@ -518,7 +519,7 @@ export default function LiveVideos({ liveNowId, streams, shorts, videos }: {
                 <div className={`tv-screen ${searching ? "is-searching" : ""} ${tracking ? "is-tracking" : ""}`}>
                   {current && phase !== "on" && phase !== "empty" && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={poster(current)} alt="" className={`absolute inset-0 w-full h-full ${vertical ? "object-contain" : "object-cover"} tv-picture`} />
+                    <img src={poster(current)} ref={ytRef} onLoad={ytFallback} onError={ytFallback} alt="" className={`absolute inset-0 w-full h-full ${vertical ? "object-contain" : "object-cover"} tv-picture`} />
                   )}
                   {current && phase === "on" && (
                     <iframe ref={frame} key={current.id} onLoad={onFrameLoad} className="absolute inset-0 w-full h-full" src={embedSrc(current.id)} title={current.title}

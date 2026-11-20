@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Download, FileText } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { RecapPair } from "@/components/LiveRecap";
+import HomeFX from "@/components/HomeFX";
 import { collaborators } from "@/lib/collaborators";
 
 // Press kit for A&Rs, managers and press: the one link to send when pitching.
@@ -47,6 +48,8 @@ const ONE_SHEET = "/luchi-beats-press-kit.pdf";
 export default function PressPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
+      {/* Magnetic buttons, cursor spotlight and 3D tilt, like the rest of the site */}
+      <HomeFX />
       {/* ── Header ── */}
       <header className="text-center">
         <p className="eyebrow mb-3">Press Kit</p>
@@ -68,7 +71,7 @@ export default function PressPage() {
       {/* ── Bio ── */}
       <section className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8 md:gap-12 items-center">
         <ScrollReveal className="press-portrait relative mx-auto w-[min(300px,80vw)] aspect-[4/5]">
-          <Image src="/luchi/shoot/red-low-angle.webp" alt="Luchi Beats" fill sizes="300px" className="object-cover object-[50%_35%]" />
+          <div className="absolute inset-0" data-tilt=""><Image src="/luchi/shoot/red-low-angle.webp" alt="Luchi Beats" fill sizes="300px" className="object-cover object-[50%_35%]" /></div>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <p className="eyebrow mb-3">Bio</p>
@@ -127,7 +130,7 @@ export default function PressPage() {
         <ul className="press-photos">
           {PHOTOS.map((p) => (
             <li key={p.src}>
-              <a href={p.dl} download className="press-photo group" aria-label={`Download photo: ${p.alt}`}>
+              <a href={p.dl} download data-tilt="" className="press-photo group" aria-label={`Download photo: ${p.alt}`}>
                 {p.w ? (
                   <Image src={p.src} alt={p.alt} width={p.w} height={p.h} sizes="(max-width: 640px) 50vw, 320px" />
                 ) : (

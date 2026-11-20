@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, X } from "lucide-react";
 import ScrollReveal from "./ScrollReveal";
 import type { ProductionVideo } from "@/lib/beats-store";
+import { ytHD, ytFallback, ytRef } from "@/lib/ytThumb";
 
 const DEFAULT_VIDEOS: ProductionVideo[] = [
   { id: "zGzpIqC5zvQ", artist: "A Boogie Wit Da Hoodie",       title: "Timeless",            credits: "Vocal Recording" },
@@ -26,7 +27,7 @@ const FILTERS = [
 type FilterKey = (typeof FILTERS)[number]["key"];
 
 const roles = (credits: string) => credits.split(/\s*[·•|,]\s*/).map((r) => r.trim()).filter(Boolean);
-const still = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const still = ytHD;
 // YouTube keeps three small frames from inside every video: flipping through them
 // on hover gives a quick silent preview without loading a player.
 const frames = (id: string) => [1, 2, 3].map((n) => `https://i.ytimg.com/vi/${id}/hq${n}.jpg`);
@@ -48,7 +49,7 @@ function Card({ v, n, onOpen }: { v: ProductionVideo; n: number; onOpen: (v: Pro
       className="credit-card group" aria-label={`Play ${v.artist} — ${v.title}`}>
       <span className="credit-thumb">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={still(v.id)} alt="" loading="lazy" className="credit-img" />
+        <img src={still(v.id)} ref={ytRef} onLoad={ytFallback} onError={ytFallback} alt="" loading="lazy" className="credit-img" />
         {frames(v.id).map((src, i) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img key={src} src={frame >= 0 ? src : undefined} alt="" aria-hidden="true" className="credit-img credit-frame" style={{ opacity: frame === i ? 1 : 0 }} />
