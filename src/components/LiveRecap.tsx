@@ -4,15 +4,47 @@ import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX, Maximize2 } from "lucide-react";
 
 // The 11/14 live stream on the homepage: the recap (from Instagram, re-scored with "Maestro")
-// and a vertical behind-the-scenes reel with its original sound.
+// and a vertical behind-the-scenes reel with its original sound, shown in the same 16:9 frame.
 // Each plays silently while it's on screen and pauses when it isn't; the visitor taps for sound,
 // and only one can have sound at a time. The original VP9 files are used where the browser can
 // play them (untouched picture); everything else gets a near-identical H.264 copy.
 // Nothing downloads until the video is close to view.
 const SOUND_EVENT = "lb-recap-sound";
 
-function RecapVideo({ id, base, label, codecs, className }: { id: string; base: string; label: string; codecs: string; className: string }) {
+// Blurred, darkened copy of the video's own picture painted behind it, so a vertical clip
+// fills a 16:9 frame like the recap. Drawn from the same <video> into a tiny canvas
+// (no second download or decode) a few times a second while it plays.
+function useBackdrop(video: React.RefObject<HTMLVideoElement | null>, canvas: React.RefObject<HTMLCanvasElement | null>, on: boolean) {
+  useEffect(() => {
+    const v = video.current, c = canvas.current;
+    if (!on || !v || !c) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    let raf = 0, last = 0;
+    // Centre crop of the frame at the canvas's 16:9 shape
+    const paint = () => {
+      const vw = v.videoWidth, vh = v.videoHeight;
+      if (!vw || !vh) return;
+      const sh = Math.min(vh, (vw * c.height) / c.width);
+      try { ctx.drawImage(v, 0, (vh - sh) / 2, vw, sh, 0, 0, c.width, c.height); } catch {}
+    };
+    const draw = (now: number) => {
+      if (now - last > 66) { last = now; paint(); }
+      raf = requestAnimationFrame(draw);
+    };
+    const start = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); };
+    const stop = () => cancelAnimationFrame(raf);
+    v.addEventListener("play", start);
+    v.addEventListener("pause", stop);
+    v.addEventListener("loadeddata", paint);
+    return () => { stop(); v.removeEventListener("play", start); v.removeEventListener("pause", stop); v.removeEventListener("loadeddata", paint); };
+  }, [video, canvas, on]);
+}
+
+function RecapVideo({ id, base, label, codecs, vertical = false }: { id: string; base: string; label: string; codecs: string; vertical?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const bg = useRef<HTMLCanvasElement>(null);
+  useBackdrop(ref, bg, vertical);
   const [muted, setMuted] = useState(true);
   const heardOnce = useRef(false);
 
@@ -60,9 +92,11 @@ function RecapVideo({ id, base, label, codecs, className }: { id: string; base: 
   };
 
   return (
-    <div className={`live-recap relative ${className}`}>
+    <div className={`live-recap relative aspect-video${vertical ? " is-vertical" : ""}`}>
+      {vertical && <canvas ref={bg} width={48} height={27} className="live-recap-bg" aria-hidden="true"
+        style={{ backgroundImage: `url(${base}-poster.webp)` }} />}
       <video ref={ref} muted loop playsInline preload="none" poster={`${base}-poster.webp`}
-        onClick={toggleSound} className="w-full h-full object-cover block cursor-pointer" aria-label={label}>
+        onClick={toggleSound} className="live-recap-video cursor-pointer" aria-label={label}>
         <source src={`${base}.mp4`} type={`video/mp4; codecs="${codecs}"`} />
         <source src={`${base}-h264.mp4`} type="video/mp4" />
       </video>
@@ -86,12 +120,12 @@ export default function LiveRecap() {
 
       <div className="live-recap-pair">
         <figure className="live-recap-main">
-          <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2" className="aspect-[1916/1080]"
+          <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2"
             label="11/14 live stream recap, music: Maestro by Luchi Beats" />
           <figcaption className="live-recap-cap">The Recap <span>· Music: <b>Maestro</b> (Prod. Luchi Beats)</span></figcaption>
         </figure>
         <figure className="live-recap-side">
-          <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" className="aspect-[9/16]"
+          <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" vertical
             label="Behind the scenes at the 11/14 live stream" />
           <figcaption className="live-recap-cap">Behind the Scenes</figcaption>
         </figure>
