@@ -77,6 +77,8 @@ export default function PressPage() {
             <div><dt>Based in</dt><dd>Paterson, New Jersey</dd></div>
             <div><dt>Does</dt><dd>Production · Recording · Mixing &amp; Mastering</dd></div>
             <div><dt>Genres</dt><dd>Hip-Hop · Latin Hip-Hop · Reggaeton · Trap · R&amp;B · Afrobeats</dd></div>
+            <div><dt>Open to</dt><dd>Publishing · Production Deals · Placements · Studio Partnerships · A&amp;R</dd></div>
+            <div><dt>Business</dt><dd>Luchi Beats LLC · BMI-registered · Split sheets on every session</dd></div>
             <div><dt>Live</dt><dd><Link href="/live" className="underline decoration-[rgba(229,199,107,0.5)] underline-offset-4 hover:text-[var(--fire-light)]">Luchi Beats &amp; Friends</Link> on YouTube</dd></div>
           </dl>
         </ScrollReveal>
