@@ -6,6 +6,7 @@ import { ExternalLink, Play, RotateCw, Volume2, VolumeX } from "lucide-react";
 import { sfx, isMuted, setMuted } from "./vcrSound";
 import type { ChannelVideo } from "@/lib/youtube";
 import ScrollReveal from "./ScrollReveal";
+import { announceSound } from "@/lib/mediaSound";
 
 // The Live page as a living-room setup: every stream is a VHS tape on a shelf, every clip a
 // camcorder tape. Click one and it goes into the VCR under the TV; the VCR buttons
@@ -59,6 +60,9 @@ function useYouTube(frame: React.RefObject<HTMLIFrameElement | null>) {
   const cmd = useCallback((func: string, args: unknown[] = []) => post({ event: "command", func, args }), [post]);
   const listen = useCallback(() => post({ event: "listening" }), [post]);
   const reset = useCallback(() => { setTime(0); setState(-1); setDuration(0); }, []);
+  // Playing or buffering = making sound: the site's background beat steps aside meanwhile
+  useEffect(() => { announceSound("live-tv", state === 1 || state === 3); }, [state]);
+  useEffect(() => () => announceSound("live-tv", false), []);
   return { time, state, duration, cmd, listen, reset };
 }
 

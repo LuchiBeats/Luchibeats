@@ -2,14 +2,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX, Maximize2 } from "lucide-react";
+import { MEDIA_EVENT, announceSound, type MediaSoundDetail } from "@/lib/mediaSound";
 
 // The 11/14 live stream on the homepage: the recap (from Instagram, re-scored with "Maestro")
 // and a vertical behind-the-scenes reel with its original sound, shown in the same 16:9 frame.
 // Each plays silently while it's on screen and pauses when it isn't; the visitor taps for sound,
 // and only one can have sound at a time. The original VP9 files are used where the browser can
 // play them (untouched picture); everything else gets a near-identical H.264 copy.
+// While a video has sound on, the site's background beat (SoundButton) fades out.
 // Nothing downloads until the video is close to view.
-const SOUND_EVENT = "lb-recap-sound";
 
 // Blurred, darkened copy of the video's own picture painted behind it, so a vertical clip
 // fills a 16:9 frame like the recap. Drawn from the same <video> into a tiny canvas
@@ -63,14 +64,26 @@ function RecapVideo({ id, base, label, codecs, vertical = false }: { id: string;
       visible = e.intersectionRatio >= 0.35;
       if (visible) tryPlay(); else v.pause();
     }, { threshold: [0, 0.35] });
-    // Another video turned its sound on: go quiet
+    // Another player started making sound: go quiet
     const onOther = (e: Event) => {
-      if ((e as CustomEvent<string>).detail !== id && !v.muted) { v.muted = true; setMuted(true); }
+      const d = (e as CustomEvent<MediaSoundDetail>).detail;
+      if (d.on && d.source !== id && !v.muted) { v.muted = true; setMuted(true); }
     };
+    // Tell the rest of the site (the background beat, the other video) when this one is audible
+    const announce = () => announceSound(id, !v.paused && !v.muted);
+    v.addEventListener("play", announce);
+    v.addEventListener("pause", announce);
+    v.addEventListener("volumechange", announce);
     near.observe(v);
     seen.observe(v);
-    window.addEventListener(SOUND_EVENT, onOther);
-    return () => { near.disconnect(); seen.disconnect(); v.removeEventListener("canplay", tryPlay); window.removeEventListener(SOUND_EVENT, onOther); };
+    window.addEventListener(MEDIA_EVENT, onOther);
+    return () => {
+      near.disconnect(); seen.disconnect();
+      v.removeEventListener("canplay", tryPlay);
+      v.removeEventListener("play", announce); v.removeEventListener("pause", announce); v.removeEventListener("volumechange", announce);
+      window.removeEventListener(MEDIA_EVENT, onOther);
+      announceSound(id, false);
+    };
   }, [id]);
 
   const toggleSound = () => {
@@ -80,7 +93,6 @@ function RecapVideo({ id, base, label, codecs, vertical = false }: { id: string;
     if (v.muted && !heardOnce.current) { v.currentTime = 0; heardOnce.current = true; }
     v.muted = !v.muted;
     setMuted(v.muted);
-    if (!v.muted) window.dispatchEvent(new CustomEvent(SOUND_EVENT, { detail: id }));
     v.play().catch(() => {});
   };
 
