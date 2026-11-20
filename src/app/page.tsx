@@ -8,6 +8,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import EmailCapture from "@/components/EmailCapture";
 import ArtistsWorkedWith from "@/components/ArtistsWorkedWith";
 import Productions from "@/components/Productions";
+import { missingHD } from "@/lib/ytThumbServer";
 import StudioScene from "@/components/StudioScene";
 import HomeFX from "@/components/HomeFX";
 import LiveBadge from "@/components/LiveBadge";
@@ -45,6 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const hp = await getHomepageContent();
+  const noHD = await missingHD((hp.productions ?? []).map((v) => v.id));
 
   return (
     <div>
@@ -153,7 +155,7 @@ export default async function HomePage() {
       <StudioScene />
 
       {/* Productions */}
-      <Productions videos={hp.productions} />
+      <Productions videos={hp.productions} noHD={noHD} />
 
       {/* Before / after mix (appears once the two audio files are uploaded) */}
       <MixCompare />
