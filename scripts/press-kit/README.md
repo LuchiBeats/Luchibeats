@@ -1,12 +1,15 @@
 # Press kit one-sheet (public/luchi-beats-press-kit.pdf)
 
-Rebuild it when the credits change (run from the `web` folder, Bash):
+One page: logo, headshot, bio, facts, artist quotes and the Worked With list.
+No credits list, on purpose (Luchi asked for none, 2026-11-20).
+
+Rebuild it after changing the text or photo (run from the `web` folder, Bash):
 
 ```bash
 W="$(pwd)"; T=scripts/press-kit/tmp; mkdir -p $T
 node -e "require('sharp')('public/logo.png').trim().resize(900).png().toFile('$T/logo-trim.png')"
-NODE_PATH="$W/node_modules" node scripts/press-kit/1-pull-credits.cjs $T/credits.json   # reads the live homepage
-NODE_PATH="$W/node_modules" node scripts/press-kit/2-make-pdf.cjs "$W" $T/credits.json "$W/public/luchi-beats-press-kit.pdf"
+NODE_PATH="$W/node_modules" node scripts/press-kit/2-make-pdf.cjs "$W" $T "$W/public/luchi-beats-press-kit.pdf"
 ```
 
-The bio, quotes and artist list are written inside `2-make-pdf.cjs`.
+The bio, quotes, artist list and photo are written inside `2-make-pdf.cjs`.
+`$T/onesheet.png` is a preview image of the page.
