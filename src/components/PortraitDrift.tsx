@@ -11,13 +11,16 @@ const LEFT = [S("red-low-angle", "55% 45%"), S("bw-hand-face", "45% 45%"), S("re
 const RIGHT = [S("bw-binoculars", "50% 55%"), S("red-eyes", "50% 70%"), S("bw-hand-mouth", "55% 40%"), S("red-stare", "50% 45%"), S("crimson-half", "80% 45%")];
 const ALL = LEFT.flatMap((l, i) => [l, RIGHT[i]]);
 
+// These two read too dark with the standard black-and-white toning, so they get a lighter one
+const LIFT = new Set(["/luchi/shoot/bw-binoculars.webp", "/luchi/shoot/bw-hand-mouth.webp"]);
+
 type Shot = ReturnType<typeof S>;
 
 function Slot({ shots, className, sizes, step, offset = 0 }: { shots: Shot[]; className: string; sizes: string; step: number; offset?: number }) {
   return (
     <div className={`drift-slot ${className}`}>
       {shots.map((p, i) => (
-        <div key={p.src} className={`drift-photo${p.bw ? " is-bw" : ""}`}
+        <div key={p.src} className={`drift-photo${p.bw ? " is-bw" : ""}${LIFT.has(p.src) ? " is-lift" : ""}`}
           style={{ animationDuration: `${shots.length * step}s`, animationDelay: `${i * step + offset}s` }}>
           <Image src={p.src} alt="" fill sizes={sizes} className="object-cover" style={{ objectPosition: p.pos }} />
         </div>
