@@ -23,13 +23,23 @@ const QUOTES = [
   { by: "Mach City", text: "Luchi is a one-stop shop for everything music related. He produces, can lay down vocals, and much more. When it's time to work, he's ready for the moment." },
 ];
 
+// Portrait shoot: shown as light webp copies, downloads are the full-quality JPGs.
+const shot = (n: string, alt: string, landscape = false) =>
+  ({ src: `/luchi/shoot/${n}.webp`, dl: `/luchi/press/luchi-beats-${n}.jpg`, alt, w: landscape ? 1163 : 968, h: landscape ? 778 : 1450 });
 const PHOTOS = [
-  { src: "/luchi/portrait-studio.webp", alt: "Luchi at the console" },
-  { src: "/luchi/portrait-closeup.webp", alt: "Luchi, close-up portrait" },
-  { src: "/luchi/portrait-half.webp", alt: "Luchi, portrait" },
-  { src: "/luchi/session-laptop.webp", alt: "Luchi building a beat" },
-  { src: "/luchi/studio-window.webp", alt: "Luchi behind the board" },
-  { src: "/luchi/session-cigar.webp", alt: "Luchi mid-session" },
+  shot("red-low-angle", "Luchi, portrait against red"),
+  shot("bw-hand-face", "Luchi, black and white, hand over his face"),
+  shot("red-stare", "Luchi, straight-on against red", true),
+  shot("red-profile", "Luchi in profile, red"),
+  shot("bw-half", "Luchi, black and white half-face"),
+  shot("bw-binoculars", "Luchi, black and white, looking through his hands", true),
+  shot("red-half", "Luchi, half-face against orange"),
+  shot("bw-hand-mouth", "Luchi, black and white, hand over his mouth"),
+  shot("red-eyes", "Luchi, eyes and brow, red", true),
+  shot("crimson-half", "Luchi, half-face against crimson"),
+  { src: "/luchi/portrait-studio.webp", dl: "/luchi/portrait-studio.webp", alt: "Luchi at the console", w: 0, h: 0 },
+  { src: "/luchi/studio-window.webp", dl: "/luchi/studio-window.webp", alt: "Luchi behind the board", w: 0, h: 0 },
+  { src: "/luchi/session-laptop.webp", dl: "/luchi/session-laptop.webp", alt: "Luchi building a beat", w: 0, h: 0 },
 ];
 
 const ONE_SHEET = "/luchi-beats-press-kit.pdf";
@@ -61,7 +71,7 @@ export default async function PressPage() {
       {/* ── Bio ── */}
       <section className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8 md:gap-12 items-center">
         <ScrollReveal className="press-portrait relative mx-auto w-[min(300px,80vw)] aspect-[4/5]">
-          <Image src="/luchi/portrait-studio.webp" alt="Luchi Beats in the studio" fill sizes="300px" className="object-cover object-[65%_20%]" />
+          <Image src="/luchi/shoot/red-low-angle.webp" alt="Luchi Beats" fill sizes="300px" className="object-cover object-[50%_35%]" />
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <p className="eyebrow mb-3">Bio</p>
@@ -128,8 +138,12 @@ export default async function PressPage() {
         <ul className="press-photos">
           {PHOTOS.map((p) => (
             <li key={p.src}>
-              <a href={p.src} download className="press-photo group" aria-label={`Download photo: ${p.alt}`}>
-                <Image src={p.src} alt={p.alt} fill sizes="(max-width: 640px) 50vw, 300px" className="object-cover" />
+              <a href={p.dl} download className="press-photo group" aria-label={`Download photo: ${p.alt}`}>
+                {p.w ? (
+                  <Image src={p.src} alt={p.alt} width={p.w} height={p.h} sizes="(max-width: 640px) 50vw, 320px" />
+                ) : (
+                  <span className="block relative aspect-[2/3]"><Image src={p.src} alt={p.alt} fill sizes="(max-width: 640px) 50vw, 320px" className="object-cover" /></span>
+                )}
                 <span className="press-photo-dl"><Download size={16} /> Download</span>
               </a>
             </li>

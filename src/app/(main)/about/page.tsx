@@ -5,6 +5,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import ScrollStory, { type StoryBlock } from "@/components/ScrollStory";
 import StudioGallery from "@/components/StudioGallery";
+import PortraitWall from "@/components/PortraitWall";
 import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
 import { ScrambleWords } from "@/components/ContactFX";
@@ -53,6 +54,15 @@ export default function AboutPage() {
         <p className="eyebrow mb-3 text-center">The Producer</p>
         <h2 className="section-title text-center mb-10 md:mb-14">My Story</h2>
         <ScrollStory paragraphs={STORY} />
+      </section>
+
+      {/* ── Portraits: framed prints on the wall ── */}
+      <section data-light="gold" className="mb-20 md:mb-28">
+        <ScrollReveal className="text-center mb-10 md:mb-16">
+          <p className="eyebrow mb-3">Portraits</p>
+          <h2 className="section-title">Up Close</h2>
+        </ScrollReveal>
+        <PortraitWall />
       </section>
 
       {/* ── In the Studio ── */}

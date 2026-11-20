@@ -1266,12 +1266,30 @@ html.intro-seen .intro-splash { display: none; }
 .press-quote-mark { position: absolute; top: -18px; left: 22px; font-size: 80px; line-height: 1; font-weight: 900; color: var(--gold); }
 .press-quote blockquote { font-size: 17px; line-height: 1.6; color: rgba(255,255,255,0.88); }
 .press-quote-by { margin-top: 14px; font-size: 12px; font-weight: 800; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); }
-.press-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; list-style: none; padding: 0; }
-@media (max-width: 640px) { .press-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.press-photo { position: relative; display: block; aspect-ratio: 2 / 3; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 34px rgba(0,0,0,0.55); }
-.press-photo img { transition: transform 0.5s; }
+.press-photos { columns: 3; column-gap: 14px; list-style: none; padding: 0; }
+.press-photos li { break-inside: avoid; margin-bottom: 14px; }
+@media (max-width: 640px) { .press-photos { columns: 2; } }
+.press-photo { position: relative; display: block; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 34px rgba(0,0,0,0.55); }
+.press-photo img { display: block; width: 100%; height: auto; transition: transform 0.5s; }
 .press-photo:hover img { transform: scale(1.05); }
 .press-photo-dl { position: absolute; left: 50%; bottom: 12px; transform: translate(-50%, 8px); display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
   font-size: 12px; font-weight: 800; color: #000; background: linear-gradient(90deg, #A8892E, #C9A84C, #E5C76B); opacity: 0; transition: all 0.3s; }
 .press-photo:hover .press-photo-dl, .press-photo:focus-visible .press-photo-dl { opacity: 1; transform: translate(-50%, 0); }
 @media (hover: none) { .press-photo-dl { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ── About: framed portrait prints hung on the studio wall (salon hang) ── */
+.portrait-wall { display: grid; gap: clamp(22px, 3.2vw, 44px); align-items: center; justify-items: center;
+  grid-template-columns: 1fr 1.3fr 1fr; grid-template-areas: "a c d" "b c e"; }
+@media (max-width: 767px) { .portrait-wall { grid-template-columns: 1fr 1fr; grid-template-areas: "c c" "a e" "b d"; gap: 22px 16px; } }
+.print { position: relative; display: block; width: 100%; cursor: zoom-in; transition: transform 0.5s cubic-bezier(.2,.7,.2,1); }
+.print:nth-child(odd) { transform: rotate(-0.6deg); }
+.print:nth-child(even) { transform: rotate(0.5deg); }
+.print:hover, .print:focus-visible { transform: translateY(-6px) rotate(0deg); z-index: 2; }
+/* Black frame + white mat, like the prints the photos came as */
+.print-frame { position: relative; display: block; padding: clamp(8px, 1.4vw, 18px); background: #f3f0ea;
+  border: clamp(4px, 0.55vw, 7px) solid #121110; border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 22px 40px rgba(0,0,0,0.65), 0 6px 12px rgba(0,0,0,0.5); }
+.print-frame::after { content: ""; position: absolute; inset: clamp(8px, 1.4vw, 18px); pointer-events: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12), inset 0 2px 6px rgba(0,0,0,0.18); }
+.print-frame img { display: block; width: 100%; height: auto; }
+.print:focus-visible .print-frame { outline: 2px solid var(--gold); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .print, .print:hover { transition: none; transform: none; } }
