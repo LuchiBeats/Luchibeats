@@ -7,8 +7,9 @@ import { MEDIA_EVENT, type MediaSoundDetail } from "@/lib/mediaSound";
 // Site soundtrack: "Maestro" (Prod. Luchi Beats) plays across every page and keeps going
 // while you move between them (this lives in the root layout, so it isn't remounted).
 // - One mute button; muting anywhere mutes everywhere, in every open tab, and is remembered.
-// - Browsers don't allow sound before the visitor interacts with the page, so if starting
-//   is blocked it begins on their first click/tap/key press, and the button says "Tap to play".
+// - Browsers don't allow sound before the visitor interacts with the page. First-time visitors
+//   get the Enter screen (IntroSplash), whose click starts it; otherwise, if starting is blocked,
+//   it begins on their first click/tap/key press, and the button says "Tap to play".
 // - Steps aside (fades out) while a video or the Live TV is making sound, then comes back.
 // - Silent on the admin panel and the app preview.
 const SRC = "/audio/maestro.mp3";
@@ -91,7 +92,10 @@ export default function SoundButton() {
     const opts = { capture: true, passive: true } as const;
     const events = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
     events.forEach((t) => document.addEventListener(t, onGesture, opts));
-    return () => events.forEach((t) => document.removeEventListener(t, onGesture, opts));
+    // The first-visit Enter screen (IntroSplash) announces its click: start right away
+    const onEnter = () => sync();
+    window.addEventListener("lb-enter", onEnter);
+    return () => { events.forEach((t) => document.removeEventListener(t, onGesture, opts)); window.removeEventListener("lb-enter", onEnter); };
   }, [sync]);
 
   // Other players making sound, tab hidden, mute changed in another tab, remember position
