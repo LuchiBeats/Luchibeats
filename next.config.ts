@@ -36,6 +36,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   turbopack: {},
   poweredByHeader: false,
+  // Cloudflare sits in front of Vercel and keeps /_next/static files for a year. Their names
+  // can stay the same between deploys while the contents change, so visitors could get new
+  // pages with old CSS. A per-deploy ID adds ?dpl=<id> to every asset URL, so each deploy's
+  // files are new addresses to Cloudflare and browsers.
+  deploymentId: process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA || undefined,
   // The beat store, drum kits and merch store were taken down. Send old links and bookmarks to the homepage.
   async redirects() {
     return [
