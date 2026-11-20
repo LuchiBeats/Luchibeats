@@ -1332,3 +1332,18 @@ html.intro-seen .intro-splash { display: none; }
 
 
 
+
+/* ── Homepage: 11/14 live stream recap video (LiveRecap.tsx) ── */
+.live-recap { max-width: 1100px; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.18); }
+.live-recap video { background: #000; }
+.live-recap-controls { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.live-recap-controls button { pointer-events: auto; }
+.live-recap-sound { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #000; background: linear-gradient(90deg, #A8892E, #C9A84C, #E5C76B); box-shadow: 0 6px 24px rgba(0,0,0,0.5); transition: transform 0.2s, background 0.3s, color 0.3s; }
+.live-recap-sound:hover { transform: scale(1.04); }
+.live-recap-sound.is-muted { animation: soundNudge 2.4s ease-in-out infinite; }
+.live-recap-sound:not(.is-muted) { color: var(--fire-light); background: rgba(0,0,0,0.6); box-shadow: inset 0 0 0 1px rgba(201,168,76,0.5); }
+.live-recap-icon { width: 40px; height: 40px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: rgba(0,0,0,0.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
+@keyframes soundNudge { 0%, 100% { box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 0 rgba(229,199,107,0.55); } 50% { box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 9px rgba(229,199,107,0); } }
+@media (max-width: 640px) { .live-recap { border-radius: 10px; margin: 0 -4px; } .live-recap-sound { padding: 8px 13px; font-size: 11px; } .live-recap-controls { left: 10px; right: 10px; bottom: 10px; } }
+@media (prefers-reduced-motion: reduce) { .live-recap-sound.is-muted { animation: none; } }

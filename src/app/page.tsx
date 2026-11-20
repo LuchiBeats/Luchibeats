@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import LiveRecap from "@/components/LiveRecap";
 import { Phone, Info, ArrowRight, Radio } from "lucide-react";
 import Marquee from "@/components/Marquee";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -144,6 +145,9 @@ export default async function HomePage() {
           </div>
         </ScrollReveal>
       </section>
+
+      {/* 11/14 live stream recap, scored with "Maestro" */}
+      <LiveRecap />
 
       {/* The studio is the menu: hover the gear, click to go there */}
       <StudioScene />
