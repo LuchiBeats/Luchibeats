@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX, Maximize2 } from "lucide-react";
 
-// The 11/14 live stream recap (from Instagram) with "Maestro" as its soundtrack.
-// Plays silently while it's on screen and pauses when it isn't; the visitor taps for sound.
-// The original VP9 file is used where the browser can play it (12 MB, untouched picture);
-// everything else gets a near-identical H.264 copy. Nothing loads until it's close to view.
-export default function LiveRecap() {
+// The 11/14 live stream on the homepage: the recap (from Instagram, re-scored with "Maestro")
+// and a vertical behind-the-scenes reel with its original sound.
+// Each plays silently while it's on screen and pauses when it isn't; the visitor taps for sound,
+// and only one can have sound at a time. The original VP9 files are used where the browser can
+// play them (untouched picture); everything else gets a near-identical H.264 copy.
+// Nothing downloads until the video is close to view.
+const SOUND_EVENT = "lb-recap-sound";
+
+function RecapVideo({ id, base, label, codecs, className }: { id: string; base: string; label: string; codecs: string; className: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const heardOnce = useRef(false);
@@ -15,25 +19,36 @@ export default function LiveRecap() {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
+    // Play whenever it's on screen. Loading starts slightly earlier; if it comes into view at
+    // the same moment loading starts, the load would cancel the play, so retry once it can play.
+    let visible = false;
+    const tryPlay = () => { if (visible) v.play().catch(() => {}); };
+    v.addEventListener("canplay", tryPlay);
     const near = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) { v.preload = "auto"; v.load(); near.disconnect(); }
     }, { rootMargin: "600px 0px" });
     const seen = new IntersectionObserver(([e]) => {
-      if (e.intersectionRatio >= 0.35) v.play().catch(() => {});
-      else v.pause();
+      visible = e.intersectionRatio >= 0.35;
+      if (visible) tryPlay(); else v.pause();
     }, { threshold: [0, 0.35] });
+    // Another video turned its sound on: go quiet
+    const onOther = (e: Event) => {
+      if ((e as CustomEvent<string>).detail !== id && !v.muted) { v.muted = true; setMuted(true); }
+    };
     near.observe(v);
     seen.observe(v);
-    return () => { near.disconnect(); seen.disconnect(); };
-  }, []);
+    window.addEventListener(SOUND_EVENT, onOther);
+    return () => { near.disconnect(); seen.disconnect(); v.removeEventListener("canplay", tryPlay); window.removeEventListener(SOUND_EVENT, onOther); };
+  }, [id]);
 
   const toggleSound = () => {
     const v = ref.current;
     if (!v) return;
-    // First time the sound comes on, start from the top so the beat plays from its intro
+    // First time the sound comes on, start from the top
     if (v.muted && !heardOnce.current) { v.currentTime = 0; heardOnce.current = true; }
     v.muted = !v.muted;
     setMuted(v.muted);
+    if (!v.muted) window.dispatchEvent(new CustomEvent(SOUND_EVENT, { detail: id }));
     v.play().catch(() => {});
   };
 
@@ -45,28 +60,41 @@ export default function LiveRecap() {
   };
 
   return (
+    <div className={`live-recap relative ${className}`}>
+      <video ref={ref} muted loop playsInline preload="none" poster={`${base}-poster.webp`}
+        onClick={toggleSound} className="w-full h-full object-cover block cursor-pointer" aria-label={label}>
+        <source src={`${base}.mp4`} type={`video/mp4; codecs="${codecs}"`} />
+        <source src={`${base}-h264.mp4`} type="video/mp4" />
+      </video>
+      <div className="live-recap-controls">
+        <button type="button" onClick={toggleSound} className={`live-recap-sound${muted ? " is-muted" : ""}`}
+          aria-label={muted ? "Turn sound on" : "Turn sound off"} aria-pressed={!muted}>
+          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          <span>{muted ? "Tap for sound" : "Sound on"}</span>
+        </button>
+        <button type="button" onClick={fullscreen} className="live-recap-icon" aria-label="Full screen"><Maximize2 size={17} /></button>
+      </div>
+    </div>
+  );
+}
+
+export default function LiveRecap() {
+  return (
     <section data-light="gold" className="relative max-w-6xl mx-auto px-4 pt-10 md:pt-16 pb-10 md:pb-16 text-center">
       <p className="eyebrow mb-3">Luchi Beats Presents</p>
-      <h2 className="section-title mb-3">The 11/14 Live Stream</h2>
-      <p className="mb-8 md:mb-10 text-sm md:text-base" style={{ color: "rgba(255,255,255,0.6)" }}>
-        Music: <span style={{ color: "var(--fire-light)" }}>Maestro</span> (Prod. Luchi Beats)
-      </p>
+      <h2 className="section-title mb-8 md:mb-10">The 11/14 Live Stream</h2>
 
-      <div className="live-recap relative mx-auto">
-        <video ref={ref} muted loop playsInline preload="none" poster="/video/live-recap-poster.webp"
-          onClick={toggleSound} className="w-full h-auto block cursor-pointer" aria-label="11/14 live stream recap, music: Maestro by Luchi Beats">
-          <source src="/video/live-recap.mp4" type='video/mp4; codecs="vp09.00.40.08, mp4a.40.2"' />
-          <source src="/video/live-recap-h264.mp4" type="video/mp4" />
-        </video>
-
-        <div className="live-recap-controls">
-          <button type="button" onClick={toggleSound} className={`live-recap-sound${muted ? " is-muted" : ""}`}
-            aria-label={muted ? "Turn sound on" : "Turn sound off"} aria-pressed={!muted}>
-            {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            <span>{muted ? "Tap for sound" : "Sound on"}</span>
-          </button>
-          <button type="button" onClick={fullscreen} className="live-recap-icon" aria-label="Full screen"><Maximize2 size={17} /></button>
-        </div>
+      <div className="live-recap-pair">
+        <figure className="live-recap-main">
+          <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2" className="aspect-[1916/1080]"
+            label="11/14 live stream recap, music: Maestro by Luchi Beats" />
+          <figcaption className="live-recap-cap">The Recap <span>· Music: <b>Maestro</b> (Prod. Luchi Beats)</span></figcaption>
+        </figure>
+        <figure className="live-recap-side">
+          <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" className="aspect-[9/16]"
+            label="Behind the scenes at the 11/14 live stream" />
+          <figcaption className="live-recap-cap">Behind the Scenes</figcaption>
+        </figure>
       </div>
 
       <Link href="/live" data-magnetic className="btn-outline mt-8 md:mt-10 inline-flex items-center gap-2 px-8 py-3 rounded text-sm tracking-wide">
