@@ -4,23 +4,6 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const [, , webDir, tmpDir, outFile] = process.argv;
-// Video tiles: tapping one opens that video playing on the Press page (video can't play inside a PDF
-// in most viewers). Thumbnails are made from the videos' posters before the page is built.
-const VIDEOS = [
-  { title: 'THE RECAP', note: 'Music: Maestro (Prod. Luchi Beats) · Tap to watch', href: 'https://www.luchibeats.com/press#recap', thumb: 'thumb-recap.jpg' },
-  { title: 'BEHIND THE SCENES', note: 'Tap to watch', href: 'https://www.luchibeats.com/press#behind-the-scenes', thumb: 'thumb-bts.jpg' },
-];
-async function makeThumbs() {
-  const sharp = require('sharp');
-  const W = 1200, H = 675;
-  await sharp(path.resolve(webDir, 'public/video/live-recap-poster.webp')).resize(W, H, { fit: 'cover' }).jpeg({ quality: 88 }).toFile(path.resolve(tmpDir, 'thumb-recap.jpg'));
-  // Vertical clip: centred, with its own picture blurred and darkened behind it (same look as the site)
-  const bts = path.resolve(webDir, 'public/video/live-bts-poster.webp');
-  const bg = await sharp(bts).resize(W, H, { fit: 'cover' }).blur(28).modulate({ brightness: 0.5 }).toBuffer();
-  const fg = await sharp(bts).resize({ height: H }).toBuffer();
-  const fgW = (await sharp(fg).metadata()).width;
-  await sharp(bg).composite([{ input: fg, left: Math.round((W - fgW) / 2), top: 0 }]).jpeg({ quality: 88 }).toFile(path.resolve(tmpDir, 'thumb-bts.jpg'));
-}
 const file = (p) => 'file:///' + path.resolve(webDir, p).replace(/\\/g, '/');
 const artists = ["A Boogie Wit Da Hoodie", "Coi Leray", "Fabolous", "Dave East", "Raekwon", "Conway The Machine", "Joe Budden", "Fetty Wap", "Mysonne", "Mariah Lynn", "Albeal", "Arlene Mc", "Harrd Luck", "Max Santos", "Nyah Lee", "Oskama Esteban", "Tempo"];
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -49,17 +32,8 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
 .artists { margin: 0.22in 0.55in 0; padding-top: 0.14in; border-top: 1px solid rgba(201,168,76,0.3); }
 .artists p { font-size: 9.2pt; font-weight: 700; line-height: 1.65; }
 .artists i { color: #C9A84C; font-style: normal; }
-.watch { margin: 0.24in 0.55in 0; }
-.watch-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2in; }
-.tile { display: block; color: inherit; text-decoration: none; }
-.tile-img { position: relative; height: 1.72in; border-radius: 4px; overflow: hidden; box-shadow: 0 0 0 1px rgba(201,168,76,0.35); }
-.tile-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tile-img::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.05), rgba(0,0,0,0.45)); }
-.play { position: absolute; left: 50%; top: 50%; width: 0.62in; height: 0.62in; margin: -0.31in 0 0 -0.31in; z-index: 1; border-radius: 50%;
-  background: linear-gradient(135deg,#A8892E,#C9A84C,#E5C76B); box-shadow: 0 4px 18px rgba(0,0,0,0.6); }
-.play::before { content: ""; position: absolute; left: 0.25in; top: 0.19in; border-style: solid; border-width: 0.12in 0 0.12in 0.19in; border-color: transparent transparent transparent #000; }
-.tile-cap { margin-top: 0.07in; display: flex; justify-content: space-between; align-items: baseline; font-size: 7.5pt; color: rgba(255,255,255,0.6); }
-.tile-cap b { font-size: 7pt; font-weight: 800; letter-spacing: 0.22em; color: #C9A84C; }
+.strip { margin: 0.28in 0.55in 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.12in; }
+.strip img { width: 100%; height: 2.05in; object-fit: cover; object-position: 50% 35%; border-radius: 3px; display: block; }
 .foot { position: absolute; left: 0.55in; right: 0.55in; bottom: 0.45in; display: flex; justify-content: space-between; align-items: flex-end; font-size: 8.4pt; color: rgba(255,255,255,0.75); }
 .foot b { color: #E5C76B; }
 .cta { padding: 0.07in 0.16in; border-radius: 4px; background: linear-gradient(90deg,#A8892E,#C9A84C,#E5C76B); color: #000; font-weight: 800; letter-spacing: 0.08em; }
@@ -87,8 +61,7 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
   </div>
 </div>
 <div class="artists"><div class="label">Worked With</div><p>${artists.map(esc).join(' <i>·</i> ')}</p></div>
-<div class="watch"><div class="label">Watch · Live Recap Videos</div><div class="watch-row">${VIDEOS.map((v) =>
-  `<a class="tile" href="${v.href}"><div class="tile-img"><img src="${'file:///' + path.resolve(tmpDir, v.thumb).split(path.sep).join('/')}"><span class="play"></span></div><div class="tile-cap"><b>${v.title}</b><span>${v.note}</span></div></a>`).join('')}</div></div>
+<div class="strip">${['bw-hand-face', 'red-profile', 'bw-hand-mouth', 'crimson-half'].map((n) => `<img src="${file(`public/luchi/press/luchi-beats-${n}.jpg`)}">`).join('')}</div>
 <div class="foot">
   <div><b>luchibeats.com</b> &nbsp;·&nbsp; IG @luchi_beats &nbsp;·&nbsp; YouTube @LuchiBeats</div>
   <div class="cta">BOOKING: LUCHIBEATS.COM/CONTACT</div>
@@ -96,7 +69,6 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
 </body></html>`;
 
 (async () => {
-  await makeThumbs();
   const htmlPath = path.resolve(tmpDir, 'onesheet.html');
   fs.writeFileSync(htmlPath, html);
   const b = await chromium.launch();
