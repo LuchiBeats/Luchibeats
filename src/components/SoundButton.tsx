@@ -59,14 +59,24 @@ export default function SoundButton() {
     }, 40);
   };
 
+  const stopNow = (a: HTMLAudioElement) => { window.clearInterval(fade.current); a.pause(); a.volume = 0; };
+
   // Play or pause to match the current situation
   const sync = useCallback(() => {
     const shouldPlay = !muted.current && !quiet.current && others.current.size === 0 && !document.hidden;
     const a = el();
     if (shouldPlay) {
       if (!a.paused && a.volume > 0) { setMode("on"); return; }
-      a.play().then(() => { waitingForGesture.current = false; setMode("on"); ramp(a, VOLUME, 1500); })
+      a.play().then(() => {
+        waitingForGesture.current = false;
+        if (document.hidden) { stopNow(a); return; }   // screen locked / tab hidden while it was starting
+        setMode("on"); ramp(a, VOLUME, 1500);
+      })
         .catch(() => { waitingForGesture.current = true; setMode("blocked"); });
+    } else if (document.hidden) {
+      // Phone locked or tab in the background: stop at once. A fade can't be used here because
+      // phones freeze timers the moment the screen locks, so the fade would never finish.
+      stopNow(a);
     } else {
       if (!a.paused) ramp(a, 0, 600, () => a.pause());
       setMode(muted.current ? "off" : quiet.current ? "off" : "on");
@@ -109,6 +119,8 @@ export default function SoundButton() {
       sync();
     };
     const onVis = () => sync();
+    // Leaving or freezing the page (iPhone lock / app switch, Android freeze): stop right away
+    const onAway = () => { if (audio.current) stopNow(audio.current); };
     // Muted or unmuted in another open tab: follow it
     let channel: BroadcastChannel | null = null;
     try {
@@ -119,11 +131,15 @@ export default function SoundButton() {
     window.addEventListener(MEDIA_EVENT, onMedia);
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("pagehide", savePos);
+    window.addEventListener("pagehide", onAway);
+    document.addEventListener("freeze", onAway);
     return () => {
       window.removeEventListener(MEDIA_EVENT, onMedia);
       document.removeEventListener("visibilitychange", onVis);
       channel?.close();
       window.removeEventListener("pagehide", savePos);
+      window.removeEventListener("pagehide", onAway);
+      document.removeEventListener("freeze", onAway);
       window.clearInterval(fade.current);
     };
   }, [sync]);
