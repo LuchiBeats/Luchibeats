@@ -79,17 +79,19 @@ export default function SoundButton() {
   // Admin / app preview: go quiet
   useEffect(() => { quiet.current = quietPage; if (ready) sync(); }, [quietPage, ready, sync]);
 
-  // Blocked by the browser: start on the visitor's first click, tap or key press
+  // Blocked by the browser: start on the visitor's first click, tap or key press.
+  // Browsers only allow sound from certain events: a mouse press counts as it goes down, but a
+  // finger on a phone only counts when it lifts (touchend / click), so listen for all of them.
   useEffect(() => {
     const onGesture = (e: Event) => {
       if (!waitingForGesture.current) return;
       if ((e.target as Element | null)?.closest?.(".sound-btn")) return; // the button handles itself
       sync();
     };
-    const opts = { capture: true } as const;
-    document.addEventListener("pointerdown", onGesture, opts);
-    document.addEventListener("keydown", onGesture, opts);
-    return () => { document.removeEventListener("pointerdown", onGesture, opts); document.removeEventListener("keydown", onGesture, opts); };
+    const opts = { capture: true, passive: true } as const;
+    const events = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
+    events.forEach((t) => document.addEventListener(t, onGesture, opts));
+    return () => events.forEach((t) => document.removeEventListener(t, onGesture, opts));
   }, [sync]);
 
   // Other players making sound, tab hidden, mute changed in another tab, remember position
