@@ -1165,6 +1165,20 @@ html.intro-seen .intro-splash { display: none; }
 .intro-enter:focus-visible { outline: 2px solid #f0d878; outline-offset: 5px; }
 .intro-note { font-size: 11px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.45); opacity: 0; animation: introUp 0.7s ease-out 1.45s forwards; text-align: center; padding: 0 16px; }
 .intro-note span:first-child { color: #E5C76B; }
+/* Portraits fading in and out behind the logo (black and white, like the About page) */
+.intro-photos { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.intro-spot { position: absolute; top: 50%; transform: translateY(-50%); aspect-ratio: 3 / 4; width: clamp(240px, 27vw, 440px);
+  -webkit-mask-image: radial-gradient(closest-side, #000 36%, rgba(0,0,0,0.5) 66%, transparent 100%);
+          mask-image: radial-gradient(closest-side, #000 36%, rgba(0,0,0,0.5) 66%, transparent 100%); --o: 0.55; }
+.intro-spot.is-left  { left: max(1vw, calc(50% - 280px - 27vw)); }
+.intro-spot.is-right { right: max(1vw, calc(50% - 280px - 27vw)); }
+.intro-spot.is-center { display: none; left: 50%; transform: translate(-50%, -50%); width: min(92vw, 520px); --o: 0.32; }
+.intro-spot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0;
+  filter: grayscale(1) brightness(0.9) contrast(0.95); animation-name: introPhoto; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: backwards; }
+.intro-spot.is-center img { animation-name: introPhotoAll; }
+@keyframes introPhoto { 0% { opacity: 0; transform: scale(1.07); } 7% { opacity: var(--o); } 20% { opacity: var(--o); } 27% { opacity: 0; transform: scale(1); } 100% { opacity: 0; } }
+@keyframes introPhotoAll { 0% { opacity: 0; transform: scale(1.07); } 3.5% { opacity: var(--o); } 10% { opacity: var(--o); } 13.5% { opacity: 0; transform: scale(1); } 100% { opacity: 0; } }
+@media (max-width: 899px) { .intro-spot.is-left, .intro-spot.is-right { display: none; } .intro-spot.is-center { display: block; } }
 @keyframes introBurn { 0% { opacity: 0; filter: brightness(3) blur(14px); transform: scale(1.06); } 45% { opacity: 1; } 100% { opacity: 1; filter: brightness(1) blur(0); transform: scale(1); } }
 @keyframes introGlow { 50% { opacity: 1; } 100% { opacity: 0.6; } }
 @keyframes introBreathe { 0%, 100% { opacity: 0.6; } 50% { opacity: 0.9; } }
@@ -1174,6 +1188,8 @@ html.intro-seen .intro-splash { display: none; }
 @keyframes introOut { to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) {
   .intro-glow, .intro-logo, .intro-line, .intro-enter, .intro-note { animation: none; opacity: 1; filter: none; transform: none; }
+  .intro-spot img { animation: none; }
+  .intro-spot img:first-child { opacity: var(--o); }
   .intro-line { width: min(420px, 60vw); }
   html.intro-leaving .intro-splash { animation: none; display: none; }
 }
@@ -1383,5 +1399,7 @@ html.intro-seen .intro-splash { display: none; }
 @keyframes soundWait { 0%, 100% { box-shadow: 0 0 0 1px rgba(229,199,107,0.6), 0 8px 22px rgba(0,0,0,0.55), 0 0 0 0 rgba(229,199,107,0.45); } 50% { box-shadow: 0 0 0 1px rgba(229,199,107,0.9), 0 8px 22px rgba(0,0,0,0.55), 0 0 0 10px rgba(229,199,107,0); } }
 @media (prefers-reduced-motion: reduce) { .sound-btn.is-waiting { animation: none; } }
 @media (max-width: 640px) { .sound-btn.is-waiting .sound-label { display: inline; } }
+
+
 
 

@@ -6,20 +6,23 @@ import { MEDIA_EVENT, type MediaSoundDetail } from "@/lib/mediaSound";
 
 // Site soundtrack: "Maestro" (Prod. Luchi Beats) plays across every page and keeps going
 // while you move between them (this lives in the root layout, so it isn't remounted).
-// - One mute button; muting anywhere mutes everywhere, in every open tab, and is remembered.
+// - Every visit starts with the sound on (the Enter screen shows at the start of each visit).
+//   One mute button; muting mutes every page and every open tab for the rest of that visit.
 // - Browsers don't allow sound before the visitor interacts with the page. First-time visitors
 //   get the Enter screen (IntroSplash), whose click starts it; otherwise, if starting is blocked,
 //   it begins on their first click/tap/key press, and the button says "Tap to play".
 // - Steps aside (fades out) while a video or the Live TV is making sound, then comes back.
 // - Silent on the admin panel and the app preview.
 const SRC = "/audio/maestro.mp3";
-const MUTE_KEY = "lb-music-muted";   // localStorage: "1" when muted
+const MUTE_KEY = "lb-music-muted";   // sessionStorage: "1" when muted (this visit only)
+const CHANNEL = "lb-music";          // BroadcastChannel: tells other open tabs about mute changes
 const POS_KEY = "lb-music-pos";      // sessionStorage: where the beat was, so a reload carries on
 const VOLUME = 0.45;
 
 type Mode = "on" | "off" | "blocked";
 
-const readMuted = () => { try { return localStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
+const readMuted = () => { try { return sessionStorage.getItem(MUTE_KEY) === "1"; } catch { return false; } };
+const saveMuted = (m: boolean) => { try { sessionStorage.setItem(MUTE_KEY, m ? "1" : "0"); } catch {} };
 
 export default function SoundButton() {
   const pathname = usePathname() || "/";
@@ -92,8 +95,8 @@ export default function SoundButton() {
     const opts = { capture: true, passive: true } as const;
     const events = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
     events.forEach((t) => document.addEventListener(t, onGesture, opts));
-    // The first-visit Enter screen (IntroSplash) announces its click: start right away
-    const onEnter = () => sync();
+    // The Enter screen (IntroSplash) announces its click: a new visit, so start with the sound on
+    const onEnter = () => { muted.current = false; saveMuted(false); sync(); };
     window.addEventListener("lb-enter", onEnter);
     return () => { events.forEach((t) => document.removeEventListener(t, onGesture, opts)); window.removeEventListener("lb-enter", onEnter); };
   }, [sync]);
@@ -106,16 +109,20 @@ export default function SoundButton() {
       sync();
     };
     const onVis = () => sync();
-    const onStorage = (e: StorageEvent) => { if (e.key === MUTE_KEY) { muted.current = e.newValue === "1"; sync(); } };
+    // Muted or unmuted in another open tab: follow it
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel(CHANNEL);
+      channel.onmessage = (e: MessageEvent<{ muted: boolean }>) => { muted.current = !!e.data?.muted; saveMuted(muted.current); sync(); };
+    } catch {}
     const savePos = () => { try { if (audio.current) sessionStorage.setItem(POS_KEY, String(audio.current.currentTime)); } catch {} };
     window.addEventListener(MEDIA_EVENT, onMedia);
     document.addEventListener("visibilitychange", onVis);
-    window.addEventListener("storage", onStorage);
     window.addEventListener("pagehide", savePos);
     return () => {
       window.removeEventListener(MEDIA_EVENT, onMedia);
       document.removeEventListener("visibilitychange", onVis);
-      window.removeEventListener("storage", onStorage);
+      channel?.close();
       window.removeEventListener("pagehide", savePos);
       window.clearInterval(fade.current);
     };
@@ -125,7 +132,8 @@ export default function SoundButton() {
     // "Tap to play": this click is the go-ahead the browser was waiting for
     if (mode === "blocked") { sync(); return; }
     muted.current = !muted.current;
-    try { localStorage.setItem(MUTE_KEY, muted.current ? "1" : "0"); } catch {}
+    saveMuted(muted.current);
+    try { const c = new BroadcastChannel(CHANNEL); c.postMessage({ muted: muted.current }); c.close(); } catch {}
     sync();
   };
 
