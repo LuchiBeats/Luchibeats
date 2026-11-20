@@ -5,7 +5,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import ScrollStory, { type StoryBlock } from "@/components/ScrollStory";
 import StudioGallery from "@/components/StudioGallery";
-import PortraitWall from "@/components/PortraitWall";
+import PortraitDrift from "@/components/PortraitDrift";
 import ArtistGrid from "@/components/ArtistGrid";
 import HomeFX from "@/components/HomeFX";
 import { ScrambleWords } from "@/components/ContactFX";
@@ -48,21 +48,15 @@ export default function AboutPage() {
       </div>
     </section>
 
-    <div className="max-w-5xl mx-auto px-4">
+    {/* Everything below the hero sits over the drifting portraits */}
+    <div className="relative">
+    <PortraitDrift />
+    <div className="relative z-10 max-w-5xl mx-auto px-4">
       {/* ── The story, centered, lighting up as you read ── */}
       <section id="story" data-light="ember" className="scroll-mt-24 max-w-[680px] mx-auto pt-6 md:pt-10 mb-20 md:mb-28">
         <p className="eyebrow mb-3 text-center">The Producer</p>
         <h2 className="section-title text-center mb-10 md:mb-14">My Story</h2>
         <ScrollStory paragraphs={STORY} />
-      </section>
-
-      {/* ── Portraits: framed prints on the wall ── */}
-      <section data-light="gold" className="mb-20 md:mb-28">
-        <ScrollReveal className="text-center mb-10 md:mb-16">
-          <p className="eyebrow mb-3">Portraits</p>
-          <h2 className="section-title">Up Close</h2>
-        </ScrollReveal>
-        <PortraitWall />
       </section>
 
       {/* ── In the Studio ── */}
@@ -86,7 +80,7 @@ export default function AboutPage() {
     </div>
 
     {/* Closing call to action */}
-    <ScrollReveal className="max-w-3xl mx-auto px-4 pt-6 pb-4 text-center">
+    <ScrollReveal className="relative z-10 max-w-3xl mx-auto px-4 pt-6 pb-4 text-center">
       <h2 className="section-title mb-5">Let&apos;s make<br /><ScrambleWords words={["a hit.", "a record.", "history.", "noise.", "magic."]} /></h2>
       <p className="md:text-lg mb-8" style={{ color: "rgba(255,255,255,0.65)" }}>
         Custom beats, recording, mixing and mastering. Tell me what you&apos;re working on.
@@ -95,6 +89,7 @@ export default function AboutPage() {
         Work With Me <ArrowRight size={16} />
       </Link>
     </ScrollReveal>
+    </div>
     </>
   );
 }
