@@ -1290,15 +1290,16 @@ html.intro-seen .intro-splash { display: none; }
   -webkit-mask-image: radial-gradient(closest-side, #000 38%, rgba(0,0,0,0.55) 68%, transparent 100%);
           mask-image: radial-gradient(closest-side, #000 38%, rgba(0,0,0,0.55) 68%, transparent 100%); }
 /* Sides: centred in the margin outside the 1024px content column */
-.drift-slot.is-left, .drift-slot.is-right { width: clamp(220px, 25vw, 380px); --o: 0.5; }
+.drift-slot.is-left, .drift-slot.is-right { width: clamp(220px, 25vw, 380px); --o: 0.65; }
 .drift-slot.is-left  { left:  calc(max(0px, (100vw - 1024px) / 2) / 2 - clamp(220px, 25vw, 380px) / 2 + 2vw); }
 .drift-slot.is-right { right: calc(max(0px, (100vw - 1024px) / 2) / 2 - clamp(220px, 25vw, 380px) / 2 + 2vw); }
-.drift-slot.is-center { display: none; left: 50%; width: 88vw; transform: translate(-50%, -50%); --o: 0.22; }
+.drift-slot.is-center { display: none; left: 50%; width: 88vw; transform: translate(-50%, -50%); --o: 0.3; }
 .drift-photo { position: absolute; inset: 0; opacity: 0; animation-name: driftSide; animation-timing-function: ease-in-out;
   animation-iteration-count: infinite; animation-fill-mode: backwards;
-  filter: saturate(0.85) brightness(0.8) contrast(1.05); will-change: opacity, transform; }
-/* The black-and-white shots have white backgrounds: tone them down to match the colour ones */
-.drift-photo.is-bw { filter: grayscale(1) brightness(0.55) contrast(1.3); }
+  filter: grayscale(1) brightness(0.95) contrast(1.15); will-change: opacity, transform; }
+/* Everything shows in black and white. The shots that were shot black-and-white have white
+   backgrounds, so they're toned down to sit with the converted red ones */
+.drift-photo.is-bw { filter: grayscale(1) brightness(0.62) contrast(1.3); }
 .drift-photo.is-bw.is-lift { filter: grayscale(1) brightness(0.82) contrast(1.15); }
 /* 5 photos per side, 6s each: visible ~20% of the cycle plus the cross-fade */
 @keyframes driftSide {
@@ -1322,10 +1323,11 @@ html.intro-seen .intro-splash { display: none; }
   .drift-slot.is-left, .drift-slot.is-right { display: none; }
   .drift-slot.is-center { display: block; }
 }
-@media (min-width: 640px) and (max-width: 1099px) { .drift-slot.is-center { width: min(70vw, 520px); --o: 0.2; } }
+@media (min-width: 640px) and (max-width: 1099px) { .drift-slot.is-center { width: min(70vw, 520px); --o: 0.28; } }
 @media (prefers-reduced-motion: reduce) {
   .drift-photo { animation: none; }
   .drift-slot .drift-photo:first-child { opacity: var(--o); }
 }
+
 
 
