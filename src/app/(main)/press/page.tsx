@@ -5,15 +5,14 @@ import { ArrowRight, Download, FileText } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import { RecapPair } from "@/components/LiveRecap";
 import { collaborators } from "@/lib/collaborators";
-import { getHomepageContent, type ProductionVideo } from "@/lib/beats-store";
 
 // Press kit for A&Rs, managers and press: the one link to send when pitching.
-export const revalidate = 300;
+// No credits list here or in the PDF (Luchi's call, 2026-11-20).
 
 export const metadata: Metadata = {
   title: "Press Kit",
-  description: "Luchi Beats press kit: bio, selected credits, artists, quotes, press photos and a downloadable one-sheet.",
-  openGraph: { title: "Luchi Beats — Press Kit", description: "Producer & engineer, Paterson NJ. Bio, credits, photos and one-sheet." },
+  description: "Luchi Beats press kit: bio, live recap videos, artists, quotes, press photos and a downloadable one-sheet.",
+  openGraph: { title: "Luchi Beats — Press Kit", description: "Producer & engineer, Paterson NJ. Bio, videos, photos and one-sheet." },
 };
 
 const BIO_SHORT =
@@ -45,10 +44,7 @@ const PHOTOS = [
 
 const ONE_SHEET = "/luchi-beats-press-kit.pdf";
 
-export default async function PressPage() {
-  let credits: ProductionVideo[] = [];
-  try { credits = (await getHomepageContent()).productions ?? []; } catch {}
-
+export default function PressPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
       {/* ── Header ── */}
@@ -80,7 +76,7 @@ export default async function PressPage() {
           <dl className="press-facts mt-6">
             <div><dt>Based in</dt><dd>Paterson, New Jersey</dd></div>
             <div><dt>Does</dt><dd>Production · Recording · Mixing &amp; Mastering</dd></div>
-            <div><dt>Genres</dt><dd>Hip-Hop · Trap · R&amp;B · Afrobeats</dd></div>
+            <div><dt>Genres</dt><dd>Hip-Hop · Latin Hip-Hop · Reggaeton · Trap · R&amp;B · Afrobeats</dd></div>
             <div><dt>Live</dt><dd><Link href="/live" className="underline decoration-[rgba(229,199,107,0.5)] underline-offset-4 hover:text-[var(--fire-light)]">Luchi Beats &amp; Friends</Link> on YouTube</dd></div>
           </dl>
         </ScrollReveal>
@@ -94,25 +90,6 @@ export default async function PressPage() {
         </ScrollReveal>
         <RecapPair />
       </section>
-
-      {/* ── Selected credits ── */}
-      {credits.length > 0 && (
-        <section className="mt-20 md:mt-24">
-          <ScrollReveal className="text-center mb-8">
-            <p className="eyebrow mb-3">Discography</p>
-            <h2 className="section-title">Selected Credits</h2>
-          </ScrollReveal>
-          <ol className="press-credits">
-            {credits.map((c, i) => (
-              <li key={c.id}>
-                <span className="press-credit-n">{String(i + 1).padStart(2, "0")}</span>
-                <span className="press-credit-main"><span className="press-credit-artist">{c.artist}</span><span className="press-credit-title">{c.title}</span></span>
-                <span className="press-credit-role">{c.credits}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
 
       {/* ── Artists ── */}
       <section className="mt-20 md:mt-24 text-center">

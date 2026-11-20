@@ -42,7 +42,8 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
 .body { padding: 0.15in 0.55in 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.4in; }
 .bio { font-size: 9.6pt; line-height: 1.55; color: rgba(255,255,255,0.88); }
 .facts { margin-top: 0.14in; font-size: 8.4pt; line-height: 1.7; color: rgba(255,255,255,0.8); }
-.facts b { color: #E5C76B; font-weight: 800; letter-spacing: 0.12em; font-size: 7pt; display: inline-block; width: 0.85in; }
+.facts div { display: flex; }
+.facts b { color: #E5C76B; font-weight: 800; letter-spacing: 0.12em; font-size: 7pt; flex: none; width: 0.85in; }
 .quote { margin-bottom: 0.2in; padding: 0.12in 0.14in; border-left: 2px solid #C9A84C; background: rgba(255,255,255,0.03); font-size: 8.6pt; line-height: 1.5; font-style: italic; color: rgba(255,255,255,0.85); }
 .quote span { display: block; margin-top: 0.05in; font-style: normal; font-weight: 800; font-size: 7pt; letter-spacing: 0.24em; color: #C9A84C; }
 .artists { margin: 0.22in 0.55in 0; padding-top: 0.14in; border-top: 1px solid rgba(201,168,76,0.3); }
@@ -75,7 +76,7 @@ body { width: 8.5in; height: 11in; background: #0a0908; color: #fff; font-family
     <p class="bio">Luchi Beats is a producer and engineer out of Paterson, New Jersey. Over the years he has produced, recorded and mixed records for some of the most respected names in the culture, from street anthems to soulful, layered productions. Artists know him as a one-stop shop: the beat, the vocal session and the mix, all with the same focus.</p>
     <div class="facts">
       <div><b>DOES</b>Production · Recording · Mixing &amp; Mastering</div>
-      <div><b>GENRES</b>Hip-Hop · Trap · R&amp;B · Afrobeats</div>
+      <div><b>GENRES</b>Hip-Hop · Latin Hip-Hop · Reggaeton · Trap · R&amp;B · Afrobeats</div>
       <div><b>LIVE</b>Luchi Beats &amp; Friends on YouTube</div>
     </div>
   </div>
