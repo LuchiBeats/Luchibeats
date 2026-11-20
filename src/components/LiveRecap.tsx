@@ -112,25 +112,31 @@ function RecapVideo({ id, base, label, codecs, vertical = false }: { id: string;
   );
 }
 
+// The two videos side by side (stacked on phones). Also used on the Press page, where each
+// figure's id is the link target for the press kit PDF's video tiles (/press#recap, /press#behind-the-scenes).
+export function RecapPair() {
+  return (
+    <div className="live-recap-pair">
+      <figure id="recap" className="live-recap-main scroll-mt-28">
+        <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2"
+          label="Luchi Beats live recap video, music: Maestro by Luchi Beats" />
+        <figcaption className="live-recap-cap">The Recap <span>· Music: <b>Maestro</b> (Prod. Luchi Beats)</span></figcaption>
+      </figure>
+      <figure id="behind-the-scenes" className="live-recap-side scroll-mt-28">
+        <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" vertical
+          label="Luchi Beats live, behind the scenes" />
+        <figcaption className="live-recap-cap">Behind the Scenes</figcaption>
+      </figure>
+    </div>
+  );
+}
+
 export default function LiveRecap() {
   return (
     <section data-light="gold" className="relative max-w-6xl mx-auto px-4 pt-10 md:pt-16 pb-10 md:pb-16 text-center">
       <p className="eyebrow mb-3">From the Studio</p>
       <h2 className="section-title mb-8 md:mb-10">Luchi Beats Live Recap Videos</h2>
-
-      <div className="live-recap-pair">
-        <figure className="live-recap-main">
-          <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2"
-            label="Luchi Beats live recap video, music: Maestro by Luchi Beats" />
-          <figcaption className="live-recap-cap">The Recap <span>· Music: <b>Maestro</b> (Prod. Luchi Beats)</span></figcaption>
-        </figure>
-        <figure className="live-recap-side">
-          <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" vertical
-            label="Luchi Beats live, behind the scenes" />
-          <figcaption className="live-recap-cap">Behind the Scenes</figcaption>
-        </figure>
-      </div>
-
+      <RecapPair />
       <Link href="/live" data-magnetic className="btn-outline mt-8 md:mt-10 inline-flex items-center gap-2 px-8 py-3 rounded text-sm tracking-wide">
         Watch the Streams <ArrowRight size={16} />
       </Link>

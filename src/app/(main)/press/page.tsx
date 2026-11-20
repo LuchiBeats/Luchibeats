@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Download, FileText } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
+import { RecapPair } from "@/components/LiveRecap";
 import { collaborators } from "@/lib/collaborators";
 import { getHomepageContent, type ProductionVideo } from "@/lib/beats-store";
 
@@ -83,6 +84,15 @@ export default async function PressPage() {
             <div><dt>Live</dt><dd><Link href="/live" className="underline decoration-[rgba(229,199,107,0.5)] underline-offset-4 hover:text-[var(--fire-light)]">Luchi Beats &amp; Friends</Link> on YouTube</dd></div>
           </dl>
         </ScrollReveal>
+      </section>
+
+      {/* ── Videos (the press kit PDF's video tiles link here) ── */}
+      <section id="videos" className="mt-20 md:mt-24 text-center scroll-mt-28">
+        <ScrollReveal className="mb-8">
+          <p className="eyebrow mb-3">Watch</p>
+          <h2 className="section-title">Live Recap Videos</h2>
+        </ScrollReveal>
+        <RecapPair />
       </section>
 
       {/* ── Selected credits ── */}
