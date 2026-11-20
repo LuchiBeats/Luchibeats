@@ -115,18 +115,18 @@ function RecapVideo({ id, base, label, codecs, vertical = false }: { id: string;
 export default function LiveRecap() {
   return (
     <section data-light="gold" className="relative max-w-6xl mx-auto px-4 pt-10 md:pt-16 pb-10 md:pb-16 text-center">
-      <p className="eyebrow mb-3">Luchi Beats Presents</p>
-      <h2 className="section-title mb-8 md:mb-10">The 11/14 Live Stream</h2>
+      <p className="eyebrow mb-3">From the Studio</p>
+      <h2 className="section-title mb-8 md:mb-10">Luchi Beats Live Recap Videos</h2>
 
       <div className="live-recap-pair">
         <figure className="live-recap-main">
           <RecapVideo id="recap" base="/video/live-recap" codecs="vp09.00.40.08, mp4a.40.2"
-            label="11/14 live stream recap, music: Maestro by Luchi Beats" />
+            label="Luchi Beats live recap video, music: Maestro by Luchi Beats" />
           <figcaption className="live-recap-cap">The Recap <span>· Music: <b>Maestro</b> (Prod. Luchi Beats)</span></figcaption>
         </figure>
         <figure className="live-recap-side">
           <RecapVideo id="bts" base="/video/live-bts" codecs="vp09.00.40.08, mp4a.40.5" vertical
-            label="Behind the scenes at the 11/14 live stream" />
+            label="Luchi Beats live, behind the scenes" />
           <figcaption className="live-recap-cap">Behind the Scenes</figcaption>
         </figure>
       </div>
